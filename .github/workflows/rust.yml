@@ -1,0 +1,13 @@
+name: Rust Lint & Format Check
+on: [push, pull_request]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust
+        run: rustup update stable
+      - name: Run Clippy
+        run: cargo clippy -- -D warnings # Treat warnings as errors
+      - name: Check Formatting
+        run: cargo fmt -- --check # Fail if not formatted
