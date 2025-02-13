@@ -8,7 +8,7 @@ use std::{
 #[derive(Serialize, Deserialize, Debug)]
 
 pub struct FileInfo {
-    name: String,
+    pub name: String,
     size: u64,
     created_at: String,
     modified_at: String,
