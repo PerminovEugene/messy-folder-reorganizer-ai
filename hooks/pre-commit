@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Exit on any failure
+set -e
+
+# Format check
+echo "Checking formatting..."
+cargo fmt -- --check
+
+# Linter check
+echo "Running linter (clippy)..."
+cargo clippy -- -D warnings
+
+# Check for compilation warnings
+echo "Checking for warnings..."
+cargo check --tests --all-features
+
+echo "All checks passed! Proceeding with commit."

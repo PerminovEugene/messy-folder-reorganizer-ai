@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::error::Error;
 
 pub async fn ask_ai_for_reordering_plan(
-    files_data: &Vec<FileInfo>,
+    files_data: &[FileInfo],
     model: String,
     show_ai_thinking: bool,
     show_promt: bool,
@@ -60,10 +60,10 @@ pub async fn ask_ai_for_reordering_plan(
     let mut thinking_is_over = false;
     while let Some(chunk) = response.chunk().await? {
         let olama_response_token = serde_json::from_slice::<OllamaResponse>(&chunk)?;
-        if show_ai_thinking == true {
+        if show_ai_thinking {
             print!("{}", olama_response_token.response);
         }
-        if thinking_is_over == true {
+        if thinking_is_over {
             response_text.push_str(&olama_response_token.response);
         }
         if olama_response_token.response == "</think>" {

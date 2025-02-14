@@ -18,10 +18,10 @@ Before using this application, you need to install the following dependencies:
 
 ### Setup for macOS
 
-0. Install or update `Xcode`.
-1. Install `cmake`.
-2. Install `ollama`.
-3. Download the required LLM via Ollama:
+1. Install or update `Xcode`.
+2. Install `cmake`.
+3. Install `ollama`.
+4. Download the required LLM via Ollama:
 
    ```sh
    ollama pull deepseek-r1:latest
@@ -31,7 +31,7 @@ Before using this application, you need to install the following dependencies:
 
    It is recommended to use an LLM with a higher number of nodes for more accurate results. This project has been tested with `deepseek-r1:latest`, so if you don’t have a preference, use that model.
 
-4. Run the application:
+5. Run the application:
 
    ```sh
    cargo run -- -M deepseek-r1:latest --show-ai-thinking --path ./test_cases/messy-folder
@@ -54,15 +54,38 @@ The application provides several command-line flags to configure its behavior. B
 
 ### Example Usage
 
+If you want to use it globally, while it's not published:
+
+1. build with `cargo build --release`
+2. `sudo mv target/release/mess-cleaner-ai /usr/local/bin/mess-cleaner-ai`
+
 ```sh
 # Basic usage
-my_app --model gpt-4 --path ./documents
+mess-cleaner-ai --model deepseek-r1:latest --path ./documents
 
 # Enable recursive processing and show AI thinking details
-my_app --model gpt-4 --path ./documents --recursive --show-ai-thinking
+mess-cleaner-ai --model deepseek-r1:latest --path ./documents --recursive --show-ai-thinking
 
 # Force apply changes without review
-my_app --model gpt-4 --path ./documents --force-apply
+mess-cleaner-ai --model deepseek-r1:latest --path ./documents --force-apply
 ```
 
 Ensure that required arguments (`--model` and `--path`) are provided for the application to function correctly.
+
+### Contribution
+
+Before contribution please run `bash setup-hooks.sh`.
+This will create git precommit hook, which will run linters before commit.
+
+### TODO
+
+1. Build and publish builded version
+2. Improve CLI user experience
+3. Extend flags with possiblity to configure address for ai server
+4. Add tests
+5. Improve CI/CD and add pre-commit hook
+6. Fix warnings
+7. clean up plan and souce?
+8. Rollback?
+9. Handle files name collision case
+10. Multiple AI requests for improvements
