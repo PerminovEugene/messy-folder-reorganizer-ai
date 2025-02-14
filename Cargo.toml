@@ -2,7 +2,15 @@
 name = "mess-cleaner-ai"
 version = "0.1.0"
 edition = "2021"
-authors = ["Eugene Perminov"]
+authors = ["Eugene Perminov <perminov.eugene@gmail.com>"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/PerminovEugene/Mess-Cleaner-AI"
+homepage = "https://github.com/PerminovEugene/Mess-Cleaner-AI"
+description = "An AI-powered tool to organize messy folders intelligently."
+readme = "README.md"
+keywords = ["AI", "file-organization", "automation", "cli", "Rust", "ollama"]
+categories = ["command-line-utilities", "artificial-intelligence"]
+rust-version = "1.84"  # Set the minimum required Rust version
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
@@ -11,3 +19,4 @@ reqwest = { version = "0.11", features = ["blocking", "json", "multipart"] }
 tokio = { version = "1", features = ["full"] }
 clap = { version = "4.4", features = ["derive"] }
 path-clean = "1.0.1"
+colored = "3.0.0"

@@ -1,3 +1,4 @@
+use colored::Colorize;
 use path_clean::PathClean;
 use std::{fs, path::PathBuf};
 
@@ -21,7 +22,7 @@ pub fn apply_plan(path: String) -> std::io::Result<()> {
         let new_path = base_path.join(plan_item.new_path).clean();
 
         println!(
-            "Move file {} to {:?}",
+            "Moving file {} to {:?}",
             original_path.to_string_lossy(),
             new_path
         );
@@ -40,6 +41,6 @@ pub fn apply_plan(path: String) -> std::io::Result<()> {
         }
     }
 
-    println!("Plan applied successfully");
+    println!("{}", "Files reorganization is done".green());
     Ok(())
 }

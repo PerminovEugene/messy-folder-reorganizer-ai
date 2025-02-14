@@ -79,7 +79,7 @@ This will create git precommit hook, which will run linters before commit.
 
 ### TODO
 
-1. Build and publish builded version
+1. Try to publish to homebrew
 2. Improve CLI user experience
 3. Extend flags with possiblity to configure address for ai server
 4. Add tests
