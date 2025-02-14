@@ -1,4 +1,5 @@
 use clap::Parser;
+use colored::Colorize;
 
 mod ai;
 mod args;
@@ -26,7 +27,7 @@ async fn main() {
         &files_data,
         args.model,
         args.show_ai_thinking,
-        args.show_promt,
+        args.show_prompt,
     )
     .await;
 
@@ -34,11 +35,11 @@ async fn main() {
 
     if args.force_apply
         || ask_confirmation(
-            "Are you satisfied with files reoraganization pland and want to apply it?",
+            "❓ Are you satisfied with the file reorganization plan? Would you like to apply it?",
         )
     {
         apply_plan(args.path).unwrap();
     } else {
-        println!("Files location were not updated")
+        println!("{}", "🚫 File locations were not updated.".yellow())
     }
 }

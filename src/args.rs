@@ -35,12 +35,12 @@ pub struct Args {
     pub show_ai_thinking: bool,
 
     #[arg(
-        long = "show-promt",
+        long = "show-prompt",
         short = 'S',
         default_value_t = false,
-        help = "Will show promt for AI"
+        help = "Will show prompt for AI"
     )]
-    pub show_promt: bool,
+    pub show_prompt: bool,
 
     #[arg(
         long = "force-apply",

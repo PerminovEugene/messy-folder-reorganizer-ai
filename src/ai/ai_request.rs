@@ -1,14 +1,15 @@
-use crate::{ai::promt::PROMT, file_info::FileInfo};
+use colored::Colorize;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-
 use std::error::Error;
+
+use crate::{ai::prompt::PROMPT, file_info::FileInfo};
 
 pub async fn ask_ai_for_reordering_plan(
     files_data: &[FileInfo],
     model: String,
     show_ai_thinking: bool,
-    show_promt: bool,
+    show_prompt: bool,
 ) -> Result<String, Box<dyn Error>> {
     let client = Client::new();
 
@@ -16,17 +17,23 @@ pub async fn ask_ai_for_reordering_plan(
     let file_names = files_data.iter().map(|d| &d.name).collect::<Vec<_>>();
     let file_data_json = serde_json::to_string_pretty(&file_names)?;
 
-    // Define the AI promt
-    let promt = format!("{}\n{}", PROMT, file_data_json);
+    // Define the AI prompt
+    let prompt_with_input = format!("{}\n{}", PROMPT, file_data_json);
 
-    println!("Asking AI for help with file organization...");
-    if show_promt {
-        println!("Promt: {}", promt);
+    if show_prompt {
+        println!("{}", "Prompt:".green());
+        println!("{}", prompt_with_input);
+        println!();
     }
+
+    println!(
+        "{}",
+        "🤖 Requesting AI assistance for file organization...".green()
+    );
 
     let request_body = OllamaRequest {
         model,
-        promt,
+        prompt: prompt_with_input,
         stream: true, // Enable streaming
         // model configuration params
         mirostat: 0,         // Disable Mirostat for more control over output structure
@@ -44,36 +51,46 @@ pub async fn ask_ai_for_reordering_plan(
         min_p: 0.05,         // Ensure balance between quality and variety
     };
 
-    let mut response = client
+    let mut response_text = String::new();
+
+    println!();
+
+    if show_ai_thinking {
+        println!("{}", "🤖 LLM Response:".green());
+    } else {
+        println!("{}", "🤖 LLM is thinking...".green());
+    }
+    let mut thinking_is_over = false;
+    match client
         .post("http://localhost:11434/api/generate")
         .json(&request_body)
         .send()
-        .await?;
-
-    let mut response_text = String::new();
-
-    if show_ai_thinking {
-        println!("LLM Response:");
-    } else {
-        print!("LLM Thinking...");
-    }
-    let mut thinking_is_over = false;
-    while let Some(chunk) = response.chunk().await? {
-        let olama_response_token = serde_json::from_slice::<OllamaResponse>(&chunk)?;
-        if show_ai_thinking {
-            print!("{}", olama_response_token.response);
+        .await
+    {
+        Ok(mut response) => {
+            while let Some(chunk) = response.chunk().await? {
+                let olama_response_token = serde_json::from_slice::<OllamaResponse>(&chunk)?;
+                if show_ai_thinking {
+                    print!("{}", olama_response_token.response);
+                }
+                if thinking_is_over {
+                    response_text.push_str(&olama_response_token.response);
+                }
+                if olama_response_token.response == "</think>" {
+                    thinking_is_over = true;
+                }
+            }
         }
-        if thinking_is_over {
-            response_text.push_str(&olama_response_token.response);
-        }
-        if olama_response_token.response == "</think>" {
-            thinking_is_over = true;
+        Err(e) => {
+            eprintln!("Request failed: {}", e);
+            panic!("Error from request to LLM")
         }
     }
 
     let response_text = clean_json_string(&response_text);
-
-    println!("New folders structure: {}", response_text);
+    println!();
+    println!("{}", "📁 New Folder Structure:".green());
+    println!("{}", response_text);
     Ok(response_text)
 }
 
@@ -99,7 +116,7 @@ fn clean_json_string(input: &str) -> String {
 #[derive(Serialize)]
 struct OllamaRequest {
     model: String,
-    promt: String,
+    prompt: String,
     stream: bool,
     // model configuration params https://github.com/ollama/ollama/blob/main/docs/api.md
     mirostat: u8,        // 0 = disabled, 1 = Mirostat, 2 = Mirostat 2.0

@@ -1,8 +1,9 @@
+use colored::Colorize;
 use std::io::{self, Write};
 
-pub fn ask_confirmation(promt: &str) -> bool {
-    print!("{} (y/n): ", promt);
-    io::stdout().flush().unwrap(); // Ensure promt is displayed immediately
+pub fn ask_confirmation(prompt: &str) -> bool {
+    print!("{} (y/n): ", prompt.green());
+    io::stdout().flush().unwrap(); // Ensure prompt is displayed immediately
 
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
@@ -12,7 +13,7 @@ pub fn ask_confirmation(promt: &str) -> bool {
         "n" | "no" => false,
         _ => {
             println!("Invalid input. Please enter 'y' or 'n'.");
-            ask_confirmation(promt) // Recursively ask again
+            ask_confirmation(prompt) // Recursively ask again
         }
     }
 }

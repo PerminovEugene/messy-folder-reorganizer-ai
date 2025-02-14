@@ -13,6 +13,8 @@ pub fn fill_up_files_data_by_path(
 
     match fs::read_dir(base_path) {
         Ok(read_dir_res) => {
+            println!("🔍 Processing directory: {:?}", base_path);
+
             for dir in read_dir_res.flatten() {
                 let file_meta = match dir.metadata() {
                     Ok(meta) => meta,
@@ -32,7 +34,6 @@ pub fn fill_up_files_data_by_path(
                     let file_info = convert_path_meta_to_file_info(&relative_path, file_meta);
                     files_data.push(file_info);
                 } else if recursive {
-                    println!("Processing directory: {:?}", relative_path);
                     if let Some(sub_path) = dir.path().to_str() {
                         fill_up_files_data_by_path(sub_path, recursive, files_data);
                     }

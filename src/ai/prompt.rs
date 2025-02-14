@@ -1,4 +1,4 @@
-pub const PROMT: &str = "
+pub const PROMPT: &str = "
 You are an AI assistant specialized in file organization.  
 Your task is to categorize a given list of files into a structured folder system.  
 
