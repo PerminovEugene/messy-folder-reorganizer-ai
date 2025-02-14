@@ -28,3 +28,9 @@ pub fn convert_path_meta_to_file_info(path: &Path, file_meta: Metadata) -> FileI
         modified_at: get_system_time_string(file_meta.modified().unwrap_or(SystemTime::now())),
     }
 }
+
+#[derive(serde::Deserialize)]
+pub struct FilesReorganisationPlan {
+    pub original: String,
+    pub new_path: String,
+}
