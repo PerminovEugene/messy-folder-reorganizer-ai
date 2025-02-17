@@ -9,7 +9,7 @@ Your task is to categorize a given list of files into a structured folder system
 - **Determine** the most appropriate folder based on common file categories.
 - **Fallback**: If a file's purpose is unclear, place it in an `"Unknown"` folder.
 - **Respond** with a **JSON array** containing mappings of original file names to their new locations.
-- **No extra explanations**—only return the JSON.
+- **No extra explanations**—only return the VALID JSON.
 
 ### Expected Output Format:
 

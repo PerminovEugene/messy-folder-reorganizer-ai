@@ -1,32 +1,42 @@
 use std::env;
 use std::fs;
 use std::path::Path;
+use std::path::PathBuf;
 
-pub const IN_PROJECT_CONFIG_PATH: &str = include_str!("../../assets/config.toml");
-pub const IN_PROJECT_INITIAL_PROMPT_PATH: &str =
-    include_str!("../../assets/prompts/initial_sort_request.md");
+use crate::configuration::consts::CONFIGURATION_FILE;
+use crate::configuration::consts::CONFIGURATION_FOLDER;
+use crate::configuration::consts::INITIAL_PROMPT_FILE;
+use crate::configuration::consts::PROMPTS_FOLDER;
 
 pub fn init() {
+    let assets = Path::new("assets/");
+    let in_project_config_path = assets.join(CONFIGURATION_FILE);
+    let in_project_initial_prompt_path = assets.join(PROMPTS_FOLDER).join(INITIAL_PROMPT_FILE);
+
     create_application_config_folder();
 
     let config_file_path = get_config_file_path();
-    create_application_config_file(&config_file_path, IN_PROJECT_CONFIG_PATH);
+    create_application_config_file(&config_file_path, in_project_config_path);
 
     let initial_prompt_file_path = get_initial_prompt_file_path();
-    create_application_config_file(&initial_prompt_file_path, IN_PROJECT_INITIAL_PROMPT_PATH);
+    create_application_config_file(&initial_prompt_file_path, in_project_initial_prompt_path);
 }
 
-pub fn get_config_file_path() -> String {
+pub fn get_config_file_path() -> PathBuf {
     let home_dir: String = env::var("HOME").unwrap_or_else(|_| ".".to_string());
-    format!("{}/.mess-cleaner-ai/config.toml", home_dir)
+    let config_path = Path::new(home_dir.as_str())
+        .join(CONFIGURATION_FOLDER)
+        .join(CONFIGURATION_FILE);
+    config_path
 }
 
-pub fn get_initial_prompt_file_path() -> String {
+pub fn get_initial_prompt_file_path() -> PathBuf {
     let home_dir: String = env::var("HOME").unwrap_or_else(|_| ".".to_string());
-    format!(
-        "{}/.mess-cleaner-ai/prompts/initial_sort_request.md",
-        home_dir
-    )
+    let promp_path = Path::new(home_dir.as_str())
+        .join(CONFIGURATION_FOLDER)
+        .join(PROMPTS_FOLDER)
+        .join(INITIAL_PROMPT_FILE);
+    promp_path
 }
 
 fn create_application_config_folder() {
@@ -42,9 +52,19 @@ fn create_application_config_folder() {
     }
 }
 
-fn create_application_config_file(config_file_path: &String, file_data: &str) {
-    if !Path::new(&config_file_path).exists() {
-        fs::write(config_file_path, file_data).expect("Failed to write config file");
-        println!("Initialized {} file.", config_file_path);
+fn create_application_config_file(config_file_path: &Path, source: PathBuf) {
+    if !config_file_path.exists() {
+        // Ensure parent directory exists
+        if let Some(parent) = config_file_path.parent() {
+            fs::create_dir_all(parent).expect("Failed to create parent directories");
+        }
+
+        // Copy the file
+        println!("{:?}", source);
+        println!("{:?}", std::env::current_dir());
+        let content = fs::read(source).unwrap();
+        fs::write(config_file_path, content).expect("Failed to copy config file");
+
+        println!("Initialized {:?} file.", config_file_path);
     }
 }
