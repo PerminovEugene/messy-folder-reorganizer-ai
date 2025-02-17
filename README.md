@@ -108,7 +108,6 @@ If you installed some dependencies - please run `cargo +nightly udeps` to check 
 
 ## TODO
 
-- Fix -R pathes
 - Clean up plan and source.
 - Handle files name collision case.
 - Update rust version.
