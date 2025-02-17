@@ -49,4 +49,12 @@ pub struct Args {
         help = "Will apply the reordering plan without review from user side"
     )]
     pub force_apply: bool,
+
+    #[arg(
+      long = "server-address",
+      short = 'n',
+      default_value_t = String::from("http://localhost:11434/api/generate"),
+      help = "Will replace default LLM server address (default address is http://localhost:11434/api/generate)"
+  )]
+    pub ai_server_address: String,
 }

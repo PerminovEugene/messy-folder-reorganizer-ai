@@ -12,6 +12,9 @@ How It Works:
 
 Effortless, smart, and efficient—Mess-Cleaner-AI brings order to digital chaos! 🚀
 
+> ⚠️ **Warning:** Do not use `mess-cleaner-ai` on important files, such as passwords, confidential documents, or sensitive system files. In case of an unexpected bug or system interruption, the application may modify or remove data irreversibly. Always create backups before using it on valuable data.  
+> The author is not responsible for any lost or misplaced files due to the use of this application.
+
 ## Setup
 
 Before using this application, you need to install the following dependencies:
@@ -42,14 +45,15 @@ Before using this application, you need to install the following dependencies:
 
 The application provides several command-line flags to configure its behavior. Below is a table listing all available flags along with their descriptions:
 
-| Flag                 | Short | Default  | Description                                                   |
-| -------------------- | ----- | -------- | ------------------------------------------------------------- |
-| `--model`            | `-M`  | Required | Specifies the model name loaded in Ollama to use.             |
-| `--path`             | `-P`  | Required | Specifies the path to the folder containing files to reorder. |
-| `--recursive`        | `-R`  | `false`  | Determines if inner folders should be processed recursively.  |
-| `--show-ai-thinking` | `-A`  | `false`  | Displays AI thinking details during execution.                |
-| `--show-prompt`      | `-S`  | `false`  | Displays the AI prompt.                                       |
-| `--force-apply`      | `-F`  | `false`  | Applies the reordering plan without requiring user review.    |
+| Flag                 | Short | Default                               | Description                                                   |
+| -------------------- | ----- | ------------------------------------- | ------------------------------------------------------------- |
+| `--model`            | `-M`  | Required                              | Specifies the model name loaded in Ollama to use.             |
+| `--path`             | `-P`  | Required                              | Specifies the path to the folder containing files to reorder. |
+| `--recursive`        | `-R`  | `false`                               | Determines if inner folders should be processed recursively.  |
+| `--show-ai-thinking` | `-A`  | `false`                               | Displays AI thinking details during execution.                |
+| `--show-prompt`      | `-S`  | `false`                               | Displays the AI prompt.                                       |
+| `--force-apply`      | `-F`  | `false`                               | Applies the reordering plan without requiring user review.    |
+| `--server-address`   | `-n`  | `http://localhost:11434/api/generate` | Overrides the default LLM server address.                     |
 
 ### Example Usage
 
@@ -88,13 +92,12 @@ If you installed some dependencies - please run `cargo +nightly udeps` to check 
 
 ### TODO
 
-Extend flags with possiblity to configure address for ai server
-Configuration of promt
-Clean up plan and source
-Handle files name collision case
-Update rust version
-Release
+Configuration of promt.
+Clean up plan and source.
+Handle files name collision case.
+Update rust version.
+Release.
 -- tech debt --
 Rollback?
-Multiple AI requests for improvements
-Add tests
+Multiple AI requests for improvements.
+Add tests.

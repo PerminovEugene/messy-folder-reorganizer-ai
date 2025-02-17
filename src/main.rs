@@ -31,6 +31,7 @@ async fn main() {
         args.model,
         args.show_ai_thinking,
         args.show_prompt,
+        args.ai_server_address,
         config,
     )
     .await;

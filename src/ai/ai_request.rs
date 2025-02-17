@@ -16,6 +16,7 @@ pub async fn ask_ai_for_reordering_plan(
     model: String,
     show_ai_thinking: bool,
     show_prompt: bool,
+    ai_server_address: String,
     config: Config,
 ) -> Result<String, Box<dyn Error>> {
     let client = Client::new();
@@ -58,9 +59,6 @@ pub async fn ask_ai_for_reordering_plan(
         min_p: config.min_p,
     };
 
-    println!("{}", config.temperature);
-    println!("{}", config.mirostat);
-
     let mut response_text = String::new();
 
     println!();
@@ -72,7 +70,7 @@ pub async fn ask_ai_for_reordering_plan(
     }
     let mut thinking_is_over = false;
     match client
-        .post("http://localhost:11434/api/generate")
+        .post(ai_server_address)
         .json(&request_body)
         .send()
         .await
