@@ -5,7 +5,7 @@ use std::error::Error;
 use crate::{
     ai::{
         ollama_protocol::{OllamaRequest, OllamaResponse},
-        prompt::PROMPT,
+        prompt::read_initial_prompt,
     },
     configuration::config::Config,
     file_info::FileInfo,
@@ -26,7 +26,8 @@ pub async fn ask_ai_for_reordering_plan(
     let file_data_json = serde_json::to_string_pretty(&file_names)?;
 
     // Define the AI prompt
-    let prompt_with_input = format!("{}\n{}", PROMPT, file_data_json);
+    let initial_prompt = read_initial_prompt();
+    let prompt_with_input = format!("{}\n{}", initial_prompt, file_data_json);
 
     if show_prompt {
         println!("{}", "Prompt:".green());

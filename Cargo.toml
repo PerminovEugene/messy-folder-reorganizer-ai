@@ -27,5 +27,6 @@ serde_derive = "1.0.217"
 include = [
     "src/**/*",
     "assets/config.toml",
+    "assets/prompts/initial_sort_request.md",
     "Cargo.toml"
 ]

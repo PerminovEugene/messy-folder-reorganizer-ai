@@ -41,7 +41,15 @@ Before using this application, you need to install the following dependencies:
 
 ## Usage
 
-## Command-Line Flags
+### Running the Application
+
+To launch `mess-cleaner-ai`, use the following command:
+
+```sh
+mess-cleaner-ai --model <MODEL_NAME> --path <PATH_TO_FOLDER>
+```
+
+### Command-Line Flags
 
 The application provides several command-line flags to configure its behavior. Below is a table listing all available flags along with their descriptions:
 
@@ -75,29 +83,43 @@ mess-cleaner-ai --model deepseek-r1:latest --path ./documents --force-apply
 
 Ensure that required arguments (`--model` and `--path`) are provided for the application to function correctly.
 
-## Model configuration
+### Model Configuration
 
-On the first run, `mess-cleaner-ai` will create a `.mess-cleaner-ai` folder in your `$PATH` directory. Inside this folder, a `config.toml` file will be generated containing model configuration options. By default, all configuration fields will be commented out.
+On the first run, `mess-cleaner-ai` will create a `.mess-cleaner-ai` folder in your home directory. Inside this folder, a `config.toml` file will be generated, containing various model configuration options. By default, all configuration fields are commented out. You can uncomment and modify individual settings as needed—any fields left commented will fall back to their default values in the code.
 
-You can modify this file by uncommenting and adjusting specific settings to customize the behavior of the model. If you find a configuration that performs better than the default, consider creating a pull request (PR) with your suggested values and an explanation of why they improve performance.
+### Prompt Configuration
 
-Each time you launch `mess-cleaner-ai`, it will read the latest version of the configuration file. If you ever misconfigure the file, simply delete it and restart `mess-cleaner-ai`. A new configuration file with default values will be generated automatically.
+The `.mess-cleaner-ai/prompts` directory contains predefined prompts that will be sent to the LLM.  
+All source file paths will be appended to the end of the prompt automatically, so **do not include `{}` placeholders** in the prompt text.
 
-### Contribution
+You can experiment by modifying the prompts to see how they affect performance. If you discover a prompt that significantly improves results, please consider submitting a **pull request (PR)** with your suggested changes.
+
+### Automatic Configuration Recovery
+
+Each time you launch `mess-cleaner-ai`, it reads the latest versions of the configuration file and prompts.  
+If you accidentally modify or corrupt a file, simply delete it and restart `mess-cleaner-ai`—missing configuration files will be regenerated with default values automatically.
+
+## Contribution
 
 Before contribution please run `bash setup-hooks.sh`.
 This will create git precommit hook, which will run linters before commit.
 Run `cargo clippy` to reveal code problems and `cargo fmt` to fix linting errors.
 If you installed some dependencies - please run `cargo +nightly udeps` to check that all of them has been used.
 
-### TODO
+## TODO
 
-Configuration of promt.
-Clean up plan and source.
-Handle files name collision case.
-Update rust version.
-Release.
+- Fix -R pathes
+- Clean up plan and source.
+- Handle files name collision case.
+- Update rust version.
+- Release.
+
 -- tech debt --
-Rollback?
-Multiple AI requests for improvements.
-Add tests.
+
+- Rollback?
+- Multiple AI requests for improvements.
+- Add tests.
+
+-- refactoring --
+
+- separate pring messages to separated module logger
