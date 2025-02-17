@@ -11,6 +11,11 @@ readme = "README.md"
 keywords = ["AI", "file-organization", "automation", "cli", "Rust", "ollama"]
 categories = ["command-line-utilities", "artificial-intelligence"]
 rust-version = "1.84"  # Set the minimum required Rust version
+include = [
+    "src/**/*",
+    "assets/**/*",
+    "Cargo.toml"
+]
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
@@ -22,10 +27,3 @@ path-clean = "1.0.1"
 colored = "3.0.0"
 toml = "0.8.20"
 serde_derive = "1.0.217"
-
-[build]
-include = [
-    "src/**/*",
-    "assets/config.toml",
-    "Cargo.toml"
-]
