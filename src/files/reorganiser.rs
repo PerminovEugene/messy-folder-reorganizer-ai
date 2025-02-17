@@ -1,11 +1,21 @@
 use colored::Colorize;
 use path_clean::PathClean;
-use std::{fs, path::PathBuf};
+use std::{
+    env, fs,
+    path::{Path, PathBuf},
+};
 
-use crate::files::file_info::FilesReorganisationPlan;
+use crate::{
+    configuration::consts::CONFIGURATION_FOLDER,
+    files::{consts::PLAN_FILE_NAME, file_info::FilesReorganisationPlan},
+};
 
 pub fn apply_plan(path: String) -> std::io::Result<()> {
-    let plan = fs::read_to_string("./plan.json").expect("Error reading plan file");
+    let home_dir: String = env::var("HOME").unwrap_or_else(|_| ".".to_string());
+    let plan_file_path = Path::new(home_dir.as_str())
+        .join(CONFIGURATION_FOLDER)
+        .join(PLAN_FILE_NAME);
+    let plan = fs::read_to_string(plan_file_path).expect("Error reading plan file");
 
     let plan: Vec<FilesReorganisationPlan> = match serde_json::from_str(&plan) {
         Ok(parsed_plan) => parsed_plan,
