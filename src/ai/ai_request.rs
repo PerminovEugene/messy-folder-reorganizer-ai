@@ -1,15 +1,22 @@
 use colored::Colorize;
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
 use std::error::Error;
 
-use crate::{ai::prompt::PROMPT, file_info::FileInfo};
+use crate::{
+    ai::{
+        ollama_protocol::{OllamaRequest, OllamaResponse},
+        prompt::PROMPT,
+    },
+    configuration::config::Config,
+    file_info::FileInfo,
+};
 
 pub async fn ask_ai_for_reordering_plan(
     files_data: &[FileInfo],
     model: String,
     show_ai_thinking: bool,
     show_prompt: bool,
+    config: Config,
 ) -> Result<String, Box<dyn Error>> {
     let client = Client::new();
 
@@ -36,20 +43,23 @@ pub async fn ask_ai_for_reordering_plan(
         prompt: prompt_with_input,
         stream: true, // Enable streaming
         // model configuration params
-        mirostat: 0,         // Disable Mirostat for more control over output structure
-        mirostat_eta: 0.1,   // Keep default in case fine-tuning is needed
-        mirostat_tau: 5.0,   // Keep default for balance
-        num_ctx: 4096,       // Large context window for structured understanding
-        repeat_last_n: 256,  // Increase history to maintain coherence across structure
-        repeat_penalty: 1.2, // Slightly stronger penalty to avoid redundant structures
-        temperature: 0.3,    // Lower temperature for more deterministic output
-        seed: 42,            // Fixed seed for reproducibility
-        stop: "\n\n".to_string(), // Stop generation after structured response
-        num_predict: -1,     // Allow full output generation
-        top_k: 20,           // Moderate diversity for structured output
-        top_p: 0.7,          // Reduce randomness while allowing flexibility
-        min_p: 0.05,         // Ensure balance between quality and variety
+        mirostat: config.mirostat,
+        mirostat_eta: config.mirostat_eta,
+        mirostat_tau: config.mirostat_tau,
+        num_ctx: config.num_ctx,
+        repeat_last_n: config.repeat_last_n,
+        repeat_penalty: config.repeat_penalty,
+        temperature: config.temperature,
+        seed: config.seed,
+        stop: config.stop,
+        num_predict: config.num_predict,
+        top_k: config.top_k,
+        top_p: config.top_p,
+        min_p: config.min_p,
     };
+
+    println!("{}", config.temperature);
+    println!("{}", config.mirostat);
 
     let mut response_text = String::new();
 
@@ -111,33 +121,4 @@ fn clean_json_string(input: &str) -> String {
 
     // If ```json is not found, return the original string
     input.to_string()
-}
-
-#[derive(Serialize)]
-struct OllamaRequest {
-    model: String,
-    prompt: String,
-    stream: bool,
-    // model configuration params https://github.com/ollama/ollama/blob/main/docs/api.md
-    mirostat: u8,        // 0 = disabled, 1 = Mirostat, 2 = Mirostat 2.0
-    mirostat_eta: f32,   // Learning rate for Mirostat
-    mirostat_tau: f32,   // Balance between coherence and diversity
-    num_ctx: u32,        // Context window size
-    repeat_last_n: i32,  // Lookback to prevent repetition
-    repeat_penalty: f32, // Repetition penalty strength
-    temperature: f32,    // Model temperature
-    seed: u32,           // Random seed for generation
-    stop: String,        // Stop sequences
-    num_predict: i32,    // Maximum number of tokens to predict
-    top_k: u32,          // Top-k sampling value
-    top_p: f32,          // Top-p sampling value
-    min_p: f32,          // Minimum probability threshold
-}
-
-#[derive(Deserialize)]
-struct OllamaResponse {
-    response: String,
-    // model: String,
-    // created_at: String,
-    // done: bool,
 }

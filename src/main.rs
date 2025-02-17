@@ -2,11 +2,12 @@ use clap::Parser;
 use colored::Colorize;
 
 mod ai;
-mod args;
+mod configuration;
 mod console;
 mod files;
 
 use ai::ai_request::ask_ai_for_reordering_plan;
+use configuration::init::init;
 use console::confirmation::ask_confirmation;
 use files::create_file::create_plan_file;
 use files::create_file::create_source_file;
@@ -16,7 +17,9 @@ use files::reorganiser::apply_plan;
 
 #[tokio::main]
 async fn main() {
-    let args = args::Args::parse();
+    init();
+    let args = configuration::args::Args::parse();
+    let config = configuration::read_config::read_config();
 
     let mut files_data: Vec<file_info::FileInfo> = Vec::new();
 
@@ -28,6 +31,7 @@ async fn main() {
         args.model,
         args.show_ai_thinking,
         args.show_prompt,
+        config,
     )
     .await;
 
