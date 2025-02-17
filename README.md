@@ -19,9 +19,8 @@ Before using this application, you need to install the following dependencies:
 ### Setup for macOS
 
 1. Install or update `Xcode`.
-2. Install `cmake`.
-3. Install `ollama`.
-4. Download the required LLM via Ollama:
+2. Install `ollama` and launch it.
+3. Download the required LLM via Ollama:
 
    ```sh
    ollama pull deepseek-r1:latest
@@ -31,7 +30,7 @@ Before using this application, you need to install the following dependencies:
 
    It is recommended to use an LLM with a higher number of nodes for more accurate results. This project has been tested with `deepseek-r1:latest`, so if you don’t have a preference, use that model.
 
-5. Run the application:
+4. Run the application:
 
    ```sh
    cargo run -- -M deepseek-r1:latest --show-ai-thinking --path ./test_cases/messy-folder
@@ -72,20 +71,30 @@ mess-cleaner-ai --model deepseek-r1:latest --path ./documents --force-apply
 
 Ensure that required arguments (`--model` and `--path`) are provided for the application to function correctly.
 
+## Model configuration
+
+On the first run, `mess-cleaner-ai` will create a `.mess-cleaner-ai` folder in your `$PATH` directory. Inside this folder, a `config.toml` file will be generated containing model configuration options. By default, all configuration fields will be commented out.
+
+You can modify this file by uncommenting and adjusting specific settings to customize the behavior of the model. If you find a configuration that performs better than the default, consider creating a pull request (PR) with your suggested values and an explanation of why they improve performance.
+
+Each time you launch `mess-cleaner-ai`, it will read the latest version of the configuration file. If you ever misconfigure the file, simply delete it and restart `mess-cleaner-ai`. A new configuration file with default values will be generated automatically.
+
 ### Contribution
 
 Before contribution please run `bash setup-hooks.sh`.
 This will create git precommit hook, which will run linters before commit.
+Run `cargo clippy` to reveal code problems and `cargo fmt` to fix linting errors.
+If you installed some dependencies - please run `cargo +nightly udeps` to check that all of them has been used.
 
 ### TODO
 
-1. Try to publish to homebrew
-2. Improve CLI user experience
-3. Extend flags with possiblity to configure address for ai server
-4. Add tests
-5. Improve CI/CD and add pre-commit hook
-6. Fix warnings
-7. clean up plan and souce?
-8. Rollback?
-9. Handle files name collision case
-10. Multiple AI requests for improvements
+Extend flags with possiblity to configure address for ai server
+Configuration of promt
+Clean up plan and source
+Handle files name collision case
+Update rust version
+Release
+-- tech debt --
+Rollback?
+Multiple AI requests for improvements
+Add tests
