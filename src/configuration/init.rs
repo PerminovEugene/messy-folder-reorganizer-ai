@@ -9,7 +9,7 @@ use crate::configuration::consts::INITIAL_PROMPT_FILE;
 use crate::configuration::consts::PROMPTS_FOLDER;
 
 pub fn init() {
-    let assets = Path::new("assets/");
+    let assets = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets");
     let in_project_config_path = assets.join(CONFIGURATION_FILE);
     let in_project_initial_prompt_path = assets.join(PROMPTS_FOLDER).join(INITIAL_PROMPT_FILE);
 

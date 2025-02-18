@@ -1,3 +1,5 @@
+use colored::Colorize;
+use core::panic;
 use std::fs;
 use std::path::Path;
 
@@ -8,6 +10,7 @@ pub fn fill_up_files_data_by_path(
     base_path_str: &str,
     inner_path: &str,
     recursive: bool,
+    skip_problematic_dir: bool,
     files_data: &mut Vec<FileInfo>,
 ) {
     let base_path_buf = Path::new(base_path_str).join(inner_path);
@@ -15,7 +18,7 @@ pub fn fill_up_files_data_by_path(
 
     match fs::read_dir(base_path) {
         Ok(read_dir_res) => {
-            println!("🔍 Processing directory: {:?}", base_path);
+            println!("{} {:?}", "🔍 Processing directory:".green(), base_path);
 
             for dir in read_dir_res.flatten() {
                 let file_meta = match dir.metadata() {
@@ -43,6 +46,7 @@ pub fn fill_up_files_data_by_path(
                             base_path_str,
                             full_sub_path_str,
                             recursive,
+                            skip_problematic_dir,
                             files_data,
                         );
                     }
@@ -51,6 +55,10 @@ pub fn fill_up_files_data_by_path(
         }
         Err(err) => {
             eprintln!("Error reading directory {:?}: {:?}", base_path, err);
+            if !skip_problematic_dir {
+                panic!("Error reading directory {:?}: {:?}", base_path, err);
+            }
         }
     }
+    println!();
 }

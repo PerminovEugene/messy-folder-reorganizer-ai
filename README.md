@@ -53,15 +53,16 @@ mess-cleaner-ai --model <MODEL_NAME> --path <PATH_TO_FOLDER>
 
 The application provides several command-line flags to configure its behavior. Below is a table listing all available flags along with their descriptions:
 
-| Flag                 | Short | Default                               | Description                                                   |
-| -------------------- | ----- | ------------------------------------- | ------------------------------------------------------------- |
-| `--model`            | `-M`  | Required                              | Specifies the model name loaded in Ollama to use.             |
-| `--path`             | `-P`  | Required                              | Specifies the path to the folder containing files to reorder. |
-| `--recursive`        | `-R`  | `false`                               | Determines if inner folders should be processed recursively.  |
-| `--show-ai-thinking` | `-A`  | `false`                               | Displays AI thinking details during execution.                |
-| `--show-prompt`      | `-S`  | `false`                               | Displays the AI prompt.                                       |
-| `--force-apply`      | `-F`  | `false`                               | Applies the reordering plan without requiring user review.    |
-| `--server-address`   | `-n`  | `http://localhost:11434/api/generate` | Overrides the default LLM server address.                     |
+| Flag                     | Short | Default                               | Description                                                   |
+| ------------------------ | ----- | ------------------------------------- | ------------------------------------------------------------- |
+| `--model`                | `-M`  | Required                              | Specifies the model name loaded in Ollama to use.             |
+| `--path`                 | `-P`  | Required                              | Specifies the path to the folder containing files to reorder. |
+| `--recursive`            | `-R`  | `false`                               | Determines if inner folders should be processed recursively.  |
+| `--show-ai-thinking`     | `-A`  | `false`                               | Displays AI thinking details during execution.                |
+| `--show-prompt`          | `-S`  | `false`                               | Displays the AI prompt.                                       |
+| `--force-apply`          | `-F`  | `false`                               | Applies the reordering plan without requiring user review.    |
+| `--server-address`       | `-n`  | `http://localhost:11434/api/generate` | Overrides the default LLM server address.                     |
+| `--skip-problematic-dir` | `-d`  | `false`                               | Will skip problematic directories and files.                  |
 
 ### Example Usage
 
@@ -86,6 +87,7 @@ Ensure that required arguments (`--model` and `--path`) are provided for the app
 ### Model Configuration
 
 On the first run, `mess-cleaner-ai` will create a `.mess-cleaner-ai` folder in your home directory. Inside this folder, a `config.toml` file will be generated, containing various model configuration options. By default, all configuration fields are commented out. You can uncomment and modify individual settings as needed—any fields left commented will fall back to their default values in the code.
+More info about parameters is [https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values](here).
 
 ### Prompt Configuration
 
@@ -108,17 +110,18 @@ If you installed some dependencies - please run `cargo +nightly udeps` to check 
 
 ## TODO
 
-- Clean up plan and source.
-- Handle files name collision case.
-- Update rust version.
+- Fix panic on huge amount of files
 - Release.
 
 -- tech debt --
 
+- Handle file names collision case.
 - Rollback?
-- Multiple AI requests for improvements.
+- Improve error handling.
+- Multiple AI requests for result improvements.
 - Add tests.
+- Update rust version.
 
 -- refactoring --
 
-- separate pring messages to separated module logger
+- move print messages to separated logger module
