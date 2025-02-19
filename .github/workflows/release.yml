@@ -89,11 +89,23 @@ jobs:
           copy target\${{ matrix.target }}\release\messy-folder-reorganizer-ai.exe release\
           7z a messy-folder-reorganizer-ai-${{ matrix.target }}.zip release\messy-folder-reorganizer-ai.exe
 
+      - name: List built binaries
+        run: ls -lah release/
+
       - name: Upload Release Binaries
+        if: matrix.os == 'windows-latest'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            messy-folder-reorganizer-ai-*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+
+      - name: Upload Release Binaries
+        if: matrix.os != 'windows-latest'
         uses: softprops/action-gh-release@v2
         with:
           files: |
             messy-folder-reorganizer-ai-*.tar.gz
-            messy-folder-reorganizer-ai-*.zip
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
