@@ -1,6 +1,6 @@
 [package]
 name = "messy-folder-reorganizer-ai"
-version = "0.1.0"
+version = "0.1.8"
 edition = "2021"
 authors = ["Eugene Perminov <perminov.eugene@gmail.com>"]
 license = "MIT OR Apache-2.0"

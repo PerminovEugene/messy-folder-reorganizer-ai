@@ -5,7 +5,6 @@ use std::path::{Path, PathBuf};
 use crate::configuration::consts::{
     CONFIGURATION_FILE, CONFIGURATION_FOLDER, INITIAL_PROMPT_FILE, PROMPTS_FOLDER,
 };
-// Make sure you can access the embedded constants (either inline or in another mod)
 use crate::configuration::embedded_assets::{CONFIG_FILE_BYTES, INITIAL_PROMPT_FILE_BYTES};
 
 pub fn init() {

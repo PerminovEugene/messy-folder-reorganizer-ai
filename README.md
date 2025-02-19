@@ -35,30 +35,52 @@ Before using this application, you need to install the following dependencies:
 
 4. Download latest release
 
-```sh
-curl -s https://api.github.com/repos/PerminovEugene/messy-folder-reorganizer-ai/releases/latest | \
-  grep "browser_download_url.*messy-folder-reorganizer-ai-aarch64-apple-darwin.tar.gz" | \
-  cut -d '"' -f 4 | \
-  xargs curl -L -o messy-folder-reorganizer-ai-macos.tar.gz
-```
+   ```sh
+   curl -s https://api.github.com/repos/PerminovEugene/messy-folder-reorganizer-ai/releases/latest | \
+     grep "browser_download_url.*messy-folder-reorganizer-ai-aarch64-apple-darwin.tar.gz" | \
+     cut -d '"' -f 4 | \
+     xargs curl -L -o messy-folder-reorganizer-ai-macos.tar.gz
+   ```
 
 5. Extract the file
 
-```sh
-tar -xvzf messy-folder-reorganizer-ai-macos.tar.gz
-```
+   ```sh
+   tar -xvzf messy-folder-reorganizer-ai-macos.tar.gz
+   ```
 
 6. Move to `/usr/local/bin` for system-wide use
 
-```sh
-sudo mv messy-folder-reorganizer-ai /usr/local/bin/messy-folder-reorganizer-ai
-```
+   ```sh
+   sudo mv messy-folder-reorganizer-ai /usr/local/bin/messy-folder-reorganizer-ai
+   ```
 
 7. Verify installation
 
-```sh
-messy-folder-reorganizer-ai --help
-```
+   ```sh
+   messy-folder-reorganizer-ai --help
+   ```
+
+### Build from sources
+
+If you want to build it from sources by yourself:
+
+1. Pull repository
+
+   ```sh
+   git clone git@github.com:PerminovEugene/messy-folder-reorganizer-ai.git
+   ```
+
+2. Build project with
+
+   ```sh
+   cargo build --release
+   ```
+
+3. Launch with
+
+   ```sh
+   cargo run -- -M deepseek-r1:latest --show-ai-thinking  --path ./../../Documents/ -S
+   ```
 
 ## Usage
 
@@ -85,16 +107,11 @@ The application provides several command-line flags to configure its behavior. B
 | `--server-address`       | `-n`  | `http://localhost:11434/api/generate` | Overrides the default LLM server address.                     |
 | `--skip-problematic-dir` | `-d`  | `false`                               | Will skip problematic directories and files.                  |
 
-### Example Usage
-
-If you want to use it globally, while it's not published:
-
-1. build with `cargo build --release`
-2. `sudo mv target/release/messy-folder-reorganizer-ai /usr/local/bin/messy-folder-reorganizer-ai`
+### Usage examples
 
 ```sh
 # Basic usage
-messy-folder-reorganizer-ai --model deepseek-r1:latest --path ./documents
+messy-folder-reorganizer-ai -M deepseek-r1:latest -P ./../../Downloads -S -A
 
 # Enable recursive processing and show AI thinking details
 messy-folder-reorganizer-ai --model deepseek-r1:latest --path ./documents --recursive --show-ai-thinking
@@ -143,8 +160,6 @@ rm -rf ~/.messy-folder-reorganizer-ai
 
 ## TODO
 
-- Release.
-
 ### Next releases debt and ideas
 
 - Multiple AI requests for result improvements.
@@ -156,6 +171,7 @@ rm -rf ~/.messy-folder-reorganizer-ai
 - Improve error handling.
 - Add tests.
 - Update rust version.
+- Enable cross platform builds if somebody will be interested
 
 ### Refactoring ideas
 
