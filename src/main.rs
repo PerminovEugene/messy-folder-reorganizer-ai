@@ -15,8 +15,12 @@ use files::dirr_processing::fill_up_files_data_by_path;
 use files::file_info;
 use files::reorganiser::apply_plan;
 
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 #[tokio::main]
 async fn main() {
+    println!("Messy-folder-reorganizer-ai - Version {}", VERSION);
+
     init();
     let args = configuration::args::Args::parse();
     let config = configuration::read_config::read_config();

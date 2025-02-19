@@ -1,0 +1,59 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - "v*" # Trigger when pushing a tag like v0.1.0
+
+jobs:
+  build:
+    name: Build and Release Binaries
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        target:
+          [
+            x86_64-unknown-linux-gnu,
+            aarch64-unknown-linux-gnu,
+            x86_64-apple-darwin,
+            aarch64-apple-darwin,
+            x86_64-pc-windows-msvc,
+          ]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Add Target for Cross Compilation
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Build Release Binary
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Package Binary (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        run: |
+          mkdir -p release
+          cp target/${{ matrix.target }}/release/messy-folder-reorganizer-ai release/
+          tar -czvf messy-folder-reorganizer-ai-${{ matrix.target }}.tar.gz -C release messy-folder-reorganizer-ai
+
+      - name: Package Binary (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          mkdir release
+          copy target\${{ matrix.target }}\release\messy-folder-reorganizer-ai.exe release\
+          7z a messy-folder-reorganizer-ai-${{ matrix.target }}.zip release\messy-folder-reorganizer-ai.exe
+
+      - name: Upload Release Binaries
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            messy-folder-reorganizer-ai-*.tar.gz
+            messy-folder-reorganizer-ai-*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
