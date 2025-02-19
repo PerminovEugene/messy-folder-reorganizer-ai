@@ -23,7 +23,13 @@ async fn main() {
 
     let mut files_data: Vec<file_info::FileInfo> = Vec::new();
 
-    fill_up_files_data_by_path(&args.path, "", args.recursive, &mut files_data);
+    fill_up_files_data_by_path(
+        &args.path,
+        "",
+        args.recursive,
+        args.skip_problematic_dir,
+        &mut files_data,
+    );
     create_source_file(&files_data);
 
     let plan = ask_ai_for_reordering_plan(

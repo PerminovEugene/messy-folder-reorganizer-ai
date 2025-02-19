@@ -1,11 +1,11 @@
 [package]
-name = "mess-cleaner-ai"
+name = "messy-folder-reorganizer-ai"
 version = "0.1.0"
 edition = "2021"
 authors = ["Eugene Perminov <perminov.eugene@gmail.com>"]
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/PerminovEugene/Mess-Cleaner-AI"
-homepage = "https://github.com/PerminovEugene/Mess-Cleaner-AI"
+repository = "https://github.com/PerminovEugene/messy-folder-reorganizer-ai"
+homepage = "https://github.com/PerminovEugene/messy-folder-reorganizer-ai"
 description = "An AI-powered tool to organize messy folders intelligently."
 readme = "README.md"
 keywords = ["AI", "file-organization", "automation", "cli", "Rust", "ollama"]

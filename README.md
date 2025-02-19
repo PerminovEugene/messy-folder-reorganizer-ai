@@ -1,6 +1,6 @@
-# Mess-Cleaner-AI
+# messy-folder-reorganizer-ai
 
-## Mess-Cleaner-AI is an AI-powered file organization tool that helps you tidy up messy folders effortlessly.
+## messy-folder-reorganizer-ai is an AI-powered file organization tool that helps you tidy up messy folders effortlessly.
 
 How It Works:
 
@@ -10,9 +10,9 @@ How It Works:
 4. AI Suggestion – The AI returns a structured plan with new file paths.
 5. User Decision – The user reviews the AI’s suggested structure and chooses whether to apply it.
 
-Effortless, smart, and efficient—Mess-Cleaner-AI brings order to digital chaos! 🚀
+Effortless, smart, and efficient—messy-folder-reorganizer-ai brings order to digital chaos! 🚀
 
-> ⚠️ **Warning:** Do not use `mess-cleaner-ai` on important files, such as passwords, confidential documents, or sensitive system files. In case of an unexpected bug or system interruption, the application may modify or remove data irreversibly. Always create backups before using it on valuable data.  
+> ⚠️ **Warning:** Do not use `messy-folder-reorganizer-ai` on important files, such as passwords, confidential documents, or sensitive system files. In case of an unexpected bug or system interruption, the application may modify or remove data irreversibly. Always create backups before using it on valuable data.  
 > The author is not responsible for any lost or misplaced files due to the use of this application.
 
 ## Setup
@@ -43,61 +43,66 @@ Before using this application, you need to install the following dependencies:
 
 ### Running the Application
 
-To launch `mess-cleaner-ai`, use the following command:
+To launch `messy-folder-reorganizer-ai`, use the following command:
 
 ```sh
-mess-cleaner-ai --model <MODEL_NAME> --path <PATH_TO_FOLDER>
+messy-folder-reorganizer-ai --model <MODEL_NAME> --path <PATH_TO_FOLDER>
 ```
 
 ### Command-Line Flags
 
 The application provides several command-line flags to configure its behavior. Below is a table listing all available flags along with their descriptions:
 
-| Flag                 | Short | Default                               | Description                                                   |
-| -------------------- | ----- | ------------------------------------- | ------------------------------------------------------------- |
-| `--model`            | `-M`  | Required                              | Specifies the model name loaded in Ollama to use.             |
-| `--path`             | `-P`  | Required                              | Specifies the path to the folder containing files to reorder. |
-| `--recursive`        | `-R`  | `false`                               | Determines if inner folders should be processed recursively.  |
-| `--show-ai-thinking` | `-A`  | `false`                               | Displays AI thinking details during execution.                |
-| `--show-prompt`      | `-S`  | `false`                               | Displays the AI prompt.                                       |
-| `--force-apply`      | `-F`  | `false`                               | Applies the reordering plan without requiring user review.    |
-| `--server-address`   | `-n`  | `http://localhost:11434/api/generate` | Overrides the default LLM server address.                     |
+| Flag                     | Short | Default                               | Description                                                   |
+| ------------------------ | ----- | ------------------------------------- | ------------------------------------------------------------- |
+| `--model`                | `-M`  | Required                              | Specifies the model name loaded in Ollama to use.             |
+| `--path`                 | `-P`  | Required                              | Specifies the path to the folder containing files to reorder. |
+| `--recursive`            | `-R`  | `false`                               | Determines if inner folders should be processed recursively.  |
+| `--show-ai-thinking`     | `-A`  | `false`                               | Displays AI thinking details during execution.                |
+| `--show-prompt`          | `-S`  | `false`                               | Displays the AI prompt.                                       |
+| `--force-apply`          | `-F`  | `false`                               | Applies the reordering plan without requiring user review.    |
+| `--server-address`       | `-n`  | `http://localhost:11434/api/generate` | Overrides the default LLM server address.                     |
+| `--skip-problematic-dir` | `-d`  | `false`                               | Will skip problematic directories and files.                  |
 
 ### Example Usage
 
 If you want to use it globally, while it's not published:
 
 1. build with `cargo build --release`
-2. `sudo mv target/release/mess-cleaner-ai /usr/local/bin/mess-cleaner-ai`
+2. `sudo mv target/release/messy-folder-reorganizer-ai /usr/local/bin/messy-folder-reorganizer-ai`
 
 ```sh
 # Basic usage
-mess-cleaner-ai --model deepseek-r1:latest --path ./documents
+messy-folder-reorganizer-ai --model deepseek-r1:latest --path ./documents
 
 # Enable recursive processing and show AI thinking details
-mess-cleaner-ai --model deepseek-r1:latest --path ./documents --recursive --show-ai-thinking
+messy-folder-reorganizer-ai --model deepseek-r1:latest --path ./documents --recursive --show-ai-thinking
 
 # Force apply changes without review
-mess-cleaner-ai --model deepseek-r1:latest --path ./documents --force-apply
+messy-folder-reorganizer-ai --model deepseek-r1:latest --path ./documents --force-apply
 ```
 
 Ensure that required arguments (`--model` and `--path`) are provided for the application to function correctly.
 
 ### Model Configuration
 
-On the first run, `mess-cleaner-ai` will create a `.mess-cleaner-ai` folder in your home directory. Inside this folder, a `config.toml` file will be generated, containing various model configuration options. By default, all configuration fields are commented out. You can uncomment and modify individual settings as needed—any fields left commented will fall back to their default values in the code.
+On the first run, `messy-folder-reorganizer-ai` will create a `.messy-folder-reorganizer-ai` folder in your home directory. Inside this folder, a `config.toml` file will be generated, containing various model configuration options. By default, all configuration fields are commented out and won't be sent. You can uncomment and modify individual settings as needed—any fields left commented will fall back to their default values in the code.
+
+More information about the parameters can be found [https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values](here).
+
+It is recommended to specify `num_ctx` in `config.toml, as the result heavily depends on the context size.
 
 ### Prompt Configuration
 
-The `.mess-cleaner-ai/prompts` directory contains predefined prompts that will be sent to the LLM.  
+The `.messy-folder-reorganizer-ai/prompts` directory contains predefined prompts that will be sent to the LLM.  
 All source file paths will be appended to the end of the prompt automatically, so **do not include `{}` placeholders** in the prompt text.
 
 You can experiment by modifying the prompts to see how they affect performance. If you discover a prompt that significantly improves results, please consider submitting a **pull request (PR)** with your suggested changes.
 
 ### Automatic Configuration Recovery
 
-Each time you launch `mess-cleaner-ai`, it reads the latest versions of the configuration file and prompts.  
-If you accidentally modify or corrupt a file, simply delete it and restart `mess-cleaner-ai`—missing configuration files will be regenerated with default values automatically.
+Each time you launch `messy-folder-reorganizer-ai`, it reads the latest versions of the configuration file and prompts.  
+If you accidentally modify or corrupt a file, simply delete it and restart `messy-folder-reorganizer-ai`—missing configuration files will be regenerated with default values automatically.
 
 ## Contribution
 
@@ -108,17 +113,20 @@ If you installed some dependencies - please run `cargo +nightly udeps` to check 
 
 ## TODO
 
-- Clean up plan and source.
-- Handle files name collision case.
-- Update rust version.
 - Release.
 
--- tech debt --
+### Next releases debt and ideas
 
-- Rollback?
-- Multiple AI requests for improvements.
+- Multiple AI requests for result improvements.
+- Improve processing huge folders (batches in parallel + initial request with files formats).
+- Add optional destination folder.
+- Filtration by formats?
+- Handle file names collision case.
+- Rollback by plan.json
+- Improve error handling.
 - Add tests.
+- Update rust version.
 
--- refactoring --
+### Refactoring ideas
 
-- separate pring messages to separated module logger
+- Move print messages to separated logger module

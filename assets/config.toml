@@ -18,5 +18,5 @@
 
 # # Seed and stopping conditions
 # seed = 42              # Fixed seed for reproducibility
-# stop = "\n\n"         # Stop generation after structured response
+# stop = ""         # Stop generation after structured response
 # num_predict = -1      # Allow full output generation

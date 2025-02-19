@@ -51,6 +51,14 @@ pub struct Args {
     pub force_apply: bool,
 
     #[arg(
+        long = "skip-problematic-dir",
+        short = 'd',
+        default_value_t = false,
+        help = "Will skip problematic dirrectories and files"
+    )]
+    pub skip_problematic_dir: bool,
+
+    #[arg(
       long = "server-address",
       short = 'n',
       default_value_t = String::from("http://localhost:11434/api/generate"),
