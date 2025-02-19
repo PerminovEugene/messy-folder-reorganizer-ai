@@ -35,22 +35,30 @@ Before using this application, you need to install the following dependencies:
 
 4. Download latest release
 
-`curl -s https://api.github.com/repos/PerminovEugene/messy-folder-reorganizer-ai/releases/latest | \
+```sh
+curl -s https://api.github.com/repos/PerminovEugene/messy-folder-reorganizer-ai/releases/latest | \
   grep "browser_download_url.*messy-folder-reorganizer-ai-aarch64-apple-darwin.tar.gz" | \
   cut -d '"' -f 4 | \
-  xargs curl -L -o messy-folder-reorganizer-ai-macos.tar.gz`
+  xargs curl -L -o messy-folder-reorganizer-ai-macos.tar.gz
+```
 
 5. Extract the file
 
-`tar -xvzf messy-folder-reorganizer-ai-macos.tar.gz`
+```sh
+tar -xvzf messy-folder-reorganizer-ai-macos.tar.gz
+```
 
-6. Move to /usr/local/bin for system-wide use
+6. Move to `/usr/local/bin` for system-wide use
 
-`sudo mv messy-folder-reorganizer-ai /usr/local/bin/messy-folder-reorganizer-ai`
+```sh
+sudo mv messy-folder-reorganizer-ai /usr/local/bin/messy-folder-reorganizer-ai
+```
 
 7. Verify installation
 
-`messy-folder-reorganizer-ai --help`
+```sh
+messy-folder-reorganizer-ai --help
+```
 
 ## Usage
 
@@ -123,6 +131,15 @@ Before contribution please run `bash setup-hooks.sh`.
 This will create git precommit hook, which will run linters before commit.
 Run `cargo clippy` to reveal code problems and `cargo fmt` to fix linting errors.
 If you installed some dependencies - please run `cargo +nightly udeps` to check that all of them has been used.
+
+## Uninstall & Purge
+
+To completely remove `messy-folder-reorganizer-ai` from your system:
+
+```sh
+rm -f /usr/local/bin/messy-folder-reorganizer-ai
+rm -rf ~/.messy-folder-reorganizer-ai
+```
 
 ## TODO
 

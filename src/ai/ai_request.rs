@@ -63,6 +63,7 @@ pub async fn ask_ai_for_reordering_plan(
         options: &options,
     };
 
+    println!();
     println!("{}", "🤖 Model options:".green());
     println!("{}", serde_json::to_string_pretty(&options).unwrap());
 
