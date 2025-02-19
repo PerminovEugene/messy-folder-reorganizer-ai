@@ -33,11 +33,24 @@ Before using this application, you need to install the following dependencies:
 
    It is recommended to use an LLM with a higher number of nodes for more accurate results. This project has been tested with `deepseek-r1:latest`, so if you don’t have a preference, use that model.
 
-4. Run the application:
+4. Download latest release
 
-   ```sh
-   cargo run -- -M deepseek-r1:latest --show-ai-thinking --path ./test_cases/messy-folder
-   ```
+`curl -s https://api.github.com/repos/PerminovEugene/messy-folder-reorganizer-ai/releases/latest | \
+  grep "browser_download_url.*messy-folder-reorganizer-ai-aarch64-apple-darwin.tar.gz" | \
+  cut -d '"' -f 4 | \
+  xargs curl -L -o messy-folder-reorganizer-ai-macos.tar.gz`
+
+5. Extract the file
+
+`tar -xvzf messy-folder-reorganizer-ai-macos.tar.gz`
+
+6. Move to /usr/local/bin for system-wide use
+
+`sudo mv messy-folder-reorganizer-ai /usr/local/bin/messy-folder-reorganizer-ai`
+
+7. Verify installation
+
+`messy-folder-reorganizer-ai --help`
 
 ## Usage
 
