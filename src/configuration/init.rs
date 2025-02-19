@@ -41,12 +41,12 @@ pub fn get_initial_prompt_file_path() -> PathBuf {
 
 fn create_application_config_folder() {
     let home_dir = env::var("HOME").unwrap_or_else(|_| ".".to_string()); // Default to current dir if HOME is not found
-    let config_dir = format!("{}/.mess-cleaner-ai", home_dir);
+    let config_dir = format!("{}/.messy-folder-reorganizer-ai", home_dir);
     if !Path::new(&config_dir).exists() {
         fs::create_dir_all(&config_dir).expect("Failed to create config directory");
     }
 
-    let prompts_dir = format!("{}/.mess-cleaner-ai/prompts", home_dir);
+    let prompts_dir = format!("{}/.messy-folder-reorganizer-ai/prompts", home_dir);
     if !Path::new(&prompts_dir).exists() {
         fs::create_dir_all(&prompts_dir).expect("Failed to create prompts directory");
     }

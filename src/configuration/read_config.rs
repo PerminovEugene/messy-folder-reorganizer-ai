@@ -7,7 +7,7 @@ pub fn read_config() -> Config {
 
     let toml_content = fs::read_to_string(config_path).unwrap_or_else(|_| "".to_string());
 
-    let config: Config = toml::from_str(&toml_content).unwrap_or_else(|_| Config::default());
+    let config: Config = toml::from_str(&toml_content).unwrap();
 
     config
 }

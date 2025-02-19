@@ -4,7 +4,7 @@ use std::error::Error;
 
 use crate::{
     ai::{
-        ollama_protocol::{OllamaRequest, OllamaResponse},
+        ollama_protocol::{OllamaOptions, OllamaRequest, OllamaResponse},
         prompt::read_initial_prompt,
     },
     configuration::config::Config,
@@ -40,14 +40,10 @@ pub async fn ask_ai_for_reordering_plan(
         "🤖 Requesting AI assistance for file organization...".green()
     );
 
-    let request_body = OllamaRequest {
-        model,
-        prompt: prompt_with_input,
-        stream: true, // Enable streaming
-        // model configuration params
+    let options = OllamaOptions {
         mirostat: config.mirostat,
-        mirostat_eta: config.mirostat_eta,
         mirostat_tau: config.mirostat_tau,
+        mirostat_eta: config.mirostat_eta,
         num_ctx: config.num_ctx,
         repeat_last_n: config.repeat_last_n,
         repeat_penalty: config.repeat_penalty,
@@ -59,6 +55,16 @@ pub async fn ask_ai_for_reordering_plan(
         top_p: config.top_p,
         min_p: config.min_p,
     };
+
+    let request_body = OllamaRequest {
+        model,
+        prompt: prompt_with_input,
+        stream: true,
+        options: &options,
+    };
+
+    println!("{}", "🤖 Model options:".green());
+    println!("{}", serde_json::to_string_pretty(&options).unwrap());
 
     let mut response_text = String::new();
 
@@ -79,6 +85,9 @@ pub async fn ask_ai_for_reordering_plan(
         Ok(mut response) => {
             while let Some(chunk) = response.chunk().await? {
                 let olama_response_token = serde_json::from_slice::<OllamaResponse>(&chunk)?;
+                if olama_response_token.response.is_empty() {
+                    continue;
+                }
                 if show_ai_thinking {
                     print!("{}", olama_response_token.response);
                 }
@@ -95,6 +104,7 @@ pub async fn ask_ai_for_reordering_plan(
             panic!("Error from request to LLM")
         }
     }
+    println!("{}", "📁 Cleaning output from extra symbols:".green());
 
     let response_text = clean_json_string(&response_text);
     println!();
@@ -106,13 +116,9 @@ pub async fn ask_ai_for_reordering_plan(
 // Sometimes LLM response contains extra characters that need to be cleaned
 fn clean_json_string(input: &str) -> String {
     if let Some(start_index) = input.find("```json") {
-        // Extract everything after ```json
         let after_json = &input[start_index + 7..]; // 7 is the length of "```json"
 
-        // Split by ```
         let parts: Vec<&str> = after_json.split("```").collect();
-
-        // Return the JSON part (before the next triple backticks)
         if !parts.is_empty() {
             return parts[0].trim().to_string();
         }
