@@ -162,6 +162,13 @@ rm -rf ~/.messy-folder-reorganizer-ai
 
 ### Next releases debt and ideas
 
+#### V2 implementation plan
+
+- Quadrant distribution
+- Add quadrant compatible license
+- Save string (files) as vectors
+- get vectors
+
 - Multiple AI requests for result improvements.
 - Improve processing huge folders (batches in parallel + initial request with files formats).
 - Add optional destination folder.
@@ -176,3 +183,8 @@ rm -rf ~/.messy-folder-reorganizer-ai
 ### Refactoring ideas
 
 - Move print messages to separated logger module
+
+## v2
+
+- change model to embedding one (or load additionallly), from here https://ollama.com/blog/embedding-models
+- embeddings size from ollama model should be the same as size of qdrant collection, so it should be configurable

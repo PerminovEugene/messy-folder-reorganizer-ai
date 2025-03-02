@@ -1,7 +1,9 @@
+use ai::embeddings;
 use clap::Parser;
 use colored::Colorize;
 
 mod ai;
+mod bd;
 mod configuration;
 mod console;
 mod files;
@@ -36,25 +38,36 @@ async fn main() {
     );
     create_source_file(&files_data);
 
-    let plan = ask_ai_for_reordering_plan(
-        &files_data,
-        args.model,
-        args.show_ai_thinking,
-        args.show_prompt,
-        args.ai_server_address,
-        config,
-    )
-    .await;
+    let file_names = files_data.iter().map(|d| &d.name).collect::<Vec<_>>();
 
-    create_plan_file(plan.unwrap());
+    let embeddings =
+        embeddings::get_embeddings(&file_names, args.model, args.ai_server_address, config).await;
 
-    if args.force_apply
-        || ask_confirmation(
-            "❓ Are you satisfied with the file reorganization plan? Would you like to apply it?",
-        )
-    {
-        apply_plan(args.path).unwrap();
-    } else {
-        println!("{}", "🚫 File locations were not updated.".yellow())
-    }
+    bd::quadrant::add_vectors(&file_names, embeddings.unwrap())
+        .await
+        .unwrap();
+
+    print!("{}", "🚀 Done!".green());
+
+    // let plan = ask_ai_for_reordering_plan(
+    //     &files_data,
+    //     args.model,
+    //     args.show_ai_thinking,
+    //     args.show_prompt,
+    //     args.ai_server_address,
+    //     config,
+    // )
+    // .await;
+
+    // create_plan_file(plan.unwrap());
+
+    // if args.force_apply
+    //     || ask_confirmation(
+    //         "❓ Are you satisfied with the file reorganization plan? Would you like to apply it?",
+    //     )
+    // {
+    //     apply_plan(args.path).unwrap();
+    // } else {
+    //     println!("{}", "🚫 File locations were not updated.".yellow())
+    // }
 }

@@ -44,10 +44,17 @@ pub struct OllamaOptions {
 }
 
 #[derive(Serialize)]
-pub struct OllamaRequest<'a> {
+pub struct OllamaGenerateRequest<'a> {
     pub model: String,
     pub prompt: String,
     pub stream: bool,
+    pub options: &'a OllamaOptions,
+}
+
+#[derive(Serialize)]
+pub struct OllamaEmbedRequest<'a> {
+    pub model: String,
+    pub input: &'a Vec<&'a String>,
     pub options: &'a OllamaOptions,
     // pub format: String,
 }
@@ -58,4 +65,17 @@ pub struct OllamaResponse {
     // model: String,
     // created_at: String,
     // done: bool,
+}
+
+#[derive(Deserialize)]
+pub struct OllamaEmbedResponse {
+    pub model: String,
+    pub embeddings: Vec<Vec<f32>>,
+    // [[
+    //   0.010071029, -0.0017594862, 0.05007221, 0.04692972, 0.054916814,
+    //   0.008599704, 0.105441414, -0.025878139, 0.12958129, 0.031952348
+    // ]],
+    pub total_duration: u64,
+    pub load_duration: u64,
+    pub prompt_eval_count: u64,
 }

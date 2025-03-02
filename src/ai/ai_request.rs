@@ -4,7 +4,7 @@ use std::error::Error;
 
 use crate::{
     ai::{
-        ollama_protocol::{OllamaOptions, OllamaRequest, OllamaResponse},
+        ollama_protocol::{OllamaGenerateRequest, OllamaOptions, OllamaResponse},
         prompt::read_initial_prompt,
     },
     configuration::config::Config,
@@ -56,7 +56,7 @@ pub async fn ask_ai_for_reordering_plan(
         min_p: config.min_p,
     };
 
-    let request_body = OllamaRequest {
+    let request_body = OllamaGenerateRequest {
         model,
         prompt: prompt_with_input,
         stream: true,

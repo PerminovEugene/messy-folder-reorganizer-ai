@@ -61,8 +61,8 @@ pub struct Args {
     #[arg(
       long = "server-address",
       short = 'n',
-      default_value_t = String::from("http://localhost:11434/api/generate"),
-      help = "Will replace default LLM server address (default address is http://localhost:11434/api/generate)"
+      default_value_t = String::from("http://localhost:11434/"),
+      help = "Will replace default LLM server address (default address is http://localhost:11434/)"
   )]
     pub ai_server_address: String,
 }
