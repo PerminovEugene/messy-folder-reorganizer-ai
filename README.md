@@ -188,3 +188,15 @@ rm -rf ~/.messy-folder-reorganizer-ai
 
 - change model to embedding one (or load additionallly), from here https://ollama.com/blog/embedding-models
 - embeddings size from ollama model should be the same as size of qdrant collection, so it should be configurable
+- Allow measure configuration cosin || euclide || dot?
+- Allow max distance configuration
+
+### workflow
+
+1. parse dest, get embeddings, save embeddings into qdrant
+2. parse source, find closest vector in db
+3. Add dest path (if not home) to vectors, may be put into dest root?
+4. if distance between closest vectors is not enough, put to unknown
+5. move valid files to valid suggestions
+
+6. generate folder names

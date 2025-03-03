@@ -71,11 +71,7 @@ pub struct OllamaResponse {
 pub struct OllamaEmbedResponse {
     pub model: String,
     pub embeddings: Vec<Vec<f32>>,
-    // [[
-    //   0.010071029, -0.0017594862, 0.05007221, 0.04692972, 0.054916814,
-    //   0.008599704, 0.105441414, -0.025878139, 0.12958129, 0.031952348
-    // ]],
-    pub total_duration: u64,
-    pub load_duration: u64,
-    pub prompt_eval_count: u64,
+    // pub total_duration: u64,
+    // pub load_duration: u64,
+    // pub prompt_eval_count: u64,
 }

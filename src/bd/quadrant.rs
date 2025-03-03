@@ -1,21 +1,19 @@
 use std::collections::HashMap;
 
+use qdrant_client::qdrant::qdrant_client::QdrantClient;
 use qdrant_client::qdrant::{
-    CreateCollectionBuilder, Distance, PointStruct, ScalarQuantizationBuilder, UpsertPointsBuilder,
-    Value, VectorParamsBuilder,
+    with_payload_selector, CreateCollectionBuilder, Distance, PointStruct, ReadConsistency,
+    ScalarQuantizationBuilder, SearchBatchPoints, SearchPoints, UpsertPointsBuilder, Value,
+    VectorParamsBuilder, WithPayloadSelector,
 };
 use qdrant_client::{Payload, Qdrant, QdrantError};
-use serde_json::json;
 use uuid::Uuid;
 
 pub async fn add_vectors(ids: &Vec<&String>, vectors: Vec<Vec<f32>>) -> Result<(), QdrantError> {
     let client: Qdrant = Qdrant::from_url("http://localhost:6334").build()?;
 
-    let collection_name = "test 2";
+    let collection_name = "dest";
 
-    // Check if collection exists, if not, create it
-
-    // let collections_list = client.list_collections().await?;
     client.delete_collection(collection_name).await?;
 
     client
@@ -52,4 +50,56 @@ pub async fn add_vectors(ids: &Vec<&String>, vectors: Vec<Vec<f32>>) -> Result<(
     println!("{:?}", insert_res);
 
     Ok(())
+}
+
+pub async fn find_closest_vectors(vectors: Vec<Vec<f32>>) -> Result<Vec<String>, QdrantError> {
+    let client = Qdrant::from_url("http://localhost:6334").build()?;
+
+    let collection_name = "dest".to_string();
+
+    let searches: Vec<SearchPoints> = vectors
+        .into_iter()
+        .map(|vector| SearchPoints {
+            collection_name: collection_name.clone(),
+            vector,
+            limit: 1,
+            with_payload: Some(WithPayloadSelector {
+                selector_options: Some(with_payload_selector::SelectorOptions::Enable(true)),
+            }),
+            ..Default::default()
+        })
+        .collect();
+
+    let batch_search_req = SearchBatchPoints {
+        search_points: searches,
+        collection_name,
+        read_consistency: None,
+        timeout: None,
+    };
+
+    let search_result = client.search_batch_points(batch_search_req).await?;
+
+    dbg!(&search_result);
+
+    let paths: Vec<String> = search_result
+        .result
+        .iter()
+        .map(|point| {
+            let result = point.result.iter().next().unwrap();
+
+            if result.score <= 0.3 {
+                return "Unknown".to_string();
+            }
+            result
+                .payload
+                // .iter()
+                // .filter(|scored_point| scored_point.score >= max_distance)
+                .get("path")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string())
+                .unwrap_or_default()
+        })
+        .collect();
+
+    Ok(paths)
 }

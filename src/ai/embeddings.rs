@@ -45,11 +45,12 @@ pub async fn get_embeddings(
     endpoint.push_str("api/embed");
     println!("{}", endpoint);
     let mut vectors: Vec<Vec<f32>> = vec![];
-    println!("{:?}", request_body.input);
+
+    // println!("{:?}", request_body.input);
+
     match client.post(endpoint).json(&request_body).send().await {
         Ok(mut response) => {
             println!("{}", "📁 Processing response from AI:".green());
-            // println!("{:?}", response);
             let olama_parsed_response: OllamaEmbedResponse = response.json().await?;
 
             vectors = olama_parsed_response.embeddings.clone();

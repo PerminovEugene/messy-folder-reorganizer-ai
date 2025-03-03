@@ -15,7 +15,15 @@ pub struct Args {
         short = 'P',
         help = "Path to the folder with files to reorder"
     )]
-    pub path: String,
+    pub path: String, // TODO rename to source
+
+    #[arg(
+        long = "destination",
+        short = 'D',
+        default_value_t = String::from("home"),
+        help = "Path to the folder which will be used as destination for reordering. If not specified, the home folder will be used"
+    )]
+    pub destination: String,
 
     // optional arguments
     #[arg(
