@@ -15,8 +15,10 @@ mod workflow;
 
 use configuration::init::init;
 use files::file_info;
-use workflow::index_destination;
-use workflow::process_sources;
+use workflow::destination_processor;
+use workflow::plan_processor;
+use workflow::sources_processor;
+use workflow::unknown_files_processor;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -28,9 +30,13 @@ async fn main() {
     let args = configuration::args::Args::parse();
     let config = configuration::read_config::read_config();
 
-    index_destination::index_destinations(&config, &args).await;
+    destination_processor::index_destinations(&config, &args).await;
 
-    process_sources::process_sources(&config, &args).await;
+    sources_processor::process_sources(&config, &args).await;
+
+    unknown_files_processor::cluster_unknown_files(&config, &args).await;
+
+    plan_processor::migrate_files(&config, &args).await;
 
     // let mut dest_files_data: Vec<file_info::FileInfo> = Vec::new();
 

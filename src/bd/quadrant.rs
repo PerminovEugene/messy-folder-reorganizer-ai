@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use qdrant_client::qdrant::qdrant_client::QdrantClient;
 use qdrant_client::qdrant::{
     with_payload_selector, CreateCollectionBuilder, Distance, PointStruct, ReadConsistency,
     ScalarQuantizationBuilder, SearchBatchPoints, SearchPoints, UpsertPointsBuilder, Value,

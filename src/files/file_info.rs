@@ -29,7 +29,7 @@ pub fn convert_path_meta_to_file_info(path: &Path, file_meta: Metadata) -> FileI
     }
 }
 
-#[derive(serde::Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct FilesReorganisationPlan {
     pub original: String,
     pub new_path: String,
