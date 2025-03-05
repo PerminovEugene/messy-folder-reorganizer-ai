@@ -3,7 +3,9 @@ use crate::configuration::config::Config;
 use crate::console::messages::{ask_for_files_migration, print_files_not_updated};
 use crate::files::reorganiser::apply_plan;
 
-pub async fn migrate_files(config: &Config, args: &Args) {
+use super::sources_processor::ProcessResult;
+
+pub async fn migrate_files(config: &Config, args: &Args, files_data: &Vec<ProcessResult>) {
     if args.force_apply || ask_for_files_migration() {
         apply_plan(args.path.clone()).unwrap();
     } else {

@@ -1,16 +1,13 @@
 use std::env;
 
-use ai::embeddings;
-use bd::quadrant::add_vectors;
-use bd::quadrant::find_closest_vectors;
 use clap::Parser;
-use colored::Colorize;
 
 mod ai;
 mod bd;
 mod configuration;
 mod console;
 mod files;
+mod ml;
 mod workflow;
 
 use configuration::init::init;
@@ -32,11 +29,12 @@ async fn main() {
 
     destination_processor::index_destinations(&config, &args).await;
 
-    sources_processor::process_sources(&config, &args).await;
+    let mut process_result = sources_processor::process_sources(&config, &args).await;
 
-    unknown_files_processor::cluster_unknown_files(&config, &args).await;
+    unknown_files_processor::create_folder_for_unknown_files(&config, &args, &mut process_result)
+        .await;
 
-    plan_processor::migrate_files(&config, &args).await;
+    plan_processor::migrate_files(&config, &args, &process_result).await;
 
     // let mut dest_files_data: Vec<file_info::FileInfo> = Vec::new();
 

@@ -26,7 +26,7 @@ pub async fn add_vectors(ids: &Vec<&String>, vectors: Vec<Vec<f32>>) -> Result<(
     // let payload = Payload::new("test".to_string(), "test".to_string());
     let points: Vec<PointStruct> = ids
         .into_iter()
-        .zip(vectors.into_iter())
+        .zip(vectors.iter().cloned())
         .map(|(path, vector)| {
             let id = Uuid::new_v4().as_u128() as u64; // Qdrant ожидает u64
 
@@ -51,16 +51,24 @@ pub async fn add_vectors(ids: &Vec<&String>, vectors: Vec<Vec<f32>>) -> Result<(
     Ok(())
 }
 
-pub async fn find_closest_vectors(vectors: Vec<Vec<f32>>) -> Result<Vec<String>, QdrantError> {
+pub struct SearchResultFacade {
+    pub path: String,
+    pub score: f32,
+    pub vector: Vec<f32>,
+}
+
+pub async fn find_closest_pathes(
+    vectors: Vec<Vec<f32>>,
+) -> Result<Vec<SearchResultFacade>, QdrantError> {
     let client = Qdrant::from_url("http://localhost:6334").build()?;
 
     let collection_name = "dest".to_string();
 
     let searches: Vec<SearchPoints> = vectors
-        .into_iter()
+        .iter()
         .map(|vector| SearchPoints {
             collection_name: collection_name.clone(),
-            vector,
+            vector: vector.clone(),
             limit: 1,
             with_payload: Some(WithPayloadSelector {
                 selector_options: Some(with_payload_selector::SelectorOptions::Enable(true)),
@@ -78,25 +86,29 @@ pub async fn find_closest_vectors(vectors: Vec<Vec<f32>>) -> Result<Vec<String>,
 
     let search_result = client.search_batch_points(batch_search_req).await?;
 
-    dbg!(&search_result);
+    // dbg!(&search_result);
 
-    let paths: Vec<String> = search_result
+    let result: Vec<SearchResultFacade> = search_result
         .result
         .iter()
-        .map(|point| {
+        .zip(vectors.into_iter())
+        .map(|(point, vector)| {
             let result = point.result.iter().next().unwrap();
 
-            if result.score <= 0.1 {
-                return "Unknown".to_string();
-            }
-            result
+            let path = result
                 .payload
                 .get("path")
                 .and_then(|v| v.as_str())
                 .map(|s| s.to_string())
-                .unwrap_or_default()
+                .unwrap_or_default();
+
+            SearchResultFacade {
+                path,
+                score: result.score,
+                vector,
+            }
         })
         .collect();
 
-    Ok(paths)
+    Ok(result)
 }
