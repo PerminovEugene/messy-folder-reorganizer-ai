@@ -19,7 +19,7 @@ pub async fn add_vectors(ids: &Vec<&String>, vectors: Vec<Vec<f32>>) -> Result<(
     client
         .create_collection(
             CreateCollectionBuilder::new(collection_name)
-                .vectors_config(VectorParamsBuilder::new(384, Distance::Cosine))
+                .vectors_config(VectorParamsBuilder::new(1024, Distance::Cosine))
                 .quantization_config(ScalarQuantizationBuilder::default()),
         )
         .await?;
@@ -87,13 +87,11 @@ pub async fn find_closest_vectors(vectors: Vec<Vec<f32>>) -> Result<Vec<String>,
         .map(|point| {
             let result = point.result.iter().next().unwrap();
 
-            if result.score <= 0.3 {
+            if result.score <= 0.1 {
                 return "Unknown".to_string();
             }
             result
                 .payload
-                // .iter()
-                // .filter(|scored_point| scored_point.score >= max_distance)
                 .get("path")
                 .and_then(|v| v.as_str())
                 .map(|s| s.to_string())
