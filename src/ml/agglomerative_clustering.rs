@@ -1,67 +1,76 @@
-use linfa::prelude::*;
-use linfa_kernel::{Kernel, KernelMethod};
-use ndarray::{Array1, Array2, Ix1};
+use crate::{
+    ml::hierarchical_clustering::hierarchical_clustering_auto,
+    workflow::sources_processor::ProcessResult,
+};
 
-use linfa::traits::Transformer;
-use linfa::Dataset;
-use linfa_hierarchical::HierarchicalCluster;
+pub async fn cluster_vectors_hierarchical(vectors: Vec<&ProcessResult>) {
+    let pathes = vectors
+        .iter()
+        .map(|x| x.source_file_name.clone())
+        .collect::<Vec<_>>();
+    println!("Pathes: {:?}", pathes);
 
-use crate::workflow::sources_processor::ProcessResult;
+    // build source matrix
+    let source_matrix: Vec<Vec<f32>> = vectors.into_iter().map(|ms| ms.vector.clone()).collect();
 
-pub async fn cluster_vectors_hierarchical(
-    // config: DBSCANConfig,
-    vectors: Vec<&ProcessResult>, //,Vec<Vec<f32>>,
-) {
-    dbg!(&vectors);
-    // Convert embeddings into DatasetBase
-    let dataset = embeddings_dataset(vectors);
+    // normalize vectors in matrix
+    let normalized_vectors = normalize_matrix(source_matrix);
 
-    let kernel = Kernel::params()
-        .method(KernelMethod::Gaussian(1.0))
-        .transform(dataset.records().view());
+    // convert to distance matrix
+    let distance_matrix = cosine_distance_matrix(&normalized_vectors);
 
-    let kernel = HierarchicalCluster::default()
-        // .num_clusters(n_clusters)
-        .transform(kernel)
-        .unwrap();
+    // clustering
+    let clusters = hierarchical_clustering_auto(&distance_matrix);
 
-    // Print cluster assignments
-    for (id, target) in kernel.targets().iter().zip(dataset.targets().into_iter()) {
-        let name = match *target {
-            0 => "setosa",
-            1 => "versicolor",
-            2 => "virginica",
-            _ => unreachable!(),
-        };
-
-        print!("({} {}) ", id, name);
-    }
+    // 5. Выводим результаты
+    clusters
+        .into_iter()
+        .enumerate()
+        .for_each(|(cluster_number, cluster)| {
+            println!("----");
+            for &member in &cluster.members {
+                println!("Cluster {}: {}", cluster_number, pathes[member]);
+            }
+        });
 }
 
-/// Converts `Vec<Vec<f32>>` into a `Dataset<f64, usize, Ix1>`
-pub fn embeddings_dataset(embeddings: Vec<&ProcessResult>) -> Dataset<f64, usize, Ix1> {
-    let n_samples = embeddings.len();
-    let dim = embeddings[0].vector.len();
+fn normalize_matrix(vectors: Vec<Vec<f32>>) -> Vec<Vec<f32>> {
+    vectors.into_iter().map(normalize_vector).collect()
+}
 
-    // Flatten Vec<Vec<f32>> into a single Vec<f64>
-    let flattened: Vec<f64> = embeddings
-        .into_iter()
-        .flat_map(|ms| ms.vector.clone())
-        .map(|x| x as f64)
-        .collect();
+/// Нормализует один вектор (L2-норма = 1)
+fn normalize_vector(v: Vec<f32>) -> Vec<f32> {
+    let norm = (v.iter().map(|&x| x * x).sum::<f32>()).sqrt();
+    if norm == 0.0 {
+        return vec![0.0; v.len()]; // Избегаем деления на 0
+    }
+    v.iter().map(|&x| x / norm).collect()
+}
 
-    // Convert into an ndarray Array2<f64>
-    let data: Array2<f64> = Array2::from_shape_vec((n_samples, dim), flattened)
-        .expect("Failed to reshape embeddings into ndarray");
+fn cosine_distance_matrix(vectors: &Vec<Vec<f32>>) -> Vec<Vec<f64>> {
+    let n = vectors.len();
+    let mut distance_matrix = vec![vec![0.0; n]; n]; // Initialize with zeros
 
-    // Create dummy targets (not used in clustering but required by Dataset)
-    let targets: Array1<usize> = Array1::zeros(n_samples);
+    for i in 0..n {
+        for j in 0..n {
+            if i != j {
+                let similarity = cosine_similarity(&vectors[i], &vectors[j]);
+                distance_matrix[i][j] = 1.0 - similarity as f64;
+            }
+        }
+    }
 
-    // Create feature names: "feature_0", "feature_1", ..., "feature_N"
-    let feature_names: Vec<String> = (0..dim).map(|i| format!("feature_{}", i)).collect();
+    distance_matrix
+}
 
-    // ✅ Ensure the dataset is correctly constructed
-    Dataset::new(data, targets)
-        .map_targets(|x| *x as usize)
-        .with_feature_names(feature_names)
+fn cosine_similarity(vec1: &Vec<f32>, vec2: &Vec<f32>) -> f32 {
+    let dot_product: f32 = vec1.iter().zip(vec2.iter()).map(|(a, b)| a * b).sum();
+    let norm1: f32 = vec1.iter().map(|v| v * v).sum::<f32>().sqrt();
+    let norm2: f32 = vec2.iter().map(|v| v * v).sum::<f32>().sqrt();
+
+    if norm1 == 0.0 || norm2 == 0.0 {
+        0.0
+    } else {
+        dot_product / (norm1 * norm2)
+    }
 }

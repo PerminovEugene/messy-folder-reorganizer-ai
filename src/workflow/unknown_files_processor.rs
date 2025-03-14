@@ -10,9 +10,18 @@ pub async fn create_folder_for_unknown_files(
     process_result: &mut Vec<ProcessResult>,
 ) {
     let (processed_vectors, unknown_vectors): (Vec<_>, Vec<_>) =
-        process_result.iter().partition(|&cp| cp.score < 0.2);
+        process_result.iter().partition(|&cp| {
+            println!("cp.score: {:?} {:?}", cp.score, cp.source_file_name);
+            cp.score > 0.57
+        });
 
     // create_folder_for_names_for_
+
+    let sorted_files: Vec<_> = processed_vectors
+        .iter()
+        .map(|x| x.source_file_name.clone())
+        .collect();
+    println!("Processed files: {:?}", sorted_files);
 
     if !unknown_vectors.is_empty() {
         println!("Clustering unknown vectors");
