@@ -33,6 +33,13 @@ pub async fn process_sources(config: &Config, args: &Args) -> Vec<ProcessResult>
 
     let file_names = files_data.iter().map(|d| &d.name).collect::<Vec<_>>();
 
+    let file_names = format_file_names(&file_names);
+
+    println!(
+        "Creating embeddings for source collection, {:?}",
+        file_names
+    );
+
     let embeddings = embeddings::get_embeddings(
         &file_names,
         args.embedding_model.clone(),
@@ -53,6 +60,23 @@ pub async fn process_sources(config: &Config, args: &Args) -> Vec<ProcessResult>
             source_file_name: file_name.clone(),
             vector: cp.vector,
         })
-        // .zip(file_names.into_iter())
+        .collect()
+}
+
+fn format_file_name(file_name: &str) -> String {
+    // Разбиваем строку по последней точке
+    let mut parts: Vec<&str> = file_name.rsplitn(2, '.').collect();
+    let format = parts.get(0).unwrap_or(&"").to_string(); // Расширение файла
+
+    // Берём всё, кроме расширения и заменяем "-" и "_" на пробелы
+    let name = parts.get(1).unwrap_or(&file_name).replace(['-', '_'], " ");
+
+    format!("{}.{}", name, format)
+}
+
+fn format_file_names(file_names: &Vec<&String>) -> Vec<String> {
+    file_names
+        .into_iter()
+        .map(|file_name| format_file_name(file_name))
         .collect()
 }

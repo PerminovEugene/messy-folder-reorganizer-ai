@@ -33,6 +33,11 @@ async fn main() {
 
     let mut process_result = sources_processor::process_sources(&config, &args).await;
 
+    // println!("{:?}", process_result);
+    process_result.iter().for_each(|result| {
+        println!("{:?} close to {:?}", result.source_file_name, result.path);
+    });
+
     let migration_plan = unknown_files_processor::create_folder_for_unknown_files(
         &config,
         &args,

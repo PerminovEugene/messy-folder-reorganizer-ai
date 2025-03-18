@@ -18,7 +18,7 @@ pub async fn create_folder_for_unknown_files(
     let (processed_vectors, unknown_vectors): (Vec<_>, Vec<_>) =
         process_result.iter().partition(|&cp| {
             println!("cp.score: {:?} {:?}", cp.score, cp.source_file_name);
-            cp.score > 0.57
+            cp.score > 0.50
         });
 
     // create_folder_for_names_for_

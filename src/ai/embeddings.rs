@@ -9,7 +9,7 @@ use crate::{
 };
 
 pub async fn get_embeddings(
-    file_names: &Vec<&String>,
+    file_names: &Vec<String>,
     model: String,
     ai_server_address: String,
     config: Config,

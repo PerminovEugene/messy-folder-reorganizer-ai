@@ -8,7 +8,7 @@ use qdrant_client::qdrant::{
 use qdrant_client::{Payload, Qdrant, QdrantError};
 use uuid::Uuid;
 
-pub async fn add_vectors(ids: &Vec<&String>, vectors: Vec<Vec<f32>>) -> Result<(), QdrantError> {
+pub async fn add_vectors(ids: &Vec<String>, vectors: Vec<Vec<f32>>) -> Result<(), QdrantError> {
     let client: Qdrant = Qdrant::from_url("http://localhost:6334").build()?;
 
     let collection_name = "dest";

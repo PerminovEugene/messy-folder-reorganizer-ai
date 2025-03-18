@@ -54,7 +54,7 @@ pub struct OllamaGenerateRequest<'a> {
 #[derive(Serialize)]
 pub struct OllamaEmbedRequest<'a> {
     pub model: String,
-    pub input: &'a Vec<&'a String>,
+    pub input: &'a Vec<String>,
     pub options: &'a OllamaOptions,
     // pub format: String,
 }

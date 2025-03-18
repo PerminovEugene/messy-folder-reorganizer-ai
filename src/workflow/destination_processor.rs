@@ -1,4 +1,5 @@
 use std::env;
+use std::path::PathBuf;
 
 use regex::Regex;
 
@@ -7,7 +8,7 @@ use crate::bd::quadrant::add_vectors;
 use crate::configuration::args::Args;
 use crate::configuration::config::Config;
 use crate::files::dirr_processing::collect_files_metadata;
-use crate::files::file_info;
+use crate::files::file_info::{self, convert_path_meta_to_file_info, FileInfo};
 
 pub async fn index_destinations(config: &Config, args: &Args) {
     let mut dest_files_data: Vec<file_info::FileInfo> = Vec::new();
@@ -29,7 +30,23 @@ pub async fn index_destinations(config: &Config, args: &Args) {
         false,
     );
 
-    let dest_file_names = dest_files_data.iter().map(|d| &d.name).collect::<Vec<_>>();
+    if args.destination != "home" {
+        let destination_base_folder = PathBuf::from(args.destination.clone());
+        let file_name = destination_base_folder.file_name().unwrap();
+        println!("file_name: {:?}", file_name);
+
+        let destination_base_folder_2 = PathBuf::from(file_name);
+
+        let dest_file_info = convert_path_meta_to_file_info(
+            &destination_base_folder_2,
+            destination_base_folder.metadata().unwrap(),
+        );
+        dest_files_data.push(dest_file_info);
+    }
+    let dest_file_names = dest_files_data
+        .iter()
+        .map(|d| d.name.clone())
+        .collect::<Vec<_>>();
 
     println!("{:?}", dest_file_names);
 

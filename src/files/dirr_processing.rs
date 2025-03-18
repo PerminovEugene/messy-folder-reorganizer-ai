@@ -1,7 +1,6 @@
 use colored::Colorize;
 use core::panic;
 use regex::Regex;
-use std::arch::aarch64::int32x4_t;
 use std::fs;
 use std::path::Path;
 

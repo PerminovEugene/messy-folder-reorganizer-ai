@@ -8,7 +8,6 @@ rm -rf "$MESSY_FOLDER"
 mkdir -p "$MESSY_FOLDER"
 
 # Create realistic messy files inside the messy folder
-mkdir -p "$MESSY_FOLDER/agdg44"
 # books
 touch "$MESSY_FOLDER/how-to-train-dragon.txt"
 touch "$MESSY_FOLDER/master-and-margarita.fb2"
