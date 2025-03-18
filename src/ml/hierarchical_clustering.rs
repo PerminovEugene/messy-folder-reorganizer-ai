@@ -6,7 +6,7 @@ pub struct Cluster {
     pub members: HashSet<usize>,
 }
 
-pub fn hierarchical_clustering_auto(distance_matrix: &Vec<Vec<f64>>) -> Vec<Cluster> {
+pub fn hierarchical_clustering_auto(distance_matrix: &[Vec<f64>]) -> Vec<Cluster> {
     let n = distance_matrix.len();
     let mut clusters: Vec<Cluster> = (0..n)
         .map(|i| Cluster {
@@ -15,7 +15,7 @@ pub fn hierarchical_clustering_auto(distance_matrix: &Vec<Vec<f64>>) -> Vec<Clus
         })
         .collect();
 
-    let mut distances = distance_matrix.clone();
+    let mut distances = distance_matrix.to_vec();
     let mut active_clusters: HashSet<usize> = (0..n).collect();
     let mut last_merge_distances = Vec::new();
 
@@ -25,7 +25,6 @@ pub fn hierarchical_clustering_auto(distance_matrix: &Vec<Vec<f64>>) -> Vec<Clus
         last_merge_distances.push(min_dist);
 
         if min_dist > 0.5 {
-            // Adjust this based on expected similarity/distance
             break;
         }
 
@@ -39,7 +38,7 @@ pub fn hierarchical_clustering_auto(distance_matrix: &Vec<Vec<f64>>) -> Vec<Clus
 }
 
 fn find_closest_clusters(
-    distances: &Vec<Vec<f64>>,
+    distances: &[Vec<f64>],
     active_clusters: &HashSet<usize>,
 ) -> (usize, usize, f64) {
     let mut min_dist = f64::INFINITY;
@@ -61,32 +60,30 @@ fn find_closest_clusters(
 }
 
 fn merge_clusters(
-    clusters: &mut Vec<Cluster>,
-    distances: &mut Vec<Vec<f64>>,
+    clusters: &mut [Cluster],
+    distances: &mut [Vec<f64>],
     active_clusters: &mut HashSet<usize>,
     c1: usize,
     c2: usize,
 ) {
-    // Merge members
     let mut new_members = clusters[c1].members.clone();
     new_members.extend(&clusters[c2].members);
 
     let new_cluster = Cluster {
-        id: c1, // Keep ID of first cluster
+        id: c1,
         members: new_members,
     };
 
-    clusters[c1] = new_cluster.clone(); // Update first cluster in place
+    clusters[c1] = new_cluster.clone();
 
-    // Update distances using average linkage
     for &i in active_clusters.iter() {
         if i != c1 && i != c2 {
             let d1 = distances[c1][i];
             let d2 = distances[c2][i];
-            distances[c1][i] = (d1 + d2) / 2.0; // Average linkage
-            distances[i][c1] = distances[c1][i]; // Keep symmetric
+            distances[c1][i] = (d1 + d2) / 2.0;
+            distances[i][c1] = distances[c1][i];
         }
     }
 
-    active_clusters.remove(&c2); // Fully remove `c2`
+    active_clusters.remove(&c2);
 }

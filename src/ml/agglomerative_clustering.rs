@@ -41,16 +41,15 @@ fn normalize_matrix(vectors: Vec<Vec<f32>>) -> Vec<Vec<f32>> {
     vectors.into_iter().map(normalize_vector).collect()
 }
 
-/// Нормализует один вектор (L2-норма = 1)
 fn normalize_vector(v: Vec<f32>) -> Vec<f32> {
     let norm = (v.iter().map(|&x| x * x).sum::<f32>()).sqrt();
     if norm == 0.0 {
-        return vec![0.0; v.len()]; // Избегаем деления на 0
+        return vec![0.0; v.len()]; // avoid division by zero
     }
     v.iter().map(|&x| x / norm).collect()
 }
 
-fn cosine_distance_matrix(vectors: &Vec<Vec<f32>>) -> Vec<Vec<f64>> {
+fn cosine_distance_matrix(vectors: &[Vec<f32>]) -> Vec<Vec<f64>> {
     let n = vectors.len();
     let mut distance_matrix = vec![vec![0.0; n]; n]; // Initialize with zeros
 
@@ -66,7 +65,7 @@ fn cosine_distance_matrix(vectors: &Vec<Vec<f32>>) -> Vec<Vec<f64>> {
     distance_matrix
 }
 
-fn cosine_similarity(vec1: &Vec<f32>, vec2: &Vec<f32>) -> f32 {
+fn cosine_similarity(vec1: &[f32], vec2: &[f32]) -> f32 {
     let dot_product: f32 = vec1.iter().zip(vec2.iter()).map(|(a, b)| a * b).sum();
     let norm1: f32 = vec1.iter().map(|v| v * v).sum::<f32>().sqrt();
     let norm2: f32 = vec2.iter().map(|v| v * v).sum::<f32>().sqrt();
