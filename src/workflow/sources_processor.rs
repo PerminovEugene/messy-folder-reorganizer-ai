@@ -47,7 +47,7 @@ pub async fn process_sources(config: &Config, args: &Args) -> Vec<ProcessResult>
     .await
     .unwrap();
 
-    let closest_pathes = find_closest_pathes(embeddings).await.unwrap();
+    let closest_pathes = find_closest_pathes(args, embeddings).await.unwrap();
 
     closest_pathes
         .into_iter()

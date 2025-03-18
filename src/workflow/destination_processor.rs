@@ -66,7 +66,7 @@ pub async fn index_destinations(config: &Config, args: &Args) {
 
     println!("Adding vectors to destination collection");
 
-    add_vectors(&dest_file_names, dest_embeddings.unwrap())
+    add_vectors(args, &dest_file_names, dest_embeddings.unwrap())
         .await
         .unwrap();
 }

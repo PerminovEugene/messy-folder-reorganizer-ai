@@ -8,8 +8,17 @@ use qdrant_client::qdrant::{
 use qdrant_client::{Payload, Qdrant, QdrantError};
 use uuid::Uuid;
 
-pub async fn add_vectors(ids: &[String], vectors: Vec<Vec<f32>>) -> Result<(), QdrantError> {
-    let client: Qdrant = Qdrant::from_url("http://localhost:6334").build()?;
+use crate::configuration::args::Args;
+
+pub async fn add_vectors(
+    args: &Args,
+    ids: &[String],
+    vectors: Vec<Vec<f32>>,
+) -> Result<(), QdrantError> {
+    // let client = Qdrant::from_url("http://localhost:6334").build()?;
+    let address = &args.qdrant_server_address.clone();
+    println!("address {:?}", address);
+    let client: Qdrant = Qdrant::from_url(address).build()?;
 
     let collection_name = "dest";
 
@@ -23,12 +32,11 @@ pub async fn add_vectors(ids: &[String], vectors: Vec<Vec<f32>>) -> Result<(), Q
         )
         .await?;
 
-    // let payload = Payload::new("test".to_string(), "test".to_string());
     let points: Vec<PointStruct> = ids
         .iter()
         .zip(vectors.iter().cloned())
         .map(|(path, vector)| {
-            let id = Uuid::new_v4().as_u128() as u64; // Qdrant ожидает u64
+            let id = Uuid::new_v4().as_u128() as u64;
 
             let mut payload_data: HashMap<String, Value> = HashMap::new();
             payload_data.insert("path".to_string(), Value::from(path.to_string())); // Исправлено: path.to_string()
@@ -40,13 +48,16 @@ pub async fn add_vectors(ids: &[String], vectors: Vec<Vec<f32>>) -> Result<(), Q
         })
         .collect();
 
-    println!("Inserting {} points", points.len());
-
-    let insert_res = client
+    match client
         .upsert_points(UpsertPointsBuilder::new(collection_name, points))
-        .await?;
-
-    println!("{:?}", insert_res);
+        .await
+    {
+        Ok(_) => println!("Vectors added successfully"),
+        Err(e) => {
+            eprintln!("Failed to add vectors: {}", e);
+            return Err(e);
+        }
+    }
 
     Ok(())
 }
@@ -58,9 +69,14 @@ pub struct SearchResultFacade {
 }
 
 pub async fn find_closest_pathes(
+    args: &Args,
     vectors: Vec<Vec<f32>>,
 ) -> Result<Vec<SearchResultFacade>, QdrantError> {
-    let client = Qdrant::from_url("http://localhost:6334").build()?;
+    println!(
+        "args.qdrant_server_address.clone {:?}",
+        args.qdrant_server_address
+    );
+    let client = Qdrant::from_url(&args.qdrant_server_address.clone()).build()?;
 
     let collection_name = "dest".to_string();
 

@@ -21,8 +21,6 @@ pub async fn create_folder_for_unknown_files(
             cp.score > 0.50
         });
 
-    // create_folder_for_names_for_
-
     let sorted_files: Vec<_> = processed_vectors
         .iter()
         .map(|x| x.source_file_name.clone())
@@ -96,7 +94,6 @@ async fn process_clusters(
             let ai_response_raw = ask_ai_for_reordering_plan(
                 files_data,
                 args.llm_model.clone(),
-                args.show_ai_thinking,
                 args.ai_server_address.clone(),
                 config,
             )

@@ -13,31 +13,15 @@ use crate::{
 pub async fn ask_ai_for_reordering_plan(
     file_names: Vec<&String>,
     model: String,
-    show_ai_thinking: bool,
-    // show_prompt: bool,
     ai_server_address: String,
     config: Config,
 ) -> Result<String, Box<dyn Error>> {
     let client = Client::new();
 
-    // Convert file metadata to JSON
-    // let file_names = files_data.iter().map(|d| &d.name).collect::<Vec<_>>();
     let file_data_json = serde_json::to_string_pretty(&file_names)?;
 
-    // Define the AI prompt
     let initial_prompt = read_initial_prompt();
     let prompt_with_input = format!("{}\n{}", initial_prompt, file_data_json);
-
-    // if show_prompt {
-    //     println!("{}", "Prompt:".green());
-    //     println!("{}", prompt_with_input);
-    //     println!();
-    // }
-
-    // println!(
-    //     "{}",
-    //     "🤖 Requesting AI assistance for file organization...".green()
-    // );
 
     let options = OllamaOptions {
         mirostat: config.mirostat,
@@ -62,19 +46,11 @@ pub async fn ask_ai_for_reordering_plan(
         options: &options,
     };
 
-    // println!();
-    // println!("{}", "🤖 Model options:".green());
-    // println!("{}", serde_json::to_string_pretty(&options).unwrap());
-
     let mut response_text = String::new();
 
     println!();
 
-    if show_ai_thinking {
-        println!("{}", "🤖 LLM Response:".green());
-    } else {
-        println!("{}", "🤖 LLM is thinking...".green());
-    }
+    println!("{}", "🤖 LLM is thinking...".green());
     let mut thinking_is_over = false;
     let mut endpoint = ai_server_address.clone();
     endpoint.push_str("api/generate");
@@ -86,9 +62,6 @@ pub async fn ask_ai_for_reordering_plan(
                     serde_json::from_slice::<OllamaResponse>(&chunk)?;
                 if olama_response_token.response.is_empty() {
                     continue;
-                }
-                if show_ai_thinking {
-                    print!("{}", olama_response_token.response);
                 }
                 if thinking_is_over {
                     response_text.push_str(&olama_response_token.response);
@@ -103,12 +76,9 @@ pub async fn ask_ai_for_reordering_plan(
             panic!("Error from request to LLM")
         }
     }
-    // println!("{}", "📁 Cleaning output from extra symbols:".green());
 
     let response_text = clean_json_string(&response_text);
-    // println!();
-    // println!("{}", "📁 New Folder Structure:".green());
-    // println!("{}", response_text);
+
     Ok(response_text)
 }
 

@@ -42,22 +42,6 @@ pub struct Args {
     pub recursive: bool,
 
     #[arg(
-        long = "show-ai-thinking",
-        short = 'A',
-        default_value_t = false,
-        help = "Will show AI thinking details"
-    )]
-    pub show_ai_thinking: bool,
-
-    #[arg(
-        long = "show-prompt",
-        short = 'S',
-        default_value_t = false,
-        help = "Will show prompt for AI"
-    )]
-    pub show_prompt: bool,
-
-    #[arg(
         long = "force-apply",
         short = 'F',
         default_value_t = false,
@@ -74,10 +58,18 @@ pub struct Args {
     pub skip_problematic_dir: bool,
 
     #[arg(
-      long = "server-address",
+      long = "llm-address",
       short = 'n',
       default_value_t = String::from("http://localhost:11434/"),
       help = "Will replace default LLM server address (default address is http://localhost:11434/)"
-  )]
+    )]
     pub ai_server_address: String,
+
+    #[arg(
+      long = "qdrant-address",
+      short = 'q',
+      default_value_t = String::from("http://localhost:6334/"),
+      help = "Will replace default qdrant server address (default address is http://localhost:6334/)"
+  )]
+    pub qdrant_server_address: String,
 }
