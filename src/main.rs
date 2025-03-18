@@ -11,6 +11,8 @@ mod ml;
 mod workflow;
 
 use configuration::init::init;
+use files::create_file::create_plan_file;
+use files::create_file::save_files_reorganisation_plan;
 use files::file_info;
 use workflow::destination_processor;
 use workflow::plan_processor;
@@ -31,8 +33,14 @@ async fn main() {
 
     let mut process_result = sources_processor::process_sources(&config, &args).await;
 
-    unknown_files_processor::create_folder_for_unknown_files(&config, &args, &mut process_result)
-        .await;
+    let migration_plan = unknown_files_processor::create_folder_for_unknown_files(
+        &config,
+        &args,
+        &mut process_result,
+    )
+    .await;
+
+    save_files_reorganisation_plan(migration_plan);
 
     plan_processor::migrate_files(&config, &args, &process_result).await;
 

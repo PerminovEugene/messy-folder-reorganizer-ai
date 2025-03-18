@@ -3,7 +3,9 @@ use crate::{
     workflow::sources_processor::ProcessResult,
 };
 
-pub async fn cluster_vectors_hierarchical(vectors: Vec<&ProcessResult>) {
+use super::hierarchical_clustering::Cluster;
+
+pub async fn cluster_vectors_hierarchical(vectors: &Vec<&ProcessResult>) -> Vec<Cluster> {
     let pathes = vectors
         .iter()
         .map(|x| x.source_file_name.clone())
@@ -24,7 +26,7 @@ pub async fn cluster_vectors_hierarchical(vectors: Vec<&ProcessResult>) {
 
     // 5. Выводим результаты
     clusters
-        .into_iter()
+        .iter()
         .enumerate()
         .for_each(|(cluster_number, cluster)| {
             println!("----");
@@ -32,6 +34,7 @@ pub async fn cluster_vectors_hierarchical(vectors: Vec<&ProcessResult>) {
                 println!("Cluster {}: {}", cluster_number, pathes[member]);
             }
         });
+    return clusters;
 }
 
 fn normalize_matrix(vectors: Vec<Vec<f32>>) -> Vec<Vec<f32>> {

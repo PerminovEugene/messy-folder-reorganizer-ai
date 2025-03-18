@@ -35,7 +35,7 @@ pub async fn process_sources(config: &Config, args: &Args) -> Vec<ProcessResult>
 
     let embeddings = embeddings::get_embeddings(
         &file_names,
-        args.model.clone(),
+        args.embedding_model.clone(),
         args.ai_server_address.clone(),
         config.clone(),
     )

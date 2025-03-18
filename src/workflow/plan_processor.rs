@@ -7,7 +7,7 @@ use super::sources_processor::ProcessResult;
 
 pub async fn migrate_files(config: &Config, args: &Args, files_data: &Vec<ProcessResult>) {
     if args.force_apply || ask_for_files_migration() {
-        apply_plan(args.path.clone()).unwrap();
+        apply_plan().unwrap();
     } else {
         print_files_not_updated();
     }

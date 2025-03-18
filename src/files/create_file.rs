@@ -12,6 +12,8 @@ use std::{
     path::Path,
 };
 
+use super::file_info::FilesReorganisationPlan;
+
 // source file name will be used for rollback later when it will be added
 pub fn create_source_file(files_data: &Vec<FileInfo>) {
     let home_dir: String = env::var("HOME").unwrap_or_else(|_| ".".to_string());
@@ -74,4 +76,9 @@ pub fn create_plan_file(files_data: String) {
     }
     println!("{}", "💾 The new file location plan has been saved".green());
     println!();
+}
+
+pub fn save_files_reorganisation_plan(files_data: Vec<FilesReorganisationPlan>) {
+    let string_data = serde_json::to_string_pretty(&files_data).unwrap();
+    create_plan_file(string_data);
 }

@@ -37,7 +37,7 @@ pub async fn index_destinations(config: &Config, args: &Args) {
 
     let dest_embeddings = get_embeddings(
         &dest_file_names,
-        args.model.clone(), // TODO remove clones
+        args.embedding_model.clone(), // TODO remove clones
         args.ai_server_address.clone(),
         config.clone(),
     )

@@ -4,11 +4,18 @@ use clap::Parser;
 #[command(author, version, about, long_about = None)]
 pub struct Args {
     #[arg(
-        long = "model",
-        short = 'M',
-        help = "Model name loaded in ollama to use"
+        long = "language-model",
+        short = 'L',
+        help = "Language model name loaded in ollama to use for folder names generation"
     )]
-    pub model: String,
+    pub llm_model: String,
+
+    #[arg(
+        long = "embedding-model",
+        short = 'E',
+        help = "Embedding model name loaded in ollama to use for embeddings generation"
+    )]
+    pub embedding_model: String,
 
     #[arg(
         long = "path",

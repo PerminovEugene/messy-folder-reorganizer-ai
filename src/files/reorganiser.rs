@@ -10,7 +10,7 @@ use crate::{
     files::{consts::PLAN_FILE_NAME, file_info::FilesReorganisationPlan},
 };
 
-pub fn apply_plan(path: String) -> std::io::Result<()> {
+pub fn apply_plan() -> std::io::Result<()> {
     let home_dir: String = env::var("HOME").unwrap_or_else(|_| ".".to_string());
     let plan_file_path = Path::new(home_dir.as_str())
         .join(CONFIGURATION_FOLDER)
@@ -26,10 +26,15 @@ pub fn apply_plan(path: String) -> std::io::Result<()> {
     };
 
     for plan_item in plan {
-        let base_path: PathBuf = PathBuf::from(&path);
-        let original_path = base_path.join(&plan_item.original).clean();
+        let source_base_path: PathBuf = PathBuf::from(plan_item.source);
+        let destination_base_path: PathBuf = PathBuf::from(plan_item.destination);
 
-        let new_path = base_path.join(plan_item.new_path).clean();
+        let original_path = source_base_path.join(&plan_item.file_name).clean();
+
+        let new_path = destination_base_path
+            .join(plan_item.destination_inner_path)
+            .join(&plan_item.file_name)
+            .clean();
 
         println!(
             "Moving file {} to {:?}",

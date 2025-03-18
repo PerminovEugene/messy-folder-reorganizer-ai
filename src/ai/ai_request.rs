@@ -12,7 +12,8 @@ use crate::{
 };
 
 pub async fn ask_ai_for_reordering_plan(
-    files_data: &[FileInfo],
+    // files_data: &[FileInfo],
+    file_names: Vec<&String>,
     model: String,
     show_ai_thinking: bool,
     show_prompt: bool,
@@ -22,23 +23,23 @@ pub async fn ask_ai_for_reordering_plan(
     let client = Client::new();
 
     // Convert file metadata to JSON
-    let file_names = files_data.iter().map(|d| &d.name).collect::<Vec<_>>();
+    // let file_names = files_data.iter().map(|d| &d.name).collect::<Vec<_>>();
     let file_data_json = serde_json::to_string_pretty(&file_names)?;
 
     // Define the AI prompt
     let initial_prompt = read_initial_prompt();
     let prompt_with_input = format!("{}\n{}", initial_prompt, file_data_json);
 
-    if show_prompt {
-        println!("{}", "Prompt:".green());
-        println!("{}", prompt_with_input);
-        println!();
-    }
+    // if show_prompt {
+    //     println!("{}", "Prompt:".green());
+    //     println!("{}", prompt_with_input);
+    //     println!();
+    // }
 
-    println!(
-        "{}",
-        "🤖 Requesting AI assistance for file organization...".green()
-    );
+    // println!(
+    //     "{}",
+    //     "🤖 Requesting AI assistance for file organization...".green()
+    // );
 
     let options = OllamaOptions {
         mirostat: config.mirostat,
@@ -63,9 +64,9 @@ pub async fn ask_ai_for_reordering_plan(
         options: &options,
     };
 
-    println!();
-    println!("{}", "🤖 Model options:".green());
-    println!("{}", serde_json::to_string_pretty(&options).unwrap());
+    // println!();
+    // println!("{}", "🤖 Model options:".green());
+    // println!("{}", serde_json::to_string_pretty(&options).unwrap());
 
     let mut response_text = String::new();
 
@@ -77,15 +78,14 @@ pub async fn ask_ai_for_reordering_plan(
         println!("{}", "🤖 LLM is thinking...".green());
     }
     let mut thinking_is_over = false;
-    match client
-        .post(ai_server_address)
-        .json(&request_body)
-        .send()
-        .await
-    {
+    let mut endpoint = ai_server_address.clone();
+    endpoint.push_str("api/generate");
+    match client.post(endpoint).json(&request_body).send().await {
         Ok(mut response) => {
             while let Some(chunk) = response.chunk().await? {
-                let olama_response_token = serde_json::from_slice::<OllamaResponse>(&chunk)?;
+                // println!("chunk: {:?}", chunk);
+                let olama_response_token: OllamaResponse =
+                    serde_json::from_slice::<OllamaResponse>(&chunk)?;
                 if olama_response_token.response.is_empty() {
                     continue;
                 }
@@ -105,12 +105,12 @@ pub async fn ask_ai_for_reordering_plan(
             panic!("Error from request to LLM")
         }
     }
-    println!("{}", "📁 Cleaning output from extra symbols:".green());
+    // println!("{}", "📁 Cleaning output from extra symbols:".green());
 
     let response_text = clean_json_string(&response_text);
-    println!();
-    println!("{}", "📁 New Folder Structure:".green());
-    println!("{}", response_text);
+    // println!();
+    // println!("{}", "📁 New Folder Structure:".green());
+    // println!("{}", response_text);
     Ok(response_text)
 }
 
