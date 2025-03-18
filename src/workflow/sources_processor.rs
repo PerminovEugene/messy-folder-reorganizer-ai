@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 
-use crate::ai::embeddings::{self, get_embeddings};
-use crate::bd::quadrant::{add_vectors, find_closest_pathes};
+use crate::ai::embeddings;
+use crate::bd::quadrant::find_closest_pathes;
 use crate::configuration::args::Args;
 use crate::configuration::config::Config;
-use crate::files::create_file::{create_plan_file, create_source_file};
-use crate::files::dirr_processing::collect_files_metadata;
-use crate::files::file_info::{self, FilesReorganisationPlan};
+use crate::files::create_file::create_source_file;
+use crate::files::dirr_processing::{collect_files_metadata, CollectFilesMetaConfig};
+use crate::files::file_info;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ProcessResult {
@@ -19,16 +19,14 @@ pub struct ProcessResult {
 pub async fn process_sources(config: &Config, args: &Args) -> Vec<ProcessResult> {
     let mut files_data: Vec<file_info::FileInfo> = Vec::new();
 
-    collect_files_metadata(
-        &args.path,
-        "",
-        args.skip_problematic_dir,
-        &mut files_data,
-        &vec![],
-        args.recursive,
-        false,
-        true,
-    );
+    let collector_config = &CollectFilesMetaConfig {
+        skip_problematic_dir: args.skip_problematic_dir,
+        recursive: args.recursive,
+        process_folders: false,
+        process_files: true,
+    };
+
+    collect_files_metadata(&args.path, "", &mut files_data, &vec![], collector_config);
     create_source_file(&files_data);
 
     let file_names = files_data.iter().map(|d| &d.name).collect::<Vec<_>>();
@@ -64,11 +62,9 @@ pub async fn process_sources(config: &Config, args: &Args) -> Vec<ProcessResult>
 }
 
 fn format_file_name(file_name: &str) -> String {
-    // Разбиваем строку по последней точке
-    let mut parts: Vec<&str> = file_name.rsplitn(2, '.').collect();
-    let format = parts.get(0).unwrap_or(&"").to_string(); // Расширение файла
+    let parts: Vec<&str> = file_name.rsplitn(2, '.').collect();
+    let format = parts.first().unwrap_or(&"").to_string();
 
-    // Берём всё, кроме расширения и заменяем "-" и "_" на пробелы
     let name = parts.get(1).unwrap_or(&file_name).replace(['-', '_'], " ");
 
     format!("{}.{}", name, format)
@@ -76,7 +72,7 @@ fn format_file_name(file_name: &str) -> String {
 
 fn format_file_names(file_names: &Vec<&String>) -> Vec<String> {
     file_names
-        .into_iter()
+        .iter()
         .map(|file_name| format_file_name(file_name))
         .collect()
 }

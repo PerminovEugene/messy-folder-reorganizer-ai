@@ -13,7 +13,7 @@ pub async fn cluster_vectors_hierarchical(vectors: &Vec<&ProcessResult>) -> Vec<
     println!("Pathes: {:?}", pathes);
 
     // build source matrix
-    let source_matrix: Vec<Vec<f32>> = vectors.into_iter().map(|ms| ms.vector.clone()).collect();
+    let source_matrix: Vec<Vec<f32>> = vectors.iter().map(|ms| ms.vector.clone()).collect();
 
     // normalize vectors in matrix
     let normalized_vectors = normalize_matrix(source_matrix);
@@ -34,7 +34,7 @@ pub async fn cluster_vectors_hierarchical(vectors: &Vec<&ProcessResult>) -> Vec<
                 println!("Cluster {}: {}", cluster_number, pathes[member]);
             }
         });
-    return clusters;
+    clusters
 }
 
 fn normalize_matrix(vectors: Vec<Vec<f32>>) -> Vec<Vec<f32>> {

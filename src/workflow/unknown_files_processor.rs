@@ -13,7 +13,7 @@ use super::sources_processor::ProcessResult;
 pub async fn create_folder_for_unknown_files(
     config: &Config,
     args: &Args,
-    process_result: &mut Vec<ProcessResult>,
+    process_result: &mut [ProcessResult],
 ) -> Vec<FilesReorganisationPlan> {
     let (processed_vectors, unknown_vectors): (Vec<_>, Vec<_>) =
         process_result.iter().partition(|&cp| {
@@ -74,12 +74,11 @@ async fn process_clusters(
     config: &Config,
     args: &Args,
     clusters: &Vec<Cluster>,
-    unknown_vectors: &Vec<&ProcessResult>,
+    unknown_vectors: &[&ProcessResult],
 ) -> HashMap<usize, String> {
-    let mut futures = FuturesUnordered::new();
+    let futures = FuturesUnordered::new();
 
     for cluster in clusters {
-        let args = args.clone();
         let config = config.clone();
         let cluster_id = cluster.id;
 
@@ -98,7 +97,6 @@ async fn process_clusters(
                 files_data,
                 args.llm_model.clone(),
                 args.show_ai_thinking,
-                args.show_prompt,
                 args.ai_server_address.clone(),
                 config,
             )

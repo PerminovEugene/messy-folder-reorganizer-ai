@@ -7,15 +7,19 @@ use std::path::Path;
 use crate::file_info::convert_path_meta_to_file_info;
 use crate::file_info::FileInfo;
 
+pub struct CollectFilesMetaConfig {
+    pub skip_problematic_dir: bool,
+    pub recursive: bool,
+    pub process_folders: bool,
+    pub process_files: bool,
+}
+
 pub fn collect_files_metadata(
     base_path_str: &str,
     inner_path: &str,
-    skip_problematic_dir: bool,
     files_data: &mut Vec<FileInfo>,
     ignore_patterns: &Vec<Regex>,
-    recursive: bool,
-    process_folders: bool,
-    process_files: bool,
+    config: &CollectFilesMetaConfig,
 ) {
     let base_path_buf = Path::new(base_path_str).join(inner_path);
     let base_path = base_path_buf.as_path();
@@ -41,34 +45,31 @@ pub fn collect_files_metadata(
 
                 let file_name = &relative_path.file_name().unwrap();
                 println!("{} {:?}", "📄 Processing file:".blue(), file_name);
-                if is_ignored(file_name.to_str().unwrap(), &ignore_patterns) {
+                if is_ignored(file_name.to_str().unwrap(), ignore_patterns) {
                     println!("{} {:?}", "🚫 Ignoring file:".yellow(), relative_path);
                     continue;
                 }
 
                 if file_meta.is_file() {
-                    if process_files {
+                    if config.process_files {
                         let file_info = convert_path_meta_to_file_info(&relative_path, file_meta);
                         files_data.push(file_info);
                     }
                 } else {
-                    if process_folders {
+                    if config.process_folders {
                         let file_info = convert_path_meta_to_file_info(&relative_path, file_meta);
                         files_data.push(file_info);
                     }
-                    if recursive {
+                    if config.recursive {
                         if let Some(sub_path) = dir.file_name().to_str() {
                             let full_sub_path = Path::new(inner_path).join(sub_path);
                             let full_sub_path_str = full_sub_path.to_str().unwrap();
                             collect_files_metadata(
                                 base_path_str,
                                 full_sub_path_str,
-                                skip_problematic_dir,
                                 files_data,
                                 ignore_patterns,
-                                recursive,
-                                process_folders,
-                                process_files,
+                                config,
                             );
                         }
                     }
@@ -77,7 +78,7 @@ pub fn collect_files_metadata(
         }
         Err(err) => {
             eprintln!("Error reading directory {:?}: {:?}", base_path, err);
-            if !skip_problematic_dir {
+            if !config.skip_problematic_dir {
                 panic!("Error reading directory {:?}: {:?}", base_path, err);
             }
         }

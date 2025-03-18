@@ -1,14 +1,14 @@
 use std::collections::HashMap;
 
 use qdrant_client::qdrant::{
-    with_payload_selector, CreateCollectionBuilder, Distance, PointStruct, ReadConsistency,
+    with_payload_selector, CreateCollectionBuilder, Distance, PointStruct,
     ScalarQuantizationBuilder, SearchBatchPoints, SearchPoints, UpsertPointsBuilder, Value,
     VectorParamsBuilder, WithPayloadSelector,
 };
 use qdrant_client::{Payload, Qdrant, QdrantError};
 use uuid::Uuid;
 
-pub async fn add_vectors(ids: &Vec<String>, vectors: Vec<Vec<f32>>) -> Result<(), QdrantError> {
+pub async fn add_vectors(ids: &[String], vectors: Vec<Vec<f32>>) -> Result<(), QdrantError> {
     let client: Qdrant = Qdrant::from_url("http://localhost:6334").build()?;
 
     let collection_name = "dest";
@@ -25,7 +25,7 @@ pub async fn add_vectors(ids: &Vec<String>, vectors: Vec<Vec<f32>>) -> Result<()
 
     // let payload = Payload::new("test".to_string(), "test".to_string());
     let points: Vec<PointStruct> = ids
-        .into_iter()
+        .iter()
         .zip(vectors.iter().cloned())
         .map(|(path, vector)| {
             let id = Uuid::new_v4().as_u128() as u64; // Qdrant ожидает u64
@@ -86,14 +86,12 @@ pub async fn find_closest_pathes(
 
     let search_result = client.search_batch_points(batch_search_req).await?;
 
-    // dbg!(&search_result);
-
     let result: Vec<SearchResultFacade> = search_result
         .result
         .iter()
         .zip(vectors.into_iter())
         .map(|(point, vector)| {
-            let result = point.result.iter().next().unwrap();
+            let result = &point.result[0];
 
             let path = result
                 .payload

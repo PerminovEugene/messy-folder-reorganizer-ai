@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 #[derive(Debug, Clone)]
 pub struct Cluster {

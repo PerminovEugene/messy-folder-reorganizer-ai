@@ -1,11 +1,9 @@
-use colored::Colorize;
 use reqwest::Client;
 use std::error::Error;
 
 use crate::{
     ai::ollama_protocol::{OllamaEmbedRequest, OllamaEmbedResponse, OllamaOptions},
     configuration::config::Config,
-    file_info::FileInfo,
 };
 
 pub async fn get_embeddings(
@@ -15,9 +13,6 @@ pub async fn get_embeddings(
     config: Config,
 ) -> Result<Vec<Vec<f32>>, Box<dyn Error>> {
     let client = Client::new();
-
-    // Convert file metadata to JSON
-    // let file_names = files_data.iter().map(|d| &d.name).collect::<Vec<_>>();
 
     let options = OllamaOptions {
         mirostat: config.mirostat,
@@ -43,24 +38,19 @@ pub async fn get_embeddings(
 
     let mut endpoint = ai_server_address.clone();
     endpoint.push_str("api/embed");
-    println!("{}", endpoint);
+
     let mut vectors: Vec<Vec<f32>> = vec![];
 
-    // println!("{:?}", request_body.input);
-
     match client.post(endpoint).json(&request_body).send().await {
-        Ok(mut response) => {
-            println!("{}", "📁 Processing response from AI:".green());
+        Ok(response) => {
             let olama_parsed_response: OllamaEmbedResponse = response.json().await?;
 
-            vectors = olama_parsed_response.embeddings.clone();
+            vectors.extend(olama_parsed_response.embeddings);
         }
         Err(e) => {
             eprintln!("Request failed: {}", e);
             panic!("Error from request to LLM")
         }
     }
-    println!("{}", "📁 Cleaning output from extra symbols:".green());
     Ok(vectors)
 }
-// Compare this snippet from src/ai/prompt.rs:

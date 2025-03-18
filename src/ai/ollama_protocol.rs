@@ -69,7 +69,6 @@ pub struct OllamaResponse {
 
 #[derive(Deserialize)]
 pub struct OllamaEmbedResponse {
-    pub model: String,
     pub embeddings: Vec<Vec<f32>>,
     // pub total_duration: u64,
     // pub load_duration: u64,

@@ -8,15 +8,13 @@ use crate::{
         prompt::read_initial_prompt,
     },
     configuration::config::Config,
-    file_info::FileInfo,
 };
 
 pub async fn ask_ai_for_reordering_plan(
-    // files_data: &[FileInfo],
     file_names: Vec<&String>,
     model: String,
     show_ai_thinking: bool,
-    show_prompt: bool,
+    // show_prompt: bool,
     ai_server_address: String,
     config: Config,
 ) -> Result<String, Box<dyn Error>> {
