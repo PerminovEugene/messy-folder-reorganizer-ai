@@ -96,16 +96,20 @@ messy-folder-reorganizer-ai --model <MODEL_NAME> --path <PATH_TO_FOLDER>
 
 The application provides several command-line flags to configure its behavior. Below is a table listing all available flags along with their descriptions:
 
-| Flag                     | Short | Default                               | Description                                                   |
-| ------------------------ | ----- | ------------------------------------- | ------------------------------------------------------------- |
-| `--model`                | `-M`  | Required                              | Specifies the model name loaded in Ollama to use.             |
-| `--path`                 | `-P`  | Required                              | Specifies the path to the folder containing files to reorder. |
-| `--recursive`            | `-R`  | `false`                               | Determines if inner folders should be processed recursively.  |
-| `--show-ai-thinking`     | `-A`  | `false`                               | Displays AI thinking details during execution.                |
-| `--show-prompt`          | `-S`  | `false`                               | Displays the AI prompt.                                       |
-| `--force-apply`          | `-F`  | `false`                               | Applies the reordering plan without requiring user review.    |
-| `--server-address`       | `-n`  | `http://localhost:11434/api/generate` | Overrides the default LLM server address.                     |
-| `--skip-problematic-dir` | `-d`  | `false`                               | Will skip problematic directories and files.                  |
+## Command-Line Arguments
+
+| Flag                     | Short | Default                   | Description                                                                                                |
+| ------------------------ | ----- | ------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `--language-model`       | `-L`  | Required                  | Language model name loaded in Ollama to use for folder name generation.                                    |
+| `--embedding-model`      | `-E`  | Required                  | Embedding model name loaded in Ollama to use for embeddings generation.                                    |
+| `--source`               | `-S`  | Required                  | Path to the folder with files to reorder.                                                                  |
+| `--destination`          | `-D`  | `home`                    | Path to the folder used as the destination for reordering. If not specified, the home folder will be used. |
+| `--recursive`            | `-R`  | `false`                   | Determines if inner folders should be processed recursively.                                               |
+| `--force-apply`          | `-F`  | `false`                   | Applies the reordering plan without requiring user review.                                                 |
+| `--skip-problematic-dir` | `-d`  | `false`                   | Skips problematic directories and files.                                                                   |
+| `--llm-address`          | `-n`  | `http://localhost:11434/` | Overrides the default LLM server address.                                                                  |
+| `--qdrant-address`       | `-q`  | `http://localhost:6334/`  | Overrides the default Qdrant server address.                                                               |
+|  |
 
 ### Usage examples
 
@@ -171,7 +175,6 @@ rm -rf ~/.messy-folder-reorganizer-ai
 
 - Multiple AI requests for result improvements.
 - Improve processing huge folders (batches in parallel + initial request with files formats).
-- Add optional destination folder.
 - Filtration by formats?
 - Handle file names collision case.
 - Rollback by plan.json
@@ -188,8 +191,9 @@ rm -rf ~/.messy-folder-reorganizer-ai
 
 - change model to embedding one (or load additionallly), from here https://ollama.com/blog/embedding-models
 - embeddings size from ollama model should be the same as size of qdrant collection, so it should be configurable
-- Allow measure configuration cosin || euclide || dot?
 - Allow max distance configuration
+- Allow score threshold configuration
+- Add separated config for embeddings request?
 
 ### workflow
 

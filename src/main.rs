@@ -13,7 +13,7 @@ mod workflow;
 use configuration::init::init;
 use console::messages::print_initial_message;
 use console::table::print_migration_plan_table;
-use console::table::print_table;
+use console::table::print_rag_processing_result;
 use files::create_file::save_files_reorganisation_plan;
 use files::file_info;
 use workflow::destination_processor;
@@ -35,7 +35,7 @@ async fn main() {
 
     let mut process_result = sources_processor::process_sources(&config, &args).await;
 
-    print_table(&process_result);
+    print_rag_processing_result(&process_result);
 
     let migration_plan = unknown_files_processor::create_folder_for_unknown_files(
         &config,

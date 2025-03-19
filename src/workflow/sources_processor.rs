@@ -53,7 +53,7 @@ pub async fn process_sources(config: &Config, args: &Args) -> Vec<ProcessResult>
     print_looking_for_suitable_destination();
     let closest_pathes = find_closest_pathes(args, embeddings).await.unwrap();
 
-    closest_pathes
+    let mut result: Vec<ProcessResult> = closest_pathes
         .into_iter()
         .zip(file_names.into_iter())
         .map(|(cp, file_name)| ProcessResult {
@@ -62,7 +62,11 @@ pub async fn process_sources(config: &Config, args: &Args) -> Vec<ProcessResult>
             source_file_name: file_name.clone(),
             vector: cp.vector,
         })
-        .collect()
+        .collect();
+
+    result.sort_by_key(|process_result| process_result.path.clone());
+
+    result
 }
 
 fn format_file_name(file_name: &str) -> String {

@@ -57,6 +57,9 @@ pub async fn create_folder_for_unknown_files(
             .collect();
         migration_plan.extend(reorganisation_plans);
     }
+
+    migration_plan.sort_by_key(|a| a.destination_inner_path.clone()); // Sort first
+
     migration_plan
 }
 

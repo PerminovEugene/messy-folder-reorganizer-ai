@@ -8,7 +8,7 @@ use crate::{
     workflow::sources_processor::ProcessResult,
 };
 
-pub fn print_table(process_result: &[ProcessResult]) {
+pub fn print_rag_processing_result(process_result: &[ProcessResult]) {
     println!("{}", "📊 Files RAG processing result:".green());
 
     let mut table = Table::new();
