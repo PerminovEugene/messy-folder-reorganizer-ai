@@ -1,4 +1,3 @@
-use colored::Colorize;
 use path_clean::PathClean;
 use std::{
     env, fs,
@@ -7,6 +6,7 @@ use std::{
 
 use crate::{
     configuration::consts::CONFIGURATION_FOLDER,
+    console::messages::{print_files_reorganization_done, print_move_file},
     files::{consts::PLAN_FILE_NAME, file_info::FilesReorganisationPlan},
 };
 
@@ -36,11 +36,7 @@ pub fn apply_plan() -> std::io::Result<()> {
             .join(&plan_item.file_name)
             .clean();
 
-        println!(
-            "Moving file {} to {:?}",
-            original_path.to_string_lossy(),
-            new_path
-        );
+        print_move_file(original_path.to_str().unwrap(), new_path.to_str().unwrap());
 
         // Ensure the parent directory of the new path exists
         if let Some(parent) = new_path.parent() {
@@ -56,6 +52,6 @@ pub fn apply_plan() -> std::io::Result<()> {
         }
     }
 
-    println!("{}", "Files reorganization is done".green());
+    print_files_reorganization_done();
     Ok(())
 }

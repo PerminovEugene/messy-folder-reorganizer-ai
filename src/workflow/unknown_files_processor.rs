@@ -2,6 +2,10 @@ use std::collections::HashMap;
 
 use crate::configuration::args::Args;
 use crate::configuration::config::Config;
+use crate::console::messages::{
+    print_asking_llm_for_new_folder_names, print_clustering_unknown_vectors,
+};
+use crate::console::table::print_clusters_ai_proposed_names;
 use crate::files::file_info::FilesReorganisationPlan;
 use crate::ml::agglomerative_clustering::cluster_vectors_hierarchical;
 use crate::{ai::ai_request::ask_ai_for_reordering_plan, ml::hierarchical_clustering::Cluster};
@@ -16,32 +20,26 @@ pub async fn create_folder_for_unknown_files(
     process_result: &mut [ProcessResult],
 ) -> Vec<FilesReorganisationPlan> {
     let (processed_vectors, unknown_vectors): (Vec<_>, Vec<_>) =
-        process_result.iter().partition(|&cp| {
-            println!("cp.score: {:?} {:?}", cp.score, cp.source_file_name);
-            cp.score > 0.50
-        });
-
-    let sorted_files: Vec<_> = processed_vectors
-        .iter()
-        .map(|x| x.source_file_name.clone())
-        .collect();
-    println!("Processed files: {:?}", sorted_files);
+        process_result.iter().partition(|&cp| cp.score > 0.50);
 
     let mut migration_plan: Vec<FilesReorganisationPlan> = processed_vectors
         .iter()
         .map(|x| FilesReorganisationPlan {
             file_name: x.source_file_name.clone(),
             destination_inner_path: x.path.clone(),
-            source: args.path.clone(),
+            source: args.source.clone(),
             destination: args.destination.clone(),
         })
         .collect();
 
     if !unknown_vectors.is_empty() {
-        println!("Clustering unknown vectors");
+        print_clustering_unknown_vectors();
         let clusters = cluster_vectors_hierarchical(&unknown_vectors).await;
 
+        print_asking_llm_for_new_folder_names();
         let folder_data = process_clusters(config, args, &clusters, &unknown_vectors).await;
+
+        print_clusters_ai_proposed_names(&folder_data);
 
         let reorganisation_plans: Vec<FilesReorganisationPlan> = clusters
             .iter()
@@ -51,7 +49,7 @@ pub async fn create_folder_for_unknown_files(
                     FilesReorganisationPlan {
                         file_name: unknown_vector_from_cluster.source_file_name.clone(),
                         destination_inner_path: folder_data[&cluster.id].clone(),
-                        source: args.path.clone(),
+                        source: args.source.clone(),
                         destination: args.destination.clone(),
                     }
                 })
@@ -88,9 +86,6 @@ async fn process_clusters(
             .collect();
 
         let future = async move {
-            println!("handling cluster id: {:?}", cluster_id);
-            println!("files : {:?} cluster id {:?}", files_data, cluster_id);
-
             let ai_response_raw = ask_ai_for_reordering_plan(
                 files_data,
                 args.llm_model.clone(),
@@ -100,7 +95,7 @@ async fn process_clusters(
             .await
             .unwrap();
 
-            println!("Ai response: {:?} {:?}", ai_response_raw, cluster_id);
+            // println!("Ai response: {:?} {:?}", ai_response_raw, cluster_id);
             let ai_response: AiResponse =
                 serde_json::from_str::<AiResponse>(&ai_response_raw).unwrap();
 

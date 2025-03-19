@@ -1,4 +1,5 @@
 use crate::{
+    console::table::print_clustering_table,
     ml::hierarchical_clustering::hierarchical_clustering_auto,
     workflow::sources_processor::ProcessResult,
 };
@@ -10,7 +11,6 @@ pub async fn cluster_vectors_hierarchical(vectors: &Vec<&ProcessResult>) -> Vec<
         .iter()
         .map(|x| x.source_file_name.clone())
         .collect::<Vec<_>>();
-    println!("Pathes: {:?}", pathes);
 
     // build source matrix
     let source_matrix: Vec<Vec<f32>> = vectors.iter().map(|ms| ms.vector.clone()).collect();
@@ -24,16 +24,8 @@ pub async fn cluster_vectors_hierarchical(vectors: &Vec<&ProcessResult>) -> Vec<
     // clustering
     let clusters = hierarchical_clustering_auto(&distance_matrix);
 
-    // 5. Выводим результаты
-    clusters
-        .iter()
-        .enumerate()
-        .for_each(|(cluster_number, cluster)| {
-            println!("----");
-            for &member in &cluster.members {
-                println!("Cluster {}: {}", cluster_number, pathes[member]);
-            }
-        });
+    print_clustering_table(&clusters, &pathes);
+
     clusters
 }
 

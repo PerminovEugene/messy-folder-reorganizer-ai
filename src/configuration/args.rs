@@ -18,11 +18,11 @@ pub struct Args {
     pub embedding_model: String,
 
     #[arg(
-        long = "path",
-        short = 'P',
+        long = "source",
+        short = 'S',
         help = "Path to the folder with files to reorder"
     )]
-    pub path: String, // TODO rename to source
+    pub source: String,
 
     #[arg(
         long = "destination",

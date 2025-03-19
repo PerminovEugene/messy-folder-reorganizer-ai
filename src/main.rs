@@ -11,6 +11,9 @@ mod ml;
 mod workflow;
 
 use configuration::init::init;
+use console::messages::print_initial_message;
+use console::table::print_migration_plan_table;
+use console::table::print_table;
 use files::create_file::save_files_reorganisation_plan;
 use files::file_info;
 use workflow::destination_processor;
@@ -22,7 +25,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[tokio::main]
 async fn main() {
-    println!("Messy-folder-reorganizer-ai - Version {}", VERSION);
+    print_initial_message(VERSION);
 
     init();
     let args = configuration::args::Args::parse();
@@ -32,9 +35,7 @@ async fn main() {
 
     let mut process_result = sources_processor::process_sources(&config, &args).await;
 
-    process_result.iter().for_each(|result| {
-        println!("{:?} close to {:?}", result.source_file_name, result.path);
-    });
+    print_table(&process_result);
 
     let migration_plan = unknown_files_processor::create_folder_for_unknown_files(
         &config,
@@ -43,6 +44,7 @@ async fn main() {
     )
     .await;
 
+    print_migration_plan_table(&migration_plan);
     save_files_reorganisation_plan(migration_plan);
 
     plan_processor::migrate_files(&args).await;

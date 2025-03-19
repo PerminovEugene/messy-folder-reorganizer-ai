@@ -1,4 +1,3 @@
-use colored::Colorize;
 use reqwest::Client;
 use std::error::Error;
 
@@ -48,16 +47,12 @@ pub async fn ask_ai_for_reordering_plan(
 
     let mut response_text = String::new();
 
-    println!();
-
-    println!("{}", "🤖 LLM is thinking...".green());
     let mut thinking_is_over = false;
     let mut endpoint = ai_server_address.clone();
     endpoint.push_str("api/generate");
     match client.post(endpoint).json(&request_body).send().await {
         Ok(mut response) => {
             while let Some(chunk) = response.chunk().await? {
-                // println!("chunk: {:?}", chunk);
                 let olama_response_token: OllamaResponse =
                     serde_json::from_slice::<OllamaResponse>(&chunk)?;
                 if olama_response_token.response.is_empty() {

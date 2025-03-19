@@ -15,9 +15,7 @@ pub async fn add_vectors(
     ids: &[String],
     vectors: Vec<Vec<f32>>,
 ) -> Result<(), QdrantError> {
-    // let client = Qdrant::from_url("http://localhost:6334").build()?;
     let address = &args.qdrant_server_address.clone();
-    println!("address {:?}", address);
     let client: Qdrant = Qdrant::from_url(address).build()?;
 
     let collection_name = "dest";
@@ -52,14 +50,12 @@ pub async fn add_vectors(
         .upsert_points(UpsertPointsBuilder::new(collection_name, points))
         .await
     {
-        Ok(_) => println!("Vectors added successfully"),
+        Ok(_) => Ok(()),
         Err(e) => {
             eprintln!("Failed to add vectors: {}", e);
-            return Err(e);
+            Err(e)
         }
     }
-
-    Ok(())
 }
 
 pub struct SearchResultFacade {
@@ -72,10 +68,6 @@ pub async fn find_closest_pathes(
     args: &Args,
     vectors: Vec<Vec<f32>>,
 ) -> Result<Vec<SearchResultFacade>, QdrantError> {
-    println!(
-        "args.qdrant_server_address.clone {:?}",
-        args.qdrant_server_address
-    );
     let client = Qdrant::from_url(&args.qdrant_server_address.clone()).build()?;
 
     let collection_name = "dest".to_string();

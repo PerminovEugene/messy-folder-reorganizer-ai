@@ -1,9 +1,11 @@
-use colored::Colorize;
 use core::panic;
 use regex::Regex;
 use std::fs;
 use std::path::Path;
 
+use crate::console::messages::print_ignoring_file;
+use crate::console::messages::print_processing_directory;
+use crate::console::messages::print_processing_file;
 use crate::file_info::convert_path_meta_to_file_info;
 use crate::file_info::FileInfo;
 
@@ -26,7 +28,7 @@ pub fn collect_files_metadata(
 
     match fs::read_dir(base_path) {
         Ok(read_dir_res) => {
-            println!("{} {:?}", "🔍 Processing directory:".green(), base_path);
+            print_processing_directory(base_path.to_str().unwrap());
 
             for dir in read_dir_res.flatten() {
                 let file_meta = match dir.metadata() {
@@ -44,13 +46,14 @@ pub fn collect_files_metadata(
                 };
 
                 let file_name = &relative_path.file_name().unwrap();
-                println!("{} {:?}", "📄 Processing file:".blue(), file_name);
+
                 if is_ignored(file_name.to_str().unwrap(), ignore_patterns) {
-                    println!("{} {:?}", "🚫 Ignoring file:".yellow(), relative_path);
+                    print_ignoring_file(relative_path.to_str().unwrap());
                     continue;
                 }
 
                 if file_meta.is_file() {
+                    print_processing_file(file_name.to_str().unwrap());
                     if config.process_files {
                         let file_info = convert_path_meta_to_file_info(&relative_path, file_meta);
                         files_data.push(file_info);
@@ -83,7 +86,6 @@ pub fn collect_files_metadata(
             }
         }
     }
-    println!();
 }
 
 fn is_ignored(file_path: &str, ignore_patterns: &[Regex]) -> bool {

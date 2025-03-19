@@ -6,6 +6,7 @@ use crate::configuration::consts::{
     CONFIGURATION_FILE, CONFIGURATION_FOLDER, INITIAL_PROMPT_FILE, PROMPTS_FOLDER,
 };
 use crate::configuration::embedded_assets::{CONFIG_FILE_BYTES, INITIAL_PROMPT_FILE_BYTES};
+use crate::console::messages::print_generate_config_file;
 
 pub fn init() {
     create_application_config_folder();
@@ -52,6 +53,6 @@ fn create_application_file_if_missing(config_file_path: &Path, embedded_content:
         }
 
         fs::write(config_file_path, embedded_content).expect("Failed to write embedded content");
-        println!("Initialized file: {:?}", config_file_path);
+        print_generate_config_file(config_file_path.to_str().unwrap().to_string());
     }
 }
