@@ -22,10 +22,12 @@ pub async fn add_vectors(
 
     client.delete_collection(collection_name).await?;
 
+    let dimensions = vectors.first().unwrap().len() as u64;
+
     client
         .create_collection(
             CreateCollectionBuilder::new(collection_name)
-                .vectors_config(VectorParamsBuilder::new(1024, Distance::Cosine))
+                .vectors_config(VectorParamsBuilder::new(dimensions, Distance::Cosine))
                 .quantization_config(ScalarQuantizationBuilder::default()),
         )
         .await?;
