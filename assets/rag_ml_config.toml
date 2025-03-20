@@ -1,0 +1,11 @@
+# RAG and ML configuration
+
+# Minimum distance threshold for clustering.
+# If two vectors are closer than this distance, they will be merged into a single cluster.
+clustering_min_distance = 0.5
+
+# Threshold for validating correctness of folder name for file name.
+# Each file name embedding is compared against folder name embeddings to find the closest match.
+# If the similarity score is greater than valid_embedding_threshold, the folder name is considered valid and does not 
+# require generation via LLM.
+valid_embedding_threshold = 0.5

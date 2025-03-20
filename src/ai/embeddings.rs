@@ -3,14 +3,14 @@ use std::error::Error;
 
 use crate::{
     ai::ollama_protocol::{OllamaEmbedRequest, OllamaEmbedResponse, OllamaOptions},
-    configuration::config::Config,
+    configuration::config::EmbeddingModelConfig,
 };
 
 pub async fn get_embeddings(
     file_names: &Vec<String>,
     model: String,
     ai_server_address: String,
-    config: Config,
+    config: EmbeddingModelConfig,
 ) -> Result<Vec<Vec<f32>>, Box<dyn Error>> {
     let client = Client::new();
 

@@ -1,12 +1,15 @@
 use crate::{
-    console::table::print_clustering_table,
+    configuration::config::RagMlConfig, console::table::print_clustering_table,
     ml::hierarchical_clustering::hierarchical_clustering_auto,
     workflow::sources_processor::ProcessResult,
 };
 
 use super::hierarchical_clustering::Cluster;
 
-pub async fn cluster_vectors_hierarchical(vectors: &Vec<&ProcessResult>) -> Vec<Cluster> {
+pub async fn cluster_vectors_hierarchical(
+    config: &RagMlConfig,
+    vectors: &Vec<&ProcessResult>,
+) -> Vec<Cluster> {
     let pathes = vectors
         .iter()
         .map(|x| x.source_file_name.clone())
@@ -22,7 +25,7 @@ pub async fn cluster_vectors_hierarchical(vectors: &Vec<&ProcessResult>) -> Vec<
     let distance_matrix = cosine_distance_matrix(&normalized_vectors);
 
     // clustering
-    let clusters = hierarchical_clustering_auto(&distance_matrix);
+    let clusters = hierarchical_clustering_auto(&distance_matrix, config);
 
     print_clustering_table(&clusters, &pathes);
 

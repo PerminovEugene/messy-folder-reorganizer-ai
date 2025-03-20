@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::ai::embeddings;
 use crate::bd::quadrant::find_closest_pathes;
 use crate::configuration::args::Args;
-use crate::configuration::config::Config;
+use crate::configuration::config::EmbeddingModelConfig;
 use crate::console::messages::{
     print_generating_embeddings_for_sources, print_looking_for_suitable_destination,
     print_parsing_sources,
@@ -20,7 +20,7 @@ pub struct ProcessResult {
     pub vector: Vec<f32>,
 }
 
-pub async fn process_sources(config: &Config, args: &Args) -> Vec<ProcessResult> {
+pub async fn process_sources(config: &EmbeddingModelConfig, args: &Args) -> Vec<ProcessResult> {
     let mut files_data: Vec<file_info::FileInfo> = Vec::new();
 
     let collector_config = &CollectFilesMetaConfig {

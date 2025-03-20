@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::configuration::args::Args;
-use crate::configuration::config::Config;
+use crate::configuration::config::{LLMModelConfig, RagMlConfig};
 use crate::console::messages::{
     print_asking_llm_for_new_folder_names, print_clustering_unknown_vectors,
 };
@@ -15,12 +15,15 @@ use serde::{Deserialize, Serialize};
 use super::sources_processor::ProcessResult;
 
 pub async fn create_folder_for_unknown_files(
-    config: &Config,
+    llm_config: &LLMModelConfig,
+    rag_ml_config: &RagMlConfig,
     args: &Args,
     process_result: &mut [ProcessResult],
 ) -> Vec<FilesReorganisationPlan> {
+    let threshhold = rag_ml_config.valid_embedding_threshold.unwrap();
+
     let (processed_vectors, unknown_vectors): (Vec<_>, Vec<_>) =
-        process_result.iter().partition(|&cp| cp.score > 0.50);
+        process_result.iter().partition(|&cp| cp.score > threshhold);
 
     let mut migration_plan: Vec<FilesReorganisationPlan> = processed_vectors
         .iter()
@@ -34,10 +37,10 @@ pub async fn create_folder_for_unknown_files(
 
     if !unknown_vectors.is_empty() {
         print_clustering_unknown_vectors();
-        let clusters = cluster_vectors_hierarchical(&unknown_vectors).await;
+        let clusters = cluster_vectors_hierarchical(rag_ml_config, &unknown_vectors).await;
 
         print_asking_llm_for_new_folder_names();
-        let folder_data = process_clusters(config, args, &clusters, &unknown_vectors).await;
+        let folder_data = process_clusters(llm_config, args, &clusters, &unknown_vectors).await;
 
         print_clusters_ai_proposed_names(&folder_data);
 
@@ -70,7 +73,7 @@ struct AiResponse {
 }
 
 async fn process_clusters(
-    config: &Config,
+    config: &LLMModelConfig,
     args: &Args,
     clusters: &Vec<Cluster>,
     unknown_vectors: &[&ProcessResult],

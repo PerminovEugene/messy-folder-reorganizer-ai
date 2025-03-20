@@ -1,12 +1,17 @@
 use std::collections::HashSet;
 
+use crate::configuration::config::RagMlConfig;
+
 #[derive(Debug, Clone)]
 pub struct Cluster {
     pub id: usize,
     pub members: HashSet<usize>,
 }
 
-pub fn hierarchical_clustering_auto(distance_matrix: &[Vec<f64>]) -> Vec<Cluster> {
+pub fn hierarchical_clustering_auto(
+    distance_matrix: &[Vec<f64>],
+    config: &RagMlConfig,
+) -> Vec<Cluster> {
     let n = distance_matrix.len();
     let mut clusters: Vec<Cluster> = (0..n)
         .map(|i| Cluster {
@@ -24,7 +29,7 @@ pub fn hierarchical_clustering_auto(distance_matrix: &[Vec<f64>]) -> Vec<Cluster
 
         last_merge_distances.push(min_dist);
 
-        if min_dist > 0.5 {
+        if min_dist > config.clustering_min_distance.unwrap() {
             break;
         }
 

@@ -6,14 +6,14 @@ use crate::{
         ollama_protocol::{OllamaGenerateRequest, OllamaOptions, OllamaResponse},
         prompt::read_initial_prompt,
     },
-    configuration::config::Config,
+    configuration::config::LLMModelConfig,
 };
 
 pub async fn ask_ai_for_reordering_plan(
     file_names: Vec<&String>,
     model: String,
     ai_server_address: String,
-    config: Config,
+    config: LLMModelConfig,
 ) -> Result<String, Box<dyn Error>> {
     let client = Client::new();
 

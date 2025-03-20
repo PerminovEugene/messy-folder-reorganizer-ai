@@ -6,14 +6,14 @@ use regex::Regex;
 use crate::ai::embeddings::get_embeddings;
 use crate::bd::quadrant::add_vectors;
 use crate::configuration::args::Args;
-use crate::configuration::config::Config;
+use crate::configuration::config::EmbeddingModelConfig;
 use crate::console::messages::{
     print_creating_dest_embeddings, print_parsing_destination_folder, print_saving_dest_embeddings,
 };
 use crate::files::dirr_processing::{collect_files_metadata, CollectFilesMetaConfig};
 use crate::files::file_info::{self, convert_path_meta_to_file_info};
 
-pub async fn index_destinations(config: &Config, args: &Args) {
+pub async fn index_destinations(config: &EmbeddingModelConfig, args: &Args) {
     print_parsing_destination_folder();
     let mut dest_files_data: Vec<file_info::FileInfo> = Vec::new();
 

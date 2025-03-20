@@ -4,11 +4,11 @@ use colored::Colorize;
 use prettytable::{format, Cell, Row, Table};
 
 use crate::{
-    files::file_info::FilesReorganisationPlan, ml::hierarchical_clustering::Cluster,
-    workflow::sources_processor::ProcessResult,
+    configuration::config::RagMlConfig, files::file_info::FilesReorganisationPlan,
+    ml::hierarchical_clustering::Cluster, workflow::sources_processor::ProcessResult,
 };
 
-pub fn print_rag_processing_result(process_result: &[ProcessResult]) {
+pub fn print_rag_processing_result(config: &RagMlConfig, process_result: &[ProcessResult]) {
     println!("{}", "📊 Files RAG processing result:".green());
 
     let mut table = Table::new();
@@ -22,7 +22,12 @@ pub fn print_rag_processing_result(process_result: &[ProcessResult]) {
     ]));
 
     process_result.iter().for_each(|result| {
-        let need_reorganize = if result.score > 0.50 { "Yes" } else { "No" };
+        let threshhold = config.valid_embedding_threshold.unwrap();
+        let need_reorganize = if result.score > threshhold {
+            "Yes"
+        } else {
+            "No"
+        };
         table.add_row(Row::new(vec![
             Cell::new(&result.source_file_name),
             Cell::new(&result.path),
