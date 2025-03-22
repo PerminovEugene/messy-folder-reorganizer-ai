@@ -223,6 +223,7 @@ rm -rf ~/.messy-folder-reorganizer-ai
 - Improve error handling
 - Add tests
 - Update Rust version
+- Add .messy-folder-rearganizer-ai folder cleaning on version update (saving and checking meta files)
 - Add cross-platform builds (on demand)
 
 ### Upcoming

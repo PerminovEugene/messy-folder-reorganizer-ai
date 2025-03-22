@@ -22,5 +22,10 @@ source_ignore = [
 # Ignore destination folders like "Projects" or "my_application"
 destination_ignore = [
   # same ignore rules as for source_ignores, add valid regex or full file/foler name if you needed
-  "Projects"
+  # Defaul macOs home folders which usually should be filled manually
+  "Projects",
+  "Downloads",
+  "Applications",
+  "Public",
+  "Desktop",
 ]
