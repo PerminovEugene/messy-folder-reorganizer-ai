@@ -1,5 +1,7 @@
 use std::fs;
 
+use regex::Regex;
+
 use super::{
     config::{EmbeddingModelConfig, LLMModelConfig, RagMlConfig},
     consts::{
@@ -25,4 +27,13 @@ pub fn load_configurations() -> (EmbeddingModelConfig, LLMModelConfig, RagMlConf
     let rag_ml_config: RagMlConfig = read_config(RAG_ML_CONFIGURATION_FILE);
 
     (embeddings_config, llm_config, rag_ml_config)
+}
+
+pub fn parse_ignore_list(ignore_list: &Option<Vec<String>>) -> Vec<regex::Regex> {
+    ignore_list
+        .as_ref()
+        .unwrap_or(&vec![])
+        .iter()
+        .map(|pattern| Regex::new(pattern).unwrap())
+        .collect::<Vec<_>>()
 }

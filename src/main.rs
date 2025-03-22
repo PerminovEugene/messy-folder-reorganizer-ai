@@ -33,9 +33,10 @@ async fn main() {
     let args = configuration::args::Args::parse();
     let (embeddings_config, llm_config, rag_ml_config) = load_configurations();
 
-    destination_processor::index_destinations(&embeddings_config, &args).await;
+    destination_processor::index_destinations(&embeddings_config, &rag_ml_config, &args).await;
 
-    let mut process_result = sources_processor::process_sources(&embeddings_config, &args).await;
+    let mut process_result =
+        sources_processor::process_sources(&embeddings_config, &rag_ml_config, &args).await;
 
     print_rag_processing_result(&rag_ml_config, &process_result);
 

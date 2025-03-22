@@ -23,7 +23,7 @@ pub fn print_rag_processing_result(config: &RagMlConfig, process_result: &[Proce
 
     process_result.iter().for_each(|result| {
         let threshhold = config.valid_embedding_threshold.unwrap();
-        let need_reorganize = if result.score > threshhold {
+        let need_reorganize = if result.score < threshhold {
             "Yes"
         } else {
             "No"

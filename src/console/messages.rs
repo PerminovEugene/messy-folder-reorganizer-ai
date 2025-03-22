@@ -103,7 +103,11 @@ pub fn print_files_not_updated() {
 }
 
 pub fn print_ignoring_file(path: &str) {
-    println!("{} {:?}", "⚠️  Ignoring file:".yellow(), path);
+    println!("{} {:?}", "⚠️ Ignoring file:".yellow(), path);
+}
+
+pub fn print_ignoring_folder(path: &str) {
+    println!("{} {:?}", "⚠️ Ignoring folder:".yellow(), path);
 }
 
 // Confirmation Messages

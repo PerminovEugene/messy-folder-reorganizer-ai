@@ -38,4 +38,6 @@ pub struct LLMModelConfig {
 pub struct RagMlConfig {
     pub clustering_min_distance: Option<f64>,
     pub valid_embedding_threshold: Option<f32>,
+    pub destination_ignore: Option<Vec<String>>,
+    pub source_ignore: Option<Vec<String>>,
 }

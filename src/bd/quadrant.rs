@@ -40,7 +40,6 @@ pub async fn add_vectors(
 
             let mut payload_data: HashMap<String, Value> = HashMap::new();
             payload_data.insert("path".to_string(), Value::from(path.to_string())); // Исправлено: path.to_string()
-            payload_data.insert("type".to_string(), Value::from("file"));
 
             let payload = Payload::from(payload_data);
 

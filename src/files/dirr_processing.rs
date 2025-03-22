@@ -4,6 +4,7 @@ use std::fs;
 use std::path::Path;
 
 use crate::console::messages::print_ignoring_file;
+use crate::console::messages::print_ignoring_folder;
 use crate::console::messages::print_processing_directory;
 use crate::console::messages::print_processing_file;
 use crate::file_info::convert_path_meta_to_file_info;
@@ -47,18 +48,21 @@ pub fn collect_files_metadata(
 
                 let file_name = &relative_path.file_name().unwrap();
 
-                if is_ignored(file_name.to_str().unwrap(), ignore_patterns) {
-                    print_ignoring_file(relative_path.to_str().unwrap());
-                    continue;
-                }
-
                 if file_meta.is_file() {
+                    if is_ignored(file_name.to_str().unwrap(), ignore_patterns) {
+                        print_ignoring_file(relative_path.to_str().unwrap());
+                        continue;
+                    }
                     print_processing_file(file_name.to_str().unwrap());
                     if config.process_files {
                         let file_info = convert_path_meta_to_file_info(&relative_path, file_meta);
                         files_data.push(file_info);
                     }
                 } else {
+                    if is_ignored(file_name.to_str().unwrap(), ignore_patterns) {
+                        print_ignoring_folder(relative_path.to_str().unwrap());
+                        continue;
+                    }
                     if config.process_folders {
                         let file_info = convert_path_meta_to_file_info(&relative_path, file_meta);
                         files_data.push(file_info);

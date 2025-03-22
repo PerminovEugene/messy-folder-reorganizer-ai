@@ -9,3 +9,18 @@ clustering_min_distance = 0.5
 # If the similarity score is greater than valid_embedding_threshold, the folder name is considered valid and does not 
 # require generation via LLM.
 valid_embedding_threshold = 0.5
+
+# Ignore source files and folders like ".git", "node_modules", or logs like "temp_001.log"
+source_ignore = [
+  # You can specify valid regex like these
+  '^\.[^/]+$', # hidden files, like .env, .git and etc
+  '^temp_.*\.log$', # ignored files templates
+  # or just write full file/foler name
+  "node_modules" # ignored folder
+]
+
+# Ignore destination folders like "Projects" or "my_application"
+destination_ignore = [
+  # same ignore rules as for source_ignores, add valid regex or full file/foler name if you needed
+  "Projects"
+]

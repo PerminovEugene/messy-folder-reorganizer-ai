@@ -15,7 +15,7 @@ Your task is to generate a single folder name for a given list of files.
 
 ```json
 {
-  "folder_name": "documents"
+  "folder_name": "<Your generated folder name>"
 }
 ```
 

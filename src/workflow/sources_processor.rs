@@ -3,7 +3,8 @@ use serde::{Deserialize, Serialize};
 use crate::ai::embeddings;
 use crate::bd::quadrant::find_closest_pathes;
 use crate::configuration::args::Args;
-use crate::configuration::config::EmbeddingModelConfig;
+use crate::configuration::config::{EmbeddingModelConfig, RagMlConfig};
+use crate::configuration::config_loader::parse_ignore_list;
 use crate::console::messages::{
     print_generating_embeddings_for_sources, print_looking_for_suitable_destination,
     print_parsing_sources,
@@ -20,7 +21,11 @@ pub struct ProcessResult {
     pub vector: Vec<f32>,
 }
 
-pub async fn process_sources(config: &EmbeddingModelConfig, args: &Args) -> Vec<ProcessResult> {
+pub async fn process_sources(
+    embedding_config: &EmbeddingModelConfig,
+    rag_ml_config: &RagMlConfig,
+    args: &Args,
+) -> Vec<ProcessResult> {
     let mut files_data: Vec<file_info::FileInfo> = Vec::new();
 
     let collector_config = &CollectFilesMetaConfig {
@@ -32,7 +37,15 @@ pub async fn process_sources(config: &EmbeddingModelConfig, args: &Args) -> Vec<
 
     print_parsing_sources();
 
-    collect_files_metadata(&args.source, "", &mut files_data, &vec![], collector_config);
+    let ignore_patters = parse_ignore_list(&rag_ml_config.source_ignore);
+
+    collect_files_metadata(
+        &args.source,
+        "",
+        &mut files_data,
+        &ignore_patters,
+        collector_config,
+    );
     create_source_file(&files_data);
 
     let file_names = files_data.iter().map(|d| &d.name).collect::<Vec<_>>();
@@ -45,7 +58,7 @@ pub async fn process_sources(config: &EmbeddingModelConfig, args: &Args) -> Vec<
         &file_names,
         args.embedding_model.clone(),
         args.ai_server_address.clone(),
-        config.clone(),
+        embedding_config.clone(),
     )
     .await
     .unwrap();
@@ -64,7 +77,19 @@ pub async fn process_sources(config: &EmbeddingModelConfig, args: &Args) -> Vec<
         })
         .collect();
 
-    result.sort_by_key(|process_result| process_result.path.clone());
+    result.sort_by(|a, b| {
+        // First compare by path
+        let path_cmp = a.path.cmp(&b.path);
+
+        if path_cmp == std::cmp::Ordering::Equal {
+            // If paths are equal, compare by score (descending)
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        } else {
+            path_cmp
+        }
+    });
 
     result
 }

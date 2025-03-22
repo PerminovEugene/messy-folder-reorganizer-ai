@@ -1,19 +1,22 @@
 use std::env;
 use std::path::PathBuf;
 
-use regex::Regex;
-
 use crate::ai::embeddings::get_embeddings;
 use crate::bd::quadrant::add_vectors;
 use crate::configuration::args::Args;
-use crate::configuration::config::EmbeddingModelConfig;
+use crate::configuration::config::{EmbeddingModelConfig, RagMlConfig};
+use crate::configuration::config_loader::parse_ignore_list;
 use crate::console::messages::{
     print_creating_dest_embeddings, print_parsing_destination_folder, print_saving_dest_embeddings,
 };
 use crate::files::dirr_processing::{collect_files_metadata, CollectFilesMetaConfig};
 use crate::files::file_info::{self, convert_path_meta_to_file_info};
 
-pub async fn index_destinations(config: &EmbeddingModelConfig, args: &Args) {
+pub async fn index_destinations(
+    embedding_config: &EmbeddingModelConfig,
+    rag_ml_config: &RagMlConfig,
+    args: &Args,
+) {
     print_parsing_destination_folder();
     let mut dest_files_data: Vec<file_info::FileInfo> = Vec::new();
 
@@ -30,11 +33,13 @@ pub async fn index_destinations(config: &EmbeddingModelConfig, args: &Args) {
         process_files: false,
     };
 
+    let ignore_patters = parse_ignore_list(&rag_ml_config.destination_ignore);
+
     collect_files_metadata(
         &dest,
         "",
         &mut dest_files_data,
-        &vec![Regex::new(r"^\..*").unwrap()],
+        &ignore_patters,
         &collector_config,
     );
 
@@ -61,7 +66,7 @@ pub async fn index_destinations(config: &EmbeddingModelConfig, args: &Args) {
         &dest_file_names,
         args.embedding_model.clone(), // TODO remove clones
         args.ai_server_address.clone(),
-        config.clone(),
+        embedding_config.clone(),
     )
     .await;
 
