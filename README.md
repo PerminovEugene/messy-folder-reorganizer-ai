@@ -167,6 +167,7 @@ Model request configurations are commented out by default and will fall back to 
 More information about LLM and Embedding model configuration options can be found [https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values](here).
 
 RAG and ML configuration parameters are required and should always be present in rag_ml_config.toml.
+You also can set up ignore lists for destionation and source pathes in that config file.
 
 ### Prompt Customization
 
