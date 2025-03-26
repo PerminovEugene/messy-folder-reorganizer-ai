@@ -1,4 +1,4 @@
-pub mod ai_request;
-pub mod embeddings;
+pub mod embeddings_request;
+pub mod llm_request;
 pub mod ollama_protocol;
 pub mod prompt;

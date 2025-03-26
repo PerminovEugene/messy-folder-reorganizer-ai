@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::ai::embeddings;
+use crate::ai::embeddings_request;
 use crate::bd::quadrant::find_closest_pathes;
 use crate::configuration::args::Args;
 use crate::configuration::config::{EmbeddingModelConfig, RagMlConfig};
@@ -48,13 +48,13 @@ pub async fn process_sources(
     );
     create_source_file(&files_data);
 
+    print_generating_embeddings_for_sources();
+
     let file_names = files_data.iter().map(|d| &d.name).collect::<Vec<_>>();
 
     let file_names = format_file_names(&file_names);
 
-    print_generating_embeddings_for_sources();
-
-    let embeddings = embeddings::get_embeddings(
+    let embeddings = embeddings_request::get_embeddings(
         &file_names,
         args.embedding_model.clone(),
         args.ai_server_address.clone(),
@@ -100,7 +100,8 @@ fn format_file_name(file_name: &str) -> String {
 
     let name = parts.get(1).unwrap_or(&file_name).replace(['-', '_'], " ");
 
-    format!("{}.{}", name, format)
+    format!("This is a file name: {}.{}", name, format)
+    // format!("{}.{}", name, format)
 }
 
 fn format_file_names(file_names: &Vec<&String>) -> Vec<String> {

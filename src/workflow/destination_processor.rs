@@ -1,7 +1,7 @@
 use std::env;
 use std::path::PathBuf;
 
-use crate::ai::embeddings::get_embeddings;
+use crate::ai::embeddings_request::get_embeddings;
 use crate::bd::quadrant::add_vectors;
 use crate::configuration::args::Args;
 use crate::configuration::config::{EmbeddingModelConfig, RagMlConfig};
@@ -57,7 +57,11 @@ pub async fn index_destinations(
     }
     let dest_file_names = dest_files_data
         .iter()
-        .map(|d| d.name.clone())
+        .map(|d| {
+            let name = d.name.clone();
+            format!("This is a folder name: {name}")
+            // format!("{name}")
+        })
         .collect::<Vec<_>>();
 
     print_creating_dest_embeddings();

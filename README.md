@@ -218,16 +218,17 @@ rm -rf ~/.messy-folder-reorganizer-ai
 
 ### V2 Backlog
 
-- Handle filename collisions
+- improve errors handling: valid panic reasons, change unwraps to appropriate error handling
 - Add rollback via `plan.json`
 - Improve error handling
 - Add tests
 - Update Rust version
 - Add .messy-folder-rearganizer-ai folder cleaning on version update (saving and checking meta files)
-- Add cross-platform builds (on demand)
+- Handle filename collisions
+- Add file content to embeddings if possible
 
 ### Upcoming
 
-- Add ignore list configuration
-- Publish a blog article
-- Add workflow diagram/image
+- Add cross-platform builds
+- Publish a blog articles
+- Add workflow diagram/image to readme

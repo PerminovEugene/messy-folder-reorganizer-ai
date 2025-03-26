@@ -8,7 +8,7 @@ use crate::console::messages::{
 use crate::console::table::print_clusters_ai_proposed_names;
 use crate::files::file_info::FilesReorganisationPlan;
 use crate::ml::agglomerative_clustering::cluster_vectors_hierarchical;
-use crate::{ai::ai_request::ask_ai_for_reordering_plan, ml::hierarchical_clustering::Cluster};
+use crate::{ai::llm_request::ask_ai_for_reordering_plan, ml::hierarchical_clustering::Cluster};
 use futures::stream::{FuturesUnordered, StreamExt};
 use serde::{Deserialize, Serialize};
 

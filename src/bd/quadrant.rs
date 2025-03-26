@@ -30,7 +30,14 @@ pub async fn add_vectors(
                 .vectors_config(VectorParamsBuilder::new(dimensions, Distance::Cosine))
                 .quantization_config(ScalarQuantizationBuilder::default()),
         )
-        .await?;
+        .await
+        .unwrap_or_else(|err| {
+          eprintln!(
+              "❌ Failed to create collection '{}'. Error: {:?}\n Make sure Qdrant is running and accessible and try again.",
+              collection_name, err
+          );
+          std::process::exit(1);
+      });
 
     let points: Vec<PointStruct> = ids
         .iter()
@@ -52,9 +59,10 @@ pub async fn add_vectors(
         .await
     {
         Ok(_) => Ok(()),
-        Err(e) => {
-            eprintln!("Failed to add vectors: {}", e);
-            Err(e)
+        Err(_) => {
+            panic!(
+                "Failed to save vectors to the database. Please be sure that Qdrant is launched.",
+            );
         }
     }
 }
