@@ -5,39 +5,33 @@ use qdrant_client::qdrant::{
     ScalarQuantizationBuilder, SearchBatchPoints, SearchPoints, UpsertPointsBuilder, Value,
     VectorParamsBuilder, WithPayloadSelector,
 };
-use qdrant_client::{Payload, Qdrant, QdrantError};
+use qdrant_client::{Payload, Qdrant};
 use uuid::Uuid;
 
 use crate::configuration::args::Args;
+use crate::errors::app_error::AppError;
+
+const COLLECTION_NAME: &str = "dest";
 
 pub async fn add_vectors(
     args: &Args,
     ids: &[String],
     vectors: Vec<Vec<f32>>,
-) -> Result<(), QdrantError> {
+) -> Result<(), AppError> {
     let address = &args.qdrant_server_address.clone();
-    let client: Qdrant = Qdrant::from_url(address).build()?;
+    let client = create_client(address).await?;
 
-    let collection_name = "dest";
-
-    client.delete_collection(collection_name).await?;
+    client.delete_collection(COLLECTION_NAME).await?;
 
     let dimensions = vectors.first().unwrap().len() as u64;
 
     client
         .create_collection(
-            CreateCollectionBuilder::new(collection_name)
+            CreateCollectionBuilder::new(COLLECTION_NAME)
                 .vectors_config(VectorParamsBuilder::new(dimensions, Distance::Cosine))
                 .quantization_config(ScalarQuantizationBuilder::default()),
         )
-        .await
-        .unwrap_or_else(|err| {
-          eprintln!(
-              "❌ Failed to create collection '{}'. Error: {:?}\n Make sure Qdrant is running and accessible and try again.",
-              collection_name, err
-          );
-          std::process::exit(1);
-      });
+        .await?;
 
     let points: Vec<PointStruct> = ids
         .iter()
@@ -54,17 +48,11 @@ pub async fn add_vectors(
         })
         .collect();
 
-    match client
-        .upsert_points(UpsertPointsBuilder::new(collection_name, points))
-        .await
-    {
-        Ok(_) => Ok(()),
-        Err(_) => {
-            panic!(
-                "Failed to save vectors to the database. Please be sure that Qdrant is launched.",
-            );
-        }
-    }
+    client
+        .upsert_points(UpsertPointsBuilder::new(COLLECTION_NAME, points))
+        .await?;
+
+    Ok(())
 }
 
 pub struct SearchResultFacade {
@@ -76,15 +64,13 @@ pub struct SearchResultFacade {
 pub async fn find_closest_pathes(
     args: &Args,
     vectors: Vec<Vec<f32>>,
-) -> Result<Vec<SearchResultFacade>, QdrantError> {
-    let client = Qdrant::from_url(&args.qdrant_server_address.clone()).build()?;
+) -> Result<Vec<SearchResultFacade>, AppError> {
+    let client = create_client(&args.qdrant_server_address.clone()).await?;
 
-    let collection_name = "dest".to_string();
-
-    let searches: Vec<SearchPoints> = vectors
+    let search_points: Vec<SearchPoints> = vectors
         .iter()
         .map(|vector| SearchPoints {
-            collection_name: collection_name.clone(),
+            collection_name: COLLECTION_NAME.to_string(),
             vector: vector.clone(),
             limit: 1,
             with_payload: Some(WithPayloadSelector {
@@ -94,14 +80,14 @@ pub async fn find_closest_pathes(
         })
         .collect();
 
-    let batch_search_req = SearchBatchPoints {
-        search_points: searches,
-        collection_name,
+    let search_batch_points = SearchBatchPoints {
+        search_points,
+        collection_name: COLLECTION_NAME.to_string(),
         read_consistency: None,
         timeout: None,
     };
 
-    let search_result = client.search_batch_points(batch_search_req).await?;
+    let search_result = client.search_batch_points(search_batch_points).await?;
 
     let result: Vec<SearchResultFacade> = search_result
         .result
@@ -126,4 +112,9 @@ pub async fn find_closest_pathes(
         .collect();
 
     Ok(result)
+}
+
+async fn create_client(address: &str) -> Result<Qdrant, AppError> {
+    let client = Qdrant::from_url(address).build()?;
+    Ok(client)
 }

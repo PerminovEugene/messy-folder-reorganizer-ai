@@ -9,6 +9,7 @@ use crate::configuration::config_loader::parse_ignore_list;
 use crate::console::messages::{
     print_creating_dest_embeddings, print_parsing_destination_folder, print_saving_dest_embeddings,
 };
+use crate::errors::app_error::AppError;
 use crate::files::dirr_processing::{collect_files_metadata, CollectFilesMetaConfig};
 use crate::files::file_info::{self, convert_path_meta_to_file_info};
 
@@ -16,7 +17,7 @@ pub async fn index_destinations(
     embedding_config: &EmbeddingModelConfig,
     rag_ml_config: &RagMlConfig,
     args: &Args,
-) {
+) -> Result<(), AppError> {
     print_parsing_destination_folder();
     let mut dest_files_data: Vec<file_info::FileInfo> = Vec::new();
 
@@ -68,15 +69,17 @@ pub async fn index_destinations(
 
     let dest_embeddings = get_embeddings(
         &dest_file_names,
-        args.embedding_model.clone(), // TODO remove clones
+        args.embedding_model.clone(),
         args.ai_server_address.clone(),
         embedding_config.clone(),
     )
-    .await;
+    .await?;
 
     print_saving_dest_embeddings();
 
-    add_vectors(args, &dest_file_names, dest_embeddings.unwrap())
+    add_vectors(args, &dest_file_names, dest_embeddings)
         .await
         .unwrap();
+
+    Ok(())
 }

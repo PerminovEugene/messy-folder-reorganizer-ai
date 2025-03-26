@@ -1,5 +1,4 @@
 use reqwest::Client;
-use std::error::Error;
 
 use crate::{
     ai::{
@@ -7,17 +6,21 @@ use crate::{
         prompt::read_initial_prompt,
     },
     configuration::config::LLMModelConfig,
+    errors::app_error::AppError,
 };
+use serde_json;
+use std::result::Result;
 
 pub async fn ask_ai_for_reordering_plan(
     file_names: Vec<&String>,
     model: String,
     ai_server_address: String,
     config: LLMModelConfig,
-) -> Result<String, Box<dyn Error>> {
+) -> Result<String, AppError> {
     let client = Client::new();
 
-    let file_data_json = serde_json::to_string_pretty(&file_names)?;
+    let file_data_json = serde_json::to_string_pretty(&file_names)
+        .map_err(|e| AppError::OllamaResponseParse(e.to_string()))?;
 
     let initial_prompt = read_initial_prompt();
     let prompt_with_input = format!("{}\n{}", initial_prompt, file_data_json);
@@ -46,34 +49,42 @@ pub async fn ask_ai_for_reordering_plan(
     };
 
     let mut response_text = String::new();
-
     let mut thinking_is_over = false;
+
     let mut endpoint = ai_server_address.clone();
     endpoint.push_str("api/generate");
-    match client.post(endpoint).json(&request_body).send().await {
-        Ok(mut response) => {
-            while let Some(chunk) = response.chunk().await? {
-                let olama_response_token: OllamaResponse =
-                    serde_json::from_slice::<OllamaResponse>(&chunk)?;
-                if olama_response_token.response.is_empty() {
-                    continue;
-                }
-                if thinking_is_over {
-                    response_text.push_str(&olama_response_token.response);
-                }
-                if olama_response_token.response == "</think>" {
-                    thinking_is_over = true;
-                }
-            }
+
+    let response = client
+        .post(endpoint)
+        .json(&request_body)
+        .send()
+        .await
+        .map_err(|e| AppError::OllamaConnection(e.to_string()))?;
+
+    let mut response = response;
+
+    while let Some(chunk) = response
+        .chunk()
+        .await
+        .map_err(|e| AppError::OllamaConnection(e.to_string()))?
+    {
+        let olama_response_token: OllamaResponse = serde_json::from_slice::<OllamaResponse>(&chunk)
+            .map_err(|e| AppError::OllamaResponseParse(e.to_string()))?;
+
+        if olama_response_token.response.is_empty() {
+            continue;
         }
-        Err(e) => {
-            eprintln!("Request failed: {}", e);
-            panic!("Error from request to LLM")
+
+        if thinking_is_over {
+            response_text.push_str(&olama_response_token.response);
+        }
+
+        if olama_response_token.response == "</think>" {
+            thinking_is_over = true;
         }
     }
 
     let response_text = clean_json_string(&response_text);
-
     Ok(response_text)
 }
 

@@ -9,6 +9,7 @@ use crate::console::messages::{
     print_generating_embeddings_for_sources, print_looking_for_suitable_destination,
     print_parsing_sources,
 };
+use crate::errors::app_error::AppError;
 use crate::files::create_file::create_source_file;
 use crate::files::dirr_processing::{collect_files_metadata, CollectFilesMetaConfig};
 use crate::files::file_info;
@@ -25,7 +26,7 @@ pub async fn process_sources(
     embedding_config: &EmbeddingModelConfig,
     rag_ml_config: &RagMlConfig,
     args: &Args,
-) -> Vec<ProcessResult> {
+) -> Result<Vec<ProcessResult>, AppError> {
     let mut files_data: Vec<file_info::FileInfo> = Vec::new();
 
     let collector_config = &CollectFilesMetaConfig {
@@ -60,8 +61,7 @@ pub async fn process_sources(
         args.ai_server_address.clone(),
         embedding_config.clone(),
     )
-    .await
-    .unwrap();
+    .await?;
 
     print_looking_for_suitable_destination();
     let closest_pathes = find_closest_pathes(args, embeddings).await.unwrap();
@@ -91,7 +91,7 @@ pub async fn process_sources(
         }
     });
 
-    result
+    Ok(result)
 }
 
 fn format_file_name(file_name: &str) -> String {

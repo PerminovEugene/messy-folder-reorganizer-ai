@@ -8,7 +8,7 @@ clustering_min_distance = 0.5
 # Each file name embedding is compared against folder name embeddings to find the closest match.
 # If the similarity score is greater than valid_embedding_threshold, the folder name is considered valid and does not 
 # require generation via LLM.
-valid_embedding_threshold = 0.5
+valid_embedding_threshold = 0.7
 
 # Ignore source files and folders like ".git", "node_modules", or logs like "temp_001.log"
 source_ignore = [

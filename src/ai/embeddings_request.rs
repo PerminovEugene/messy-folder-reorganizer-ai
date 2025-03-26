@@ -1,9 +1,9 @@
 use reqwest::Client;
-use std::error::Error;
 
 use crate::{
     ai::ollama_protocol::{OllamaEmbedRequest, OllamaEmbedResponse, OllamaOptions},
     configuration::config::EmbeddingModelConfig,
+    errors::app_error::AppError,
 };
 
 pub async fn get_embeddings(
@@ -11,7 +11,7 @@ pub async fn get_embeddings(
     model: String,
     ai_server_address: String,
     config: EmbeddingModelConfig,
-) -> Result<Vec<Vec<f32>>, Box<dyn Error>> {
+) -> Result<Vec<Vec<f32>>, AppError> {
     let client = Client::new();
 
     let options = OllamaOptions {
@@ -41,16 +41,22 @@ pub async fn get_embeddings(
 
     let mut vectors: Vec<Vec<f32>> = vec![];
 
-    match client.post(endpoint).json(&request_body).send().await {
-        Ok(response) => {
-            let olama_parsed_response: OllamaEmbedResponse = response.json().await?;
+    let result = client.post(endpoint).json(&request_body).send().await;
 
-            vectors.extend(olama_parsed_response.embeddings);
+    match result {
+        Ok(response) => {
+            let parsed: Result<OllamaEmbedResponse, _> = response.json().await;
+            match parsed {
+                Ok(olama_parsed_response) => {
+                    vectors.extend(olama_parsed_response.embeddings);
+                    Ok(vectors)
+                }
+                Err(e) => Err(AppError::OllamaResponseParse(format!(
+                    "JSON parsing error: {}",
+                    e
+                ))),
+            }
         }
-        Err(e) => {
-            eprintln!("Request failed: {}", e);
-            panic!("Error from request to LLM")
-        }
+        Err(err) => Err(AppError::OllamaConnection(err.to_string())),
     }
-    Ok(vectors)
 }
