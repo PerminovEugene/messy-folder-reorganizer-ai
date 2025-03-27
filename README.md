@@ -89,18 +89,17 @@
 - Apple Silicon (macOS ARM64):
 
   ```sh
-  curl -s https://api.github.com/repos/PerminovEugene/messy-folder-reorganizer-ai/releases/tags/v0.2 | \
-    grep "browser_download_url.*messy-folder-reorganizer-ai-v0.2-aarch64-apple-darwin.tar.gz" | \
+  curl -s https://api.github.com/repos/PerminovEugene/messy-folder-reorganizer-ai/releases/tags/v0.2.0 | \
+    grep "browser_download_url.*messy-folder-reorganizer-ai-v0.2.0-aarch64-apple-darwin.tar.gz" | \
     cut -d '"' -f 4 | \
     xargs curl -L -o messy-folder-reorganizer-ai-macos-arm64.tar.gz
-
   ```
 
 - Intel Mac (macOS x86_64):
 
   ```sh
-  curl -s https://api.github.com/repos/PerminovEugene/messy-folder-reorganizer-ai/releases/tags/v0.2 | \
-    grep "browser_download_url.*messy-folder-reorganizer-ai-v0.2-x86_64-apple-darwin.tar.gz" | \
+  curl -s https://api.github.com/repos/PerminovEugene/messy-folder-reorganizer-ai/releases/tags/v0.2.0 | \
+    grep "browser_download_url.*messy-folder-reorganizer-ai-v0.2.0-x86_64-apple-darwin.tar.gz" | \
     cut -d '"' -f 4 | \
     xargs curl -L -o messy-folder-reorganizer-ai-macos-x64.tar.gz
   ```
@@ -108,8 +107,8 @@
 - Linux x86_64:
 
   ```sh
-  curl -s https://api.github.com/repos/PerminovEugene/messy-folder-reorganizer-ai/releases/tags/v0.2 | \
-    grep "browser_download_url.*messy-folder-reorganizer-ai-v0.2-x86_64-unknown-linux-gnu.tar.gz" | \
+  curl -s https://api.github.com/repos/PerminovEugene/messy-folder-reorganizer-ai/releases/tags/v0.2.0 | \
+    grep "browser_download_url.*messy-folder-reorganizer-ai-v0.2.0-x86_64-unknown-linux-gnu.tar.gz" | \
     cut -d '"' -f 4 | \
     xargs curl -L -o messy-folder-reorganizer-ai-linux-x64.tar.gz
   ```
