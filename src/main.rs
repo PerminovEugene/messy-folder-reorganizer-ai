@@ -1,60 +1,74 @@
+use std::env;
+
 use clap::Parser;
-use colored::Colorize;
 
 mod ai;
+mod bd;
 mod configuration;
 mod console;
+mod errors;
 mod files;
+mod ml;
+mod workflow;
 
-use ai::ai_request::ask_ai_for_reordering_plan;
+use configuration::config_loader::load_configurations;
 use configuration::init::init;
-use console::confirmation::ask_confirmation;
-use files::create_file::create_plan_file;
-use files::create_file::create_source_file;
-use files::dirr_processing::fill_up_files_data_by_path;
+use console::errors::print_app_error;
+use console::messages::print_initial_message;
+use console::table::print_migration_plan_table;
+use console::table::print_rag_processing_result;
+use errors::app_error::AppError;
+use files::create_file::save_files_reorganisation_plan;
 use files::file_info;
-use files::reorganiser::apply_plan;
+use workflow::destination_processor::index_destinations;
+use workflow::plan_processor::migrate_files;
+use workflow::sources_processor::process_sources;
+use workflow::unknown_files_processor::create_folder_for_unknown_files;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[tokio::main]
 async fn main() {
-    println!("Messy-folder-reorganizer-ai - Version {}", VERSION);
+    match run().await {
+        Ok(_) => (),
+        Err(e) => match e {
+            AppError::OllamaConnection(_) => {
+                print_app_error("Ollama Error", e);
+                std::process::exit(1);
+            }
+            AppError::QdrantClient(_) => {
+                print_app_error("Qdrant Error", e);
+                std::process::exit(1);
+            }
+            _ => {
+                print_app_error("Panic", e);
+                panic!("Unhandled error. \n Please post error stack trace on github issues page https://github.com/PerminovEugene/messy-folder-reorganizer-ai/issues");
+            }
+        },
+    }
+}
+
+async fn run() -> Result<(), AppError> {
+    print_initial_message(VERSION);
 
     init();
+
     let args = configuration::args::Args::parse();
-    let config = configuration::read_config::read_config();
+    let (embeddings_config, llm_config, rag_ml_config) = load_configurations();
 
-    let mut files_data: Vec<file_info::FileInfo> = Vec::new();
+    index_destinations(&embeddings_config, &rag_ml_config, &args).await?;
+    let mut process_result = process_sources(&embeddings_config, &rag_ml_config, &args).await?;
 
-    fill_up_files_data_by_path(
-        &args.path,
-        "",
-        args.recursive,
-        args.skip_problematic_dir,
-        &mut files_data,
-    );
-    create_source_file(&files_data);
+    print_rag_processing_result(&rag_ml_config, &process_result);
 
-    let plan = ask_ai_for_reordering_plan(
-        &files_data,
-        args.model,
-        args.show_ai_thinking,
-        args.show_prompt,
-        args.ai_server_address,
-        config,
-    )
-    .await;
+    let migration_plan =
+        create_folder_for_unknown_files(&llm_config, &rag_ml_config, &args, &mut process_result)
+            .await;
 
-    create_plan_file(plan.unwrap());
+    print_migration_plan_table(&migration_plan);
+    save_files_reorganisation_plan(migration_plan);
 
-    if args.force_apply
-        || ask_confirmation(
-            "❓ Are you satisfied with the file reorganization plan? Would you like to apply it?",
-        )
-    {
-        apply_plan(args.path).unwrap();
-    } else {
-        println!("{}", "🚫 File locations were not updated.".yellow())
-    }
+    migrate_files(&args).await;
+
+    Ok(())
 }

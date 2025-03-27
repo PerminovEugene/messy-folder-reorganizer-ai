@@ -1,4 +1,4 @@
-# # AI Model Configuration
+# # LLM folder names generation request configuration
 
 # # Mirostat settings
 # mirostat = 0            # Disable Mirostat for more control over output structure

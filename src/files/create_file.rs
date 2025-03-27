@@ -2,6 +2,7 @@ use colored::Colorize;
 
 use crate::{
     configuration::consts::CONFIGURATION_FOLDER,
+    console::messages::{print_migration_plan_saved, print_source_files_metadata_saved},
     file_info::FileInfo,
     files::consts::{PLAN_FILE_NAME, SOURCE_FILE_NAME},
 };
@@ -11,6 +12,8 @@ use std::{
     io::Write,
     path::Path,
 };
+
+use super::file_info::FilesReorganisationPlan;
 
 // source file name will be used for rollback later when it will be added
 pub fn create_source_file(files_data: &Vec<FileInfo>) {
@@ -46,8 +49,7 @@ pub fn create_source_file(files_data: &Vec<FileInfo>) {
             panic!("{}", "Error creating source data file".red());
         }
     }
-    println!("{}", "💾 Initial file metadata has been saved".green());
-    println!();
+    print_source_files_metadata_saved()
 }
 
 pub fn create_plan_file(files_data: String) {
@@ -72,6 +74,10 @@ pub fn create_plan_file(files_data: String) {
         }
         Err(err) => println!("Error creating file: {:?}", err),
     }
-    println!("{}", "💾 The new file location plan has been saved".green());
-    println!();
+    print_migration_plan_saved();
+}
+
+pub fn save_files_reorganisation_plan(files_data: Vec<FilesReorganisationPlan>) {
+    let string_data = serde_json::to_string_pretty(&files_data).unwrap();
+    create_plan_file(string_data);
 }

@@ -1,1 +1,4 @@
 /target
+/storage
+.qdrant-initialized
+/qdrant_storage

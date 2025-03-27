@@ -1,157 +1,262 @@
 # messy-folder-reorganizer-ai
 
-## messy-folder-reorganizer-ai is an AI-powered file organization tool that helps you tidy up messy folders effortlessly.
+## AI-powered tool to help you clean up messy folders effortlessly
 
-How It Works:
+### Overview
 
-1. User Input – The user runs the app, specifying a folder path and an AI model name.
-2. Data Analysis – The app scans the folder and generates a JSON report describing the files.
-3. AI Processing – The app sends the JSON data along with a prompt to the AI, requesting an optimal file organization strategy.
-4. AI Suggestion – The AI returns a structured plan with new file paths.
-5. User Decision – The user reviews the AI’s suggested structure and chooses whether to apply it.
+**messy-folder-reorganizer-ai** is an AI-powered file organization tool that helps you sort and tidy up disorganized folders with minimal effort.
 
-Effortless, smart, and efficient—messy-folder-reorganizer-ai brings order to digital chaos! 🚀
+### How It Works
 
-> ⚠️ **Warning:** Do not use `messy-folder-reorganizer-ai` on important files, such as passwords, confidential documents, or sensitive system files. In case of an unexpected bug or system interruption, the application may modify or remove data irreversibly. Always create backups before using it on valuable data.  
-> The author is not responsible for any lost or misplaced files due to the use of this application.
+1. **User Input** – The user runs the app and provides:
+
+   - a **source folder** path containing the files to organize
+   - a **destination folder** path where organized files will be placed
+   - an **AI model name** (loaded in Ollama) used to generate folder names
+   - an **embedding model name** (also loaded in Ollama) used to generate vector embeddings
+
+2. **Destination Folder Scan**
+
+   - The app scans the destination folder and generates embeddings for each folder name.
+   - These embeddings are stored in a **Qdrant** vector database.
+
+3. **Source Folder Scan**
+
+   - The app scans the source folder and generates embeddings for each file name.
+   - It compares each file’s embedding to existing folder embeddings in the database.
+   - Files without a sufficiently close match are marked for further processing.
+
+4. **Clustering & AI Folder Naming**
+
+   - Unmatched file embeddings are grouped using **agglomerative hierarchical clustering**.
+   - Each cluster is sent to the LLM to generate a suggested folder name.
+
+5. **Preview Results**
+
+   - A table is displayed showing the proposed destination for each file.
+
+6. **User Decision**
+   - The user reviews the suggested structure and decides whether to apply the changes.
+
+> ⚠️ **Warning:** Do not use `messy-folder-reorganizer-ai` on important files such as passwords, confidential documents, or critical system files.  
+> In the event of a bug or interruption, the app may irreversibly modify or delete files. Always create backups before using it on valuable data.  
+> The author assumes no responsibility for data loss or misplaced files caused by this application.
 
 ## Setup
 
-Before using this application, you need to install the following dependencies:
+1. Install core developer tools
 
-### Setup for macOS
+- macOS
 
-1. Install or update `Xcode`.
-2. Install `ollama` and launch it.
+  ```
+  Install or update **Xcode**
+  ```
+
+- Linux x86_64
+
+  ```sh
+  sudo apt update
+  sudo apt install -y build-essential
+  ```
+
+2. Install **Ollama** and start the service.
 3. Download the required LLM via Ollama:
 
    ```sh
    ollama pull deepseek-r1:latest
    ```
 
-   > You can find a more detailed guide here: [Ollama GitHub](https://github.com/ollama/ollama)
+   > Recommended: Use models with a higher number of parameters for better accuracy.  
+   > This project has been tested with `deepseek-r1:latest` (4.7 GB, 7.6B params).
 
-   It is recommended to use an LLM with a higher number of nodes for more accurate results. This project has been tested with `deepseek-r1:latest`, so if you don’t have a preference, use that model.
-
-4. Download latest release
-
-   ```sh
-   curl -s https://api.github.com/repos/PerminovEugene/messy-folder-reorganizer-ai/releases/latest | \
-     grep "browser_download_url.*messy-folder-reorganizer-ai-aarch64-apple-darwin.tar.gz" | \
-     cut -d '"' -f 4 | \
-     xargs curl -L -o messy-folder-reorganizer-ai-macos.tar.gz
-   ```
-
-5. Extract the file
+4. Download the embedding model:
 
    ```sh
-   tar -xvzf messy-folder-reorganizer-ai-macos.tar.gz
+   ollama pull mxbai-embed-large:latest
    ```
 
-6. Move to `/usr/local/bin` for system-wide use
+5. Launch Qdrant vector database (easiest via Docker):
 
    ```sh
-   sudo mv messy-folder-reorganizer-ai /usr/local/bin/messy-folder-reorganizer-ai
+   docker pull qdrant/qdrant
+   docker run -p 6333:6333 \
+     -v $(pwd)/path/to/data:/qdrant/storage \
+     qdrant/qdrant
    ```
 
-7. Verify installation
+6. Download the latest app release:
+
+- Apple Silicon (macOS ARM64):
+
+  ```sh
+  curl -s https://api.github.com/repos/PerminovEugene/messy-folder-reorganizer-ai/releases/tags/v0.2 | \
+    grep "browser_download_url.*messy-folder-reorganizer-ai-v0.2-aarch64-apple-darwin.tar.gz" | \
+    cut -d '"' -f 4 | \
+    xargs curl -L -o messy-folder-reorganizer-ai-macos-arm64.tar.gz
+
+  ```
+
+- Intel Mac (macOS x86_64):
+
+  ```sh
+  curl -s https://api.github.com/repos/PerminovEugene/messy-folder-reorganizer-ai/releases/tags/v0.2 | \
+    grep "browser_download_url.*messy-folder-reorganizer-ai-v0.2-x86_64-apple-darwin.tar.gz" | \
+    cut -d '"' -f 4 | \
+    xargs curl -L -o messy-folder-reorganizer-ai-macos-x64.tar.gz
+  ```
+
+- Linux x86_64:
+
+  ```sh
+  curl -s https://api.github.com/repos/PerminovEugene/messy-folder-reorganizer-ai/releases/tags/v0.2 | \
+    grep "browser_download_url.*messy-folder-reorganizer-ai-v0.2-x86_64-unknown-linux-gnu.tar.gz" | \
+    cut -d '"' -f 4 | \
+    xargs curl -L -o messy-folder-reorganizer-ai-linux-x64.tar.gz
+  ```
+
+7. Extract and install:
+
+- Apple Silicon (macOS ARM64):
+
+  ```sh
+  tar -xvzf messy-folder-reorganizer-ai-macos-arm64.tar.gz
+  sudo mv messy-folder-reorganizer-ai /usr/local/bin/messy-folder-reorganizer-ai
+  ```
+
+- Intel Mac (macOS x86_64):
+
+  ```sh
+  tar -xvzf messy-folder-reorganizer-ai-macos-x64.tar.gz
+  sudo mv messy-folder-reorganizer-ai /usr/local/bin/messy-folder-reorganizer-ai
+  ```
+
+- Linux x86_64:
+
+  ```sh
+  tar -xvzf messy-folder-reorganizer-ai-linux-x64.tar.gz
+  sudo mv messy-folder-reorganizer-ai /usr/local/bin/messy-folder-reorganizer-ai
+  ```
+
+8. Verify the installation:
 
    ```sh
    messy-folder-reorganizer-ai --help
    ```
 
-### Build from sources
+## Build from Source
 
-If you want to build it from sources by yourself:
-
-1. Pull repository
+1. Clone the repository:
 
    ```sh
    git clone git@github.com:PerminovEugene/messy-folder-reorganizer-ai.git
    ```
 
-2. Build project with
+2. Build the project:
 
    ```sh
    cargo build --release
    ```
 
-3. Launch with
+3. Run it:
 
    ```sh
-   cargo run -- -M deepseek-r1:latest --show-ai-thinking  --path ./../../Documents/ -S
+   cargo run -- \
+     -E mxbai-embed-large \
+     -L deepseek-r1:latest \
+     -S ./test_cases/clustering/messy-folder \
+     -D ./test_cases/clustering/structured-folder
    ```
+
+> The `./test_cases/` folder contains sample files to explore the tool’s functionality.
 
 ## Usage
 
-### Running the Application
-
-To launch `messy-folder-reorganizer-ai`, use the following command:
+### Run the App
 
 ```sh
-messy-folder-reorganizer-ai --model <MODEL_NAME> --path <PATH_TO_FOLDER>
+messy-folder-reorganizer-ai \
+  -E <EMBEDDING_MODEL_NAME> \
+  -L <LLM_MODEL_NAME> \
+  -S <SOURCE_FOLDER_PATH> \
+  -D <DESTINATION_FOLDER_PATH>
 ```
 
-### Command-Line Flags
+### Command-Line Arguments
 
-The application provides several command-line flags to configure its behavior. Below is a table listing all available flags along with their descriptions:
+| Flag                     | Short | Default                   | Description                                                                                |
+| ------------------------ | ----- | ------------------------- | ------------------------------------------------------------------------------------------ |
+| `--language-model`       | `-L`  | _required_                | Language model name loaded in Ollama for folder name generation.                           |
+| `--embedding-model`      | `-E`  | _required_                | Embedding model name used for generating file and folder embeddings.                       |
+| `--source`               | `-S`  | _required_                | Path to the folder with files to organize.                                                 |
+| `--destination`          | `-D`  | `home`                    | Path for the organized output. Defaults to the user's home directory.                      |
+| `--recursive`            | `-R`  | `false`                   | Whether to scan the source folder recursively (destination is always scanned recursively). |
+| `--force-apply`          | `-F`  | `false`                   | Automatically apply the reorganization plan without user confirmation.                     |
+| `--skip-problematic-dir` | `-d`  | `false`                   | Skip problematic directories or files instead of stopping execution.                       |
+| `--llm-address`          | `-n`  | `http://localhost:11434/` | Override the default LLM server address.                                                   |
+| `--qdrant-address`       | `-q`  | `http://localhost:6334/`  | Override the default Qdrant server address.                                                |
 
-| Flag                     | Short | Default                               | Description                                                   |
-| ------------------------ | ----- | ------------------------------------- | ------------------------------------------------------------- |
-| `--model`                | `-M`  | Required                              | Specifies the model name loaded in Ollama to use.             |
-| `--path`                 | `-P`  | Required                              | Specifies the path to the folder containing files to reorder. |
-| `--recursive`            | `-R`  | `false`                               | Determines if inner folders should be processed recursively.  |
-| `--show-ai-thinking`     | `-A`  | `false`                               | Displays AI thinking details during execution.                |
-| `--show-prompt`          | `-S`  | `false`                               | Displays the AI prompt.                                       |
-| `--force-apply`          | `-F`  | `false`                               | Applies the reordering plan without requiring user review.    |
-| `--server-address`       | `-n`  | `http://localhost:11434/api/generate` | Overrides the default LLM server address.                     |
-| `--skip-problematic-dir` | `-d`  | `false`                               | Will skip problematic directories and files.                  |
+## Configuration
 
-### Usage examples
+### Model & ML Configuration
+
+On the first run, the app creates a `.messy-folder-reorganizer-ai/` directory in your home folder containing:
+
+- llm_config.toml – LLM model request configuration options
+- embeddings_config.toml – Embedding model request configuration options
+- rag_ml_config.toml – RAG and ML behavior settings
+
+Model request configurations are commented out by default and will fall back to built-in values unless edited.
+
+More information about LLM and Embedding model configuration options can be found [https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values](here).
+
+RAG and ML configuration parameters are required and should always be present in rag_ml_config.toml.
+You also can set up ignore lists for destionation and source pathes in that config file.
+
+### Prompt Customization
+
+Prompts are stored in:
 
 ```sh
-# Basic usage
-messy-folder-reorganizer-ai -M deepseek-r1:latest -P ./../../Downloads -S -A
-
-# Enable recursive processing and show AI thinking details
-messy-folder-reorganizer-ai --model deepseek-r1:latest --path ./documents --recursive --show-ai-thinking
-
-# Force apply changes without review
-messy-folder-reorganizer-ai --model deepseek-r1:latest --path ./documents --force-apply
+~/.messy-folder-reorganizer-ai/prompts/
 ```
 
-Ensure that required arguments (`--model` and `--path`) are provided for the application to function correctly.
+You can edit these to experiment with different phrasing.  
+The source file list will be appended automatically, so **do not** use `{}` or other placeholders in the prompt.
 
-### Model Configuration
+Feel free to contribute improved prompts via PR!
 
-On the first run, `messy-folder-reorganizer-ai` will create a `.messy-folder-reorganizer-ai` folder in your home directory. Inside this folder, a `config.toml` file will be generated, containing various model configuration options. By default, all configuration fields are commented out and won't be sent. You can uncomment and modify individual settings as needed—any fields left commented will fall back to their default values in the code.
+### Auto-Recovery
 
-More information about the parameters can be found [https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values](here).
+If you break or delete any config/prompt files, simply re-run the app — missing files will be regenerated with default values.
 
-It is recommended to specify `num_ctx` in `config.toml, as the result heavily depends on the context size.
+### Additional help
 
-### Prompt Configuration
+- [Ollama GitHub](https://github.com/ollama/ollama)
+- [Embedding Models with Ollama](https://ollama.com/blog/embedding-models)
+- [Qdrant Docs](https://qdrant.tech/documentation/guides/installation/)
 
-The `.messy-folder-reorganizer-ai/prompts` directory contains predefined prompts that will be sent to the LLM.  
-All source file paths will be appended to the end of the prompt automatically, so **do not include `{}` placeholders** in the prompt text.
+## Contributing
 
-You can experiment by modifying the prompts to see how they affect performance. If you discover a prompt that significantly improves results, please consider submitting a **pull request (PR)** with your suggested changes.
+1. Run the setup script before contributing:
 
-### Automatic Configuration Recovery
+   ```sh
+   bash setup-hooks.sh
+   ```
 
-Each time you launch `messy-folder-reorganizer-ai`, it reads the latest versions of the configuration file and prompts.  
-If you accidentally modify or corrupt a file, simply delete it and restart `messy-folder-reorganizer-ai`—missing configuration files will be regenerated with default values automatically.
+2. Lint & format code:
 
-## Contribution
+   ```sh
+   cargo clippy
+   cargo fmt
+   ```
 
-Before contribution please run `bash setup-hooks.sh`.
-This will create git precommit hook, which will run linters before commit.
-Run `cargo clippy` to reveal code problems and `cargo fmt` to fix linting errors.
-If you installed some dependencies - please run `cargo +nightly udeps` to check that all of them has been used.
+3. Check for unused dependencies:
+
+   ```sh
+   cargo +nightly udeps
+   ```
 
 ## Uninstall & Purge
-
-To completely remove `messy-folder-reorganizer-ai` from your system:
 
 ```sh
 rm -f /usr/local/bin/messy-folder-reorganizer-ai
@@ -160,19 +265,15 @@ rm -rf ~/.messy-folder-reorganizer-ai
 
 ## TODO
 
-### Next releases debt and ideas
+### V0.3 Backlog
 
-- Multiple AI requests for result improvements.
-- Improve processing huge folders (batches in parallel + initial request with files formats).
-- Add optional destination folder.
-- Filtration by formats?
-- Handle file names collision case.
-- Rollback by plan.json
-- Improve error handling.
-- Add tests.
-- Update rust version.
-- Enable cross platform builds if somebody will be interested
-
-### Refactoring ideas
-
-- Move print messages to separated logger module
+- improve errors handling: valid panic reasons, change unwraps to appropriate error handling
+- Add rollback via `plan.json`
+- Improve error handling
+- Add tests
+- Update Rust version
+- Add .messy-folder-rearganizer-ai folder cleaning on version update (saving and checking meta files)
+- Handle filename collisions
+- Add file content to embeddings if possible
+- Add optional prints for clustering distances
+- Add embedding input building configuration

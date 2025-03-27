@@ -1,0 +1,22 @@
+# # Embeddings generation request configuration
+
+# # Mirostat settings
+# mirostat = 0            # Disable Mirostat for more control over output structure
+# mirostat_eta = 0.1      # Keep default in case fine-tuning is needed
+# mirostat_tau = 5.0      # Keep default for balance
+
+# # Context and repetition settings
+# num_ctx = 4096          # Large context window for structured understanding
+# repeat_last_n = 256     # Increase history to maintain coherence across structure
+# repeat_penalty = 1.2    # Slightly stronger penalty to avoid redundant structures
+
+# # Temperature and randomness settings
+# temperature = 0.7      # Lower temperature for more deterministic output
+# top_k = 20             # Moderate diversity for structured output
+# top_p = 0.7            # Reduce randomness while allowing flexibility
+# min_p = 0.05           # Ensure balance between quality and variety
+
+# # Seed and stopping conditions
+# seed = 42              # Fixed seed for reproducibility
+# stop = ""         # Stop generation after structured response
+# num_predict = -1      # Allow full output generation
