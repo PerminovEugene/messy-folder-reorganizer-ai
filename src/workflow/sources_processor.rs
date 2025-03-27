@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::ai::embedding_context::add_context_to_files_input;
 use crate::ai::embeddings_request;
 use crate::bd::quadrant::find_closest_pathes;
 use crate::configuration::args::Args;
@@ -51,12 +52,14 @@ pub async fn process_sources(
 
     print_generating_embeddings_for_sources();
 
-    let file_names = files_data.iter().map(|d| &d.name).collect::<Vec<_>>();
+    let original_file_names = files_data.iter().map(|d| &d.name).collect::<Vec<_>>();
 
-    let file_names = format_file_names(&file_names);
+    let formatted_file_names = format_file_names(&original_file_names);
+
+    let embeddings_input = add_context_to_files_input(&formatted_file_names);
 
     let embeddings = embeddings_request::get_embeddings(
-        &file_names,
+        &embeddings_input,
         args.embedding_model.clone(),
         args.ai_server_address.clone(),
         embedding_config.clone(),
@@ -68,7 +71,7 @@ pub async fn process_sources(
 
     let mut result: Vec<ProcessResult> = closest_pathes
         .into_iter()
-        .zip(file_names.into_iter())
+        .zip(original_file_names.into_iter())
         .map(|(cp, file_name)| ProcessResult {
             path: cp.path,
             score: cp.score,

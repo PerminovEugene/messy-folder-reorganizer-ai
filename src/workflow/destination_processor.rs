@@ -1,6 +1,7 @@
 use std::env;
 use std::path::PathBuf;
 
+use crate::ai::embedding_context::add_context_to_folders_input;
 use crate::ai::embeddings_request::get_embeddings;
 use crate::bd::quadrant::add_vectors;
 use crate::configuration::args::Args;
@@ -56,19 +57,18 @@ pub async fn index_destinations(
         );
         dest_files_data.push(dest_file_info);
     }
-    let dest_file_names = dest_files_data
+
+    let original_folder_names = dest_files_data
         .iter()
-        .map(|d| {
-            let name = d.name.clone();
-            format!("This is a folder name: {name}")
-            // format!("{name}")
-        })
+        .map(|d| d.name.clone())
         .collect::<Vec<_>>();
+
+    let embeddings_input = add_context_to_folders_input(&original_folder_names);
 
     print_creating_dest_embeddings();
 
     let dest_embeddings = get_embeddings(
-        &dest_file_names,
+        &embeddings_input,
         args.embedding_model.clone(),
         args.ai_server_address.clone(),
         embedding_config.clone(),
@@ -77,7 +77,7 @@ pub async fn index_destinations(
 
     print_saving_dest_embeddings();
 
-    add_vectors(args, &dest_file_names, dest_embeddings)
+    add_vectors(args, &original_folder_names, dest_embeddings)
         .await
         .unwrap();
 

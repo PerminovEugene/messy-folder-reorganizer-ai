@@ -7,7 +7,7 @@ use crate::{
 };
 
 pub async fn get_embeddings(
-    file_names: &Vec<String>,
+    input_strings: &Vec<String>,
     model: String,
     ai_server_address: String,
     config: EmbeddingModelConfig,
@@ -32,7 +32,7 @@ pub async fn get_embeddings(
 
     let request_body = OllamaEmbedRequest {
         model,
-        input: file_names,
+        input: input_strings,
         options: &options,
     };
 
