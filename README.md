@@ -166,7 +166,15 @@
      -D ./test_cases/clustering/structured-folder
    ```
 
-> The `./test_cases/` folder contains sample files to explore the tool’s functionality.
+4. Playground
+
+You can test different cases using the `test_cases` folder.
+
+- Example:
+
+```sh
+cargo run -- -E mxbai-embed-large -L deepseek-r1:latest -S ./test_cases/clustering/messy-folder -D ./test_cases/clustering/structured-folder
+```
 
 ## Usage
 

@@ -1,6 +1,6 @@
 [package]
 name = "messy-folder-reorganizer-ai"
-version = "0.1.8"
+version = "0.2.0"
 edition = "2021"
 authors = ["Eugene Perminov <perminov.eugene@gmail.com>"]
 license = "MIT OR Apache-2.0"
@@ -8,9 +8,9 @@ repository = "https://github.com/PerminovEugene/messy-folder-reorganizer-ai"
 homepage = "https://github.com/PerminovEugene/messy-folder-reorganizer-ai"
 description = "An AI-powered tool to organize messy folders intelligently."
 readme = "README.md"
-keywords = ["AI", "file-organization", "automation", "cli", "Rust", "ollama"]
+keywords = ["AI", "file-organization", "automation", "cli", "Rust", "Ollama", "Qdrant", "RAG", "ML"]
 categories = ["command-line-utilities", "artificial-intelligence"]
-rust-version = "1.84"  # Set the minimum required Rust version
+rust-version = "1.84"
 include = [
     "src/**/*",
     "assets/**/*",
