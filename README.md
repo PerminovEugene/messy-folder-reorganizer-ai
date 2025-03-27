@@ -44,9 +44,21 @@
 
 ## Setup
 
-### macOS Installation
+1. Install core developer tools
 
-1. Install or update **Xcode**.
+- macOS
+
+  ```
+  Install or update **Xcode**
+  ```
+
+- Linux x86_64
+
+  ```sh
+  sudo apt update
+  sudo apt install -y build-essential
+  ```
+
 2. Install **Ollama** and start the service.
 3. Download the required LLM via Ollama:
 
@@ -74,31 +86,62 @@
 
 6. Download the latest app release:
 
-   ```sh
-   curl -s https://api.github.com/repos/PerminovEugene/messy-folder-reorganizer-ai/releases/latest | \
-     grep "browser_download_url.*messy-folder-reorganizer-ai-aarch64-apple-darwin.tar.gz" | \
-     cut -d '"' -f 4 | \
-     xargs curl -L -o messy-folder-reorganizer-ai-macos.tar.gz
-   ```
+- Apple Silicon (macOS ARM64):
+
+  ```sh
+  curl -s https://api.github.com/repos/PerminovEugene/messy-folder-reorganizer-ai/releases/tags/v0.2 | \
+    grep "browser_download_url.*messy-folder-reorganizer-ai-v0.2-aarch64-apple-darwin.tar.gz" | \
+    cut -d '"' -f 4 | \
+    xargs curl -L -o messy-folder-reorganizer-ai-macos-arm64.tar.gz
+
+  ```
+
+- Intel Mac (macOS x86_64):
+
+  ```sh
+  curl -s https://api.github.com/repos/PerminovEugene/messy-folder-reorganizer-ai/releases/tags/v0.2 | \
+    grep "browser_download_url.*messy-folder-reorganizer-ai-v0.2-x86_64-apple-darwin.tar.gz" | \
+    cut -d '"' -f 4 | \
+    xargs curl -L -o messy-folder-reorganizer-ai-macos-x64.tar.gz
+  ```
+
+- Linux x86_64:
+
+  ```sh
+  curl -s https://api.github.com/repos/PerminovEugene/messy-folder-reorganizer-ai/releases/tags/v0.2 | \
+    grep "browser_download_url.*messy-folder-reorganizer-ai-v0.2-x86_64-unknown-linux-gnu.tar.gz" | \
+    cut -d '"' -f 4 | \
+    xargs curl -L -o messy-folder-reorganizer-ai-linux-x64.tar.gz
+  ```
 
 7. Extract and install:
 
-   ```sh
-   tar -xvzf messy-folder-reorganizer-ai-macos.tar.gz
-   sudo mv messy-folder-reorganizer-ai /usr/local/bin/messy-folder-reorganizer-ai
-   ```
+- Apple Silicon (macOS ARM64):
+
+  ```sh
+  tar -xvzf messy-folder-reorganizer-ai-macos-arm64.tar.gz
+  sudo mv messy-folder-reorganizer-ai /usr/local/bin/messy-folder-reorganizer-ai
+  ```
+
+- Intel Mac (macOS x86_64):
+
+  ```sh
+  tar -xvzf messy-folder-reorganizer-ai-macos-x64.tar.gz
+  sudo mv messy-folder-reorganizer-ai /usr/local/bin/messy-folder-reorganizer-ai
+  ```
+
+- Linux x86_64:
+
+  ```sh
+  tar -xvzf messy-folder-reorganizer-ai-linux-x64.tar.gz
+  sudo mv messy-folder-reorganizer-ai /usr/local/bin/messy-folder-reorganizer-ai
+  ```
 
 8. Verify the installation:
 
    ```sh
    messy-folder-reorganizer-ai --help
    ```
-
-> Additional help:
->
-> - [Ollama GitHub](https://github.com/ollama/ollama)
-> - [Embedding Models with Ollama](https://ollama.com/blog/embedding-models)
-> - [Qdrant Docs](https://qdrant.tech/documentation/guides/installation/)
 
 ## Build from Source
 
@@ -186,6 +229,12 @@ Feel free to contribute improved prompts via PR!
 
 If you break or delete any config/prompt files, simply re-run the app — missing files will be regenerated with default values.
 
+### Additional help
+
+- [Ollama GitHub](https://github.com/ollama/ollama)
+- [Embedding Models with Ollama](https://ollama.com/blog/embedding-models)
+- [Qdrant Docs](https://qdrant.tech/documentation/guides/installation/)
+
 ## Contributing
 
 1. Run the setup script before contributing:
@@ -216,7 +265,7 @@ rm -rf ~/.messy-folder-reorganizer-ai
 
 ## TODO
 
-### V2 Backlog
+### V0.3 Backlog
 
 - improve errors handling: valid panic reasons, change unwraps to appropriate error handling
 - Add rollback via `plan.json`
@@ -228,9 +277,3 @@ rm -rf ~/.messy-folder-reorganizer-ai
 - Add file content to embeddings if possible
 - Add optional prints for clustering distances
 - Add embedding input building configuration
-
-### Upcoming
-
-- Add cross-platform builds
-- Publish a blog articles
-- Add workflow diagram/image to readme
