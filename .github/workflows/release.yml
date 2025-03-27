@@ -19,8 +19,6 @@ jobs:
             target: aarch64-apple-darwin
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-          - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
 
     steps:
       - name: Checkout Repository
@@ -44,22 +42,7 @@ jobs:
       - name: Add Target for Cross Compilation
         run: rustup target add ${{ matrix.target }}
 
-      # Install zig + cargo-zigbuild only for aarch64 Linux
-      - name: Install Zig (official release)
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          curl -L https://ziglang.org/download/0.11.0/zig-linux-x86_64-0.11.0.tar.xz | tar -xJ
-          sudo mv zig-linux-x86_64-0.11.0/zig /usr/local/bin/zig
-          zig version
-
-      # Build with zig for Linux ARM
-      - name: Build with Zig for aarch64-unknown-linux-gnu
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: cargo zigbuild --release --target ${{ matrix.target }}
-
-      # Default build for all other targets
       - name: Build Release Binary
-        if: matrix.target != 'aarch64-unknown-linux-gnu'
         run: cargo build --release --target ${{ matrix.target }}
 
       - name: Package Binary
