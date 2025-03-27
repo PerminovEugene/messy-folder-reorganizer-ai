@@ -226,6 +226,8 @@ rm -rf ~/.messy-folder-reorganizer-ai
 - Add .messy-folder-rearganizer-ai folder cleaning on version update (saving and checking meta files)
 - Handle filename collisions
 - Add file content to embeddings if possible
+- Add optional prints for clustering distances
+- Add embedding input building configuration
 
 ### Upcoming
 
