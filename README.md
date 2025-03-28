@@ -42,6 +42,16 @@
 > In the event of a bug or interruption, the app may irreversibly modify or delete files. Always create backups before using it on valuable data.  
 > The author assumes no responsibility for data loss or misplaced files caused by this application.
 
+## Small articles for the curious minds
+
+📌 [Adding RAG & ML to the CLI](https://dev.to/evgeniiperminov/adding-rag-and-ml-to-ai-files-reorganization-cli-messy-folder-reorganizer-ai-1d3)
+
+📌 [How cosine similarity helped files find their place](https://dev.to/evgeniiperminov/how-cosine-similarity-helped-my-cli-decide-where-files-belong-messy-folder-reorganizer-ai-fm3)
+
+📌 [Teaching embeddings to understand folders](https://dev.to/evgeniiperminov/making-embeddings-understand-files-and-folders-with-simple-sentences-messy-folder-reorganizer-ai-mjg)
+
+📌 [Hierarchical clustering for file grouping](https://dev.to/evgeniiperminov/embeddings-clustering-with-agglomerative-hierarchical-clustering-messy-folder-reorganizer-ai-520k)
+
 ## Setup
 
 1. Install core developer tools
