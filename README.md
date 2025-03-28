@@ -169,6 +169,7 @@
 4. Playground
 
 You can test different cases using the `test_cases` folder.
+If you applied reorganization to `strucutred-folder` or `dest` folders - simply run `bash generate.sh` script to return it to the initial state. The flow will be improved in next releases with rollback feature
 
 - Example:
 
