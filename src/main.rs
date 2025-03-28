@@ -21,9 +21,9 @@ use errors::app_error::AppError;
 use files::create_file::save_files_reorganisation_plan;
 use files::file_info;
 use workflow::destination_processor::index_destinations;
+use workflow::migration_plan_builder::create_migration_plan;
 use workflow::plan_processor::migrate_files;
 use workflow::sources_processor::process_sources;
-use workflow::unknown_files_processor::create_folder_for_unknown_files;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -62,8 +62,7 @@ async fn run() -> Result<(), AppError> {
     print_rag_processing_result(&rag_ml_config, &process_result);
 
     let migration_plan =
-        create_folder_for_unknown_files(&llm_config, &rag_ml_config, &args, &mut process_result)
-            .await;
+        create_migration_plan(&llm_config, &rag_ml_config, &args, &mut process_result).await;
 
     print_migration_plan_table(&migration_plan);
     save_files_reorganisation_plan(migration_plan);

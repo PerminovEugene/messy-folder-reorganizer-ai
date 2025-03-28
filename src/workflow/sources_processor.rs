@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use serde::{Deserialize, Serialize};
 
 use crate::ai::embedding_context::add_context_to_files_input;
@@ -17,7 +19,8 @@ use crate::files::file_info;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ProcessResult {
-    pub path: String,
+    pub destination_relative_path: String,
+    pub source_relative_path: String,
     pub score: f32,
     pub source_file_name: String,
     pub vector: Vec<f32>,
@@ -43,7 +46,7 @@ pub async fn process_sources(
 
     collect_files_metadata(
         &args.source,
-        "",
+        "./",
         &mut files_data,
         &ignore_patters,
         collector_config,
@@ -52,12 +55,10 @@ pub async fn process_sources(
 
     print_generating_embeddings_for_sources();
 
-    let original_file_names = files_data.iter().map(|d| &d.name).collect::<Vec<_>>();
-
+    // embeddings
+    let original_file_names = files_data.iter().map(|d| &d.file_name).collect::<Vec<_>>();
     let formatted_file_names = format_file_names(&original_file_names);
-
     let embeddings_input = add_context_to_files_input(&formatted_file_names);
-
     let embeddings = embeddings_request::get_embeddings(
         &embeddings_input,
         args.embedding_model.clone(),
@@ -71,18 +72,31 @@ pub async fn process_sources(
 
     let mut result: Vec<ProcessResult> = closest_pathes
         .into_iter()
-        .zip(original_file_names.into_iter())
-        .map(|(cp, file_name)| ProcessResult {
-            path: cp.path,
-            score: cp.score,
-            source_file_name: file_name.clone(),
-            vector: cp.vector,
+        .zip(files_data.into_iter())
+        .map(|(search_result, file_info)| {
+            let destination_relative_path = if search_result.is_root {
+                String::from("./")
+            } else {
+                PathBuf::from(search_result.relative_path)
+                    .join(search_result.file_name)
+                    .to_string_lossy()
+                    .to_string()
+            };
+            ProcessResult {
+                destination_relative_path,
+                score: search_result.score,
+                source_file_name: file_info.file_name,
+                source_relative_path: file_info.relative_path,
+                vector: search_result.vector,
+            }
         })
         .collect();
 
     result.sort_by(|a, b| {
         // First compare by path
-        let path_cmp = a.path.cmp(&b.path);
+        let path_cmp = a
+            .destination_relative_path
+            .cmp(&b.destination_relative_path);
 
         if path_cmp == std::cmp::Ordering::Equal {
             // If paths are equal, compare by score (descending)
@@ -99,12 +113,11 @@ pub async fn process_sources(
 
 fn format_file_name(file_name: &str) -> String {
     let parts: Vec<&str> = file_name.rsplitn(2, '.').collect();
-    let format = parts.first().unwrap_or(&"").to_string();
+    let format = parts.first().unwrap_or(&"./").to_string();
 
     let name = parts.get(1).unwrap_or(&file_name).replace(['-', '_'], " ");
 
-    format!("This is a file name: {}.{}", name, format)
-    // format!("{}.{}", name, format)
+    format!("{}.{}", name, format)
 }
 
 fn format_file_names(file_names: &Vec<&String>) -> Vec<String> {

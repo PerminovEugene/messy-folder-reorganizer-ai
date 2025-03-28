@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 
 use super::sources_processor::ProcessResult;
 
-pub async fn create_folder_for_unknown_files(
+pub async fn create_migration_plan(
     llm_config: &LLMModelConfig,
     rag_ml_config: &RagMlConfig,
     args: &Args,
@@ -29,12 +29,14 @@ pub async fn create_folder_for_unknown_files(
         .iter()
         .map(|x| FilesReorganisationPlan {
             file_name: x.source_file_name.clone(),
-            destination_inner_path: x.path.clone(),
+            destination_inner_path: x.destination_relative_path.clone(),
+            source_inner_path: x.source_relative_path.clone(),
             source: args.source.clone(),
             destination: args.destination.clone(),
         })
         .collect();
 
+    // TODO Move to separated func?
     if !unknown_vectors.is_empty() {
         print_clustering_unknown_vectors();
         let clusters = cluster_vectors_hierarchical(rag_ml_config, &unknown_vectors).await;
@@ -51,7 +53,8 @@ pub async fn create_folder_for_unknown_files(
                     let unknown_vector_from_cluster = &unknown_vectors[member];
                     FilesReorganisationPlan {
                         file_name: unknown_vector_from_cluster.source_file_name.clone(),
-                        destination_inner_path: folder_data[&cluster.id].clone(),
+                        source_inner_path: unknown_vector_from_cluster.source_relative_path.clone(),
+                        destination_inner_path: format!("./{}", folder_data[&cluster.id].clone()),
                         source: args.source.clone(),
                         destination: args.destination.clone(),
                     }
@@ -101,7 +104,6 @@ async fn process_clusters(
             .await
             .unwrap();
 
-            // println!("Ai response: {:?} {:?}", ai_response_raw, cluster_id);
             let ai_response: AiResponse =
                 serde_json::from_str::<AiResponse>(&ai_response_raw).unwrap();
 

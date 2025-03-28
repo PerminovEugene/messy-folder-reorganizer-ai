@@ -30,7 +30,7 @@ pub fn print_rag_processing_result(config: &RagMlConfig, process_result: &[Proce
         };
         table.add_row(Row::new(vec![
             Cell::new(&result.source_file_name),
-            Cell::new(&result.path),
+            Cell::new(&result.destination_relative_path),
             Cell::new(&result.score.to_string()),
             Cell::new(need_reorganize),
         ]));
@@ -99,8 +99,27 @@ pub fn print_migration_plan_table(files_reorganization_plan: &[FilesReorganisati
     });
 
     files_reorganization_plan.iter().for_each(|plan| {
-        let to = format!("{}/", plan.destination_inner_path);
-        table.add_row(Row::new(vec![Cell::new(&plan.file_name), Cell::new(&to)]));
+        // separators are needed for case when inner_path == "./" to avoid double slash
+        let source_separator = if plan.source_inner_path == "./" {
+            ""
+        } else {
+            "/"
+        };
+        let destination_separator = if plan.destination_inner_path == "./" {
+            ""
+        } else {
+            "/"
+        };
+        let from = format!(
+            "{}{}{}",
+            plan.source_inner_path, source_separator, plan.file_name
+        );
+        let to = format!(
+            "{}{}{}",
+            plan.destination_inner_path, destination_separator, plan.file_name
+        );
+
+        table.add_row(Row::new(vec![Cell::new(&from), Cell::new(&to)]));
     });
 
     table.printstd();

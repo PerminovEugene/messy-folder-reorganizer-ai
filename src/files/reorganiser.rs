@@ -29,7 +29,10 @@ pub fn apply_plan() -> std::io::Result<()> {
         let source_base_path: PathBuf = PathBuf::from(plan_item.source);
         let destination_base_path: PathBuf = PathBuf::from(plan_item.destination);
 
-        let original_path = source_base_path.join(&plan_item.file_name).clean();
+        let original_path = source_base_path
+            .join(plan_item.source_inner_path)
+            .join(&plan_item.file_name)
+            .clean();
 
         let new_path = destination_base_path
             .join(plan_item.destination_inner_path)

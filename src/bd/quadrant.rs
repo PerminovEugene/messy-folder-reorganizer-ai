@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use qdrant_client::qdrant::value::Kind;
 use qdrant_client::qdrant::{
     with_payload_selector, CreateCollectionBuilder, Distance, PointStruct,
     ScalarQuantizationBuilder, SearchBatchPoints, SearchPoints, UpsertPointsBuilder, Value,
@@ -10,12 +11,13 @@ use uuid::Uuid;
 
 use crate::configuration::args::Args;
 use crate::errors::app_error::AppError;
+use crate::files::file_info::FileInfo;
 
 const COLLECTION_NAME: &str = "dest";
 
 pub async fn add_vectors(
     args: &Args,
-    ids: &[String],
+    ids: &[FileInfo],
     vectors: Vec<Vec<f32>>,
 ) -> Result<(), AppError> {
     let address = &args.qdrant_server_address.clone();
@@ -36,11 +38,22 @@ pub async fn add_vectors(
     let points: Vec<PointStruct> = ids
         .iter()
         .zip(vectors.iter().cloned())
-        .map(|(path, vector)| {
+        .map(|(file_info, vector)| {
             let id = Uuid::new_v4().as_u128() as u64;
 
             let mut payload_data: HashMap<String, Value> = HashMap::new();
-            payload_data.insert("path".to_string(), Value::from(path.to_string())); // Исправлено: path.to_string()
+            payload_data.insert(
+                "file_name".to_string(),
+                Value::from(file_info.file_name.to_string()),
+            );
+            payload_data.insert(
+                "relative_path".to_string(),
+                Value::from(file_info.relative_path.to_string()),
+            );
+            payload_data.insert(
+                "is_root".to_string(),
+                Value::from(file_info.is_root.to_string()),
+            );
 
             let payload = Payload::from(payload_data);
 
@@ -56,9 +69,11 @@ pub async fn add_vectors(
 }
 
 pub struct SearchResultFacade {
-    pub path: String,
+    pub relative_path: String,
     pub score: f32,
     pub vector: Vec<f32>,
+    pub is_root: bool,
+    pub file_name: String,
 }
 
 pub async fn find_closest_pathes(
@@ -96,17 +111,40 @@ pub async fn find_closest_pathes(
         .map(|(point, vector)| {
             let result = &point.result[0];
 
-            let path = result
+            let relative_path: String = result
                 .payload
-                .get("path")
+                .get("relative_path")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string())
+                .unwrap_or_default();
+
+            let is_root: bool = result
+                .payload
+                .get("is_root")
+                .and_then(|v| match &v.kind {
+                    Some(Kind::BoolValue(b)) => Some(*b),
+                    Some(Kind::StringValue(s)) => match s.to_lowercase().as_str() {
+                        "true" => Some(true),
+                        "false" => Some(false),
+                        _ => None,
+                    },
+                    _ => None,
+                })
+                .unwrap_or_default();
+
+            let file_name: String = result
+                .payload
+                .get("file_name")
                 .and_then(|v| v.as_str())
                 .map(|s| s.to_string())
                 .unwrap_or_default();
 
             SearchResultFacade {
-                path,
                 score: result.score,
                 vector,
+                file_name,
+                relative_path,
+                is_root,
             }
         })
         .collect();

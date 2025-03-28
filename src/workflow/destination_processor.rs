@@ -39,7 +39,7 @@ pub async fn index_destinations(
 
     collect_files_metadata(
         &dest,
-        "",
+        "./",
         &mut dest_files_data,
         &ignore_patters,
         &collector_config,
@@ -47,20 +47,19 @@ pub async fn index_destinations(
 
     if args.destination != "home" {
         let destination_base_folder = PathBuf::from(args.destination.clone());
-        let file_name = destination_base_folder.file_name().unwrap();
-
-        let destination_base_folder_2 = PathBuf::from(file_name);
 
         let dest_file_info = convert_path_meta_to_file_info(
-            &destination_base_folder_2,
+            &destination_base_folder,
+            String::from("./"),
             destination_base_folder.metadata().unwrap(),
+            true,
         );
         dest_files_data.push(dest_file_info);
     }
 
     let original_folder_names = dest_files_data
         .iter()
-        .map(|d| d.name.clone())
+        .map(|d| d.file_name.clone())
         .collect::<Vec<_>>();
 
     let embeddings_input = add_context_to_folders_input(&original_folder_names);
@@ -77,7 +76,7 @@ pub async fn index_destinations(
 
     print_saving_dest_embeddings();
 
-    add_vectors(args, &original_folder_names, dest_embeddings)
+    add_vectors(args, &dest_files_data, dest_embeddings)
         .await
         .unwrap();
 

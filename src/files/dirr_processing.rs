@@ -18,21 +18,21 @@ pub struct CollectFilesMetaConfig {
 }
 
 pub fn collect_files_metadata(
-    base_path_str: &str,
-    inner_path: &str,
-    files_data: &mut Vec<FileInfo>,
+    base_path_str: &str,            // destination or source path provided in args
+    inner_path: &str,               // built during recursive calls. Use "./" for root call
+    files_data: &mut Vec<FileInfo>, // result vector
     ignore_patterns: &Vec<Regex>,
     config: &CollectFilesMetaConfig,
 ) {
-    let base_path_buf = Path::new(base_path_str).join(inner_path);
-    let base_path = base_path_buf.as_path();
+    let processed_path_buf = Path::new(base_path_str).join(inner_path);
+    let processed_path = processed_path_buf.as_path();
 
-    match fs::read_dir(base_path) {
+    match fs::read_dir(processed_path) {
         Ok(read_dir_res) => {
-            print_processing_directory(base_path.to_str().unwrap());
+            print_processing_directory(processed_path.to_str().unwrap());
 
             for dir in read_dir_res.flatten() {
-                let file_meta = match dir.metadata() {
+                let metadata = match dir.metadata() {
                     Ok(meta) => meta,
                     Err(err) => {
                         eprintln!("Error reading metadata for {:?}: {:?}", dir.path(), err);
@@ -40,37 +40,57 @@ pub fn collect_files_metadata(
                     }
                 };
 
-                // Compute relative path from base_path, ensuring it is correctly stored
-                let relative_path = match dir.path().strip_prefix(base_path_str) {
-                    Ok(p) => p.to_path_buf(),           // Convert &Path to PathBuf
-                    Err(_) => dir.path().to_path_buf(), // Keep full path if stripping fails
+                let absolute_path = dir.path(); // begining from destination path in arg
+                let full_relative_path = match absolute_path.strip_prefix(base_path_str) {
+                    Ok(p) => p.to_path_buf(),
+                    Err(_) => absolute_path.to_path_buf(),
                 };
+                let relative_path = inner_path.to_string();
 
-                let file_name = &relative_path.file_name().unwrap();
+                let file_name = full_relative_path
+                    .file_name()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("unknown");
 
-                if file_meta.is_file() {
-                    if is_ignored(file_name.to_str().unwrap(), ignore_patterns) {
-                        print_ignoring_file(relative_path.to_str().unwrap());
+                if metadata.is_file() {
+                    if is_ignored(file_name, ignore_patterns) {
+                        print_ignoring_file(full_relative_path.to_str().unwrap());
                         continue;
                     }
-                    print_processing_file(file_name.to_str().unwrap());
+
+                    print_processing_file(file_name);
+
                     if config.process_files {
-                        let file_info = convert_path_meta_to_file_info(&relative_path, file_meta);
+                        let file_info = convert_path_meta_to_file_info(
+                            &full_relative_path,
+                            relative_path,
+                            metadata,
+                            false,
+                        );
                         files_data.push(file_info);
                     }
                 } else {
-                    if is_ignored(file_name.to_str().unwrap(), ignore_patterns) {
-                        print_ignoring_folder(relative_path.to_str().unwrap());
+                    if is_ignored(file_name, ignore_patterns) {
+                        print_ignoring_folder(full_relative_path.to_str().unwrap());
                         continue;
                     }
+
                     if config.process_folders {
-                        let file_info = convert_path_meta_to_file_info(&relative_path, file_meta);
+                        let file_info = convert_path_meta_to_file_info(
+                            &full_relative_path,
+                            relative_path,
+                            metadata,
+                            false,
+                        );
                         files_data.push(file_info);
                     }
+
                     if config.recursive {
-                        if let Some(sub_path) = dir.file_name().to_str() {
-                            let full_sub_path = Path::new(inner_path).join(sub_path);
+                        if let Some(currently_processing_dir) = dir.file_name().to_str() {
+                            let full_sub_path =
+                                Path::new(inner_path).join(currently_processing_dir);
                             let full_sub_path_str = full_sub_path.to_str().unwrap();
+
                             collect_files_metadata(
                                 base_path_str,
                                 full_sub_path_str,
@@ -84,9 +104,9 @@ pub fn collect_files_metadata(
             }
         }
         Err(err) => {
-            eprintln!("Error reading directory {:?}: {:?}", base_path, err);
+            eprintln!("Error reading directory {:?}: {:?}", processed_path, err);
             if !config.skip_problematic_dir {
-                panic!("Error reading directory {:?}: {:?}", base_path, err);
+                panic!("Error reading directory {:?}: {:?}", processed_path, err);
             }
         }
     }
