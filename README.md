@@ -281,17 +281,16 @@ rm -f /usr/local/bin/messy-folder-reorganizer-ai
 rm -rf ~/.messy-folder-reorganizer-ai
 ```
 
-## TODO
+## License
 
-### V0.3 Backlog
+This project is dual-licensed under either:
 
-- improve errors handling: valid panic reasons, change unwraps to appropriate error handling
-- Add rollback via `plan.json`
-- Improve error handling
-- Add tests
-- Update Rust version
-- Add .messy-folder-rearganizer-ai folder cleaning on version update (saving and checking meta files)
-- Handle filename collisions
-- Add file content to embeddings if possible
-- Add optional prints for clustering distances
-- Add embedding input building configuration
+- [MIT License](./LICENSE-MIT)
+- [Apache License, Version 2.0](./LICENSE-APACHE)
+
+at your option.
+
+It interacts with external services including:
+
+- [Ollama](https://github.com/ollama/ollama) – MIT License
+- [Qdrant](https://github.com/qdrant/qdrant) – Apache 2.0 License
