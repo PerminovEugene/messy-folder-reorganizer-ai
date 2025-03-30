@@ -45,13 +45,16 @@ pub async fn process_sources(
     let ignore_patters = parse_ignore_list(&rag_ml_config.source_ignore);
 
     let source_base_folder = PathBuf::from(args.source.clone());
+
+    let root_relative_path: PathBuf = PathBuf::from("");
+
     collect_files_metadata(
         &source_base_folder,
-        "./",
+        &root_relative_path,
         &mut files_data,
         &ignore_patters,
         collector_config,
-    );
+    )?;
     create_source_file(&files_data);
 
     print_generating_embeddings_for_sources();
@@ -76,7 +79,7 @@ pub async fn process_sources(
         .zip(files_data.into_iter())
         .map(|(search_result, file_info)| {
             let destination_relative_path = if search_result.is_root {
-                String::from("./")
+                String::from("")
             } else {
                 PathBuf::from(search_result.relative_path)
                     .join(search_result.file_name)

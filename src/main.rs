@@ -40,6 +40,14 @@ async fn main() {
                 print_app_error("Qdrant Error", e);
                 std::process::exit(1);
             }
+            AppError::JSONStringify(_) => {
+                print_app_error("JSON stringify error", e);
+                std::process::exit(1);
+            }
+            AppError::FileError(_) => {
+                print_app_error("File processing error", e);
+                std::process::exit(1);
+            }
             _ => {
                 print_app_error("Panic", e);
                 panic!("Unhandled error. \n Please post error stack trace on github issues page https://github.com/PerminovEugene/messy-folder-reorganizer-ai/issues");

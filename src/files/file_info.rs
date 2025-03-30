@@ -22,21 +22,14 @@ fn get_system_time_string(time: SystemTime) -> String {
 }
 
 pub fn convert_path_meta_to_file_info(
-    full_path: &Path,
-    relative_path: String,
+    file_name: String,
+    relative_path: &Path,
     file_meta: Metadata,
     is_root: bool,
 ) -> FileInfo {
-    let file_name = full_path
-        .file_name()
-        .map(|s| s.to_string_lossy().to_string())
-        .unwrap_or_else(|| "unknown".to_string());
-
-    // let relative_path = full_path.to_string_lossy().to_string();
-
     FileInfo {
         file_name,
-        relative_path,
+        relative_path: relative_path.to_string_lossy().to_string(),
         size: file_meta.len(),
         created_at: get_system_time_string(file_meta.created().unwrap_or(SystemTime::now())),
         modified_at: get_system_time_string(file_meta.modified().unwrap_or(SystemTime::now())),

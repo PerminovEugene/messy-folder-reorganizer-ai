@@ -53,7 +53,7 @@ pub fn print_processing_directory(path: &str) {
     println!("{} {:?}", "🔍 Processing directory:".green(), path);
 }
 
-pub fn print_processing_file(file_name: &str) {
+pub fn print_processing_file(file_name: &String) {
     println!("{} {:?}", "📄 Processing file:".blue(), file_name);
 }
 
@@ -100,6 +100,14 @@ pub fn print_saving_dest_embeddings() {
 
 pub fn print_files_not_updated() {
     println!("{}", "🚫 File locations were not updated.".yellow());
+}
+
+pub fn print_ignoring_entry(is_file: bool, path: &str) {
+    if is_file {
+        print_ignoring_file(path);
+    } else {
+        print_ignoring_folder(path);
+    }
 }
 
 pub fn print_ignoring_file(path: &str) {

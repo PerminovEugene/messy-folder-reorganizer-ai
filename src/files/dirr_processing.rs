@@ -1,14 +1,12 @@
-use core::panic;
 use regex::Regex;
 use std::fs;
 use std::path::Path;
 
-use crate::console::messages::print_ignoring_file;
-use crate::console::messages::print_ignoring_folder;
-use crate::console::messages::print_processing_directory;
-use crate::console::messages::print_processing_file;
-use crate::file_info::convert_path_meta_to_file_info;
-use crate::file_info::FileInfo;
+use crate::console::messages::{
+    print_ignoring_entry, print_processing_directory, print_processing_file,
+};
+use crate::errors::app_error::AppError;
+use crate::file_info::{convert_path_meta_to_file_info, FileInfo};
 
 pub struct CollectFilesMetaConfig {
     pub skip_problematic_dir: bool,
@@ -17,103 +15,133 @@ pub struct CollectFilesMetaConfig {
     pub process_files: bool,
 }
 
+/*
+  Collects file metadata and saves it to files_data vector.
+*/
 pub fn collect_files_metadata(
-    base_path_str: &Path,           // destination or source path provided in args
-    inner_path: &str,               // built during recursive calls. Use "./" for root call
-    files_data: &mut Vec<FileInfo>, // result vector
+    base_path: &Path,
+    relative_path: &Path,
+    files_data: &mut Vec<FileInfo>,
     ignore_patterns: &Vec<Regex>,
     config: &CollectFilesMetaConfig,
-) {
-    let processed_path_buf = base_path_str.join(inner_path);
-    let processed_path = processed_path_buf.as_path();
+) -> Result<(), AppError> {
+    let processed_path = base_path.join(relative_path);
 
-    match fs::read_dir(processed_path) {
-        Ok(read_dir_res) => {
-            print_processing_directory(processed_path.to_str().unwrap());
-
-            for dir in read_dir_res.flatten() {
-                let metadata = match dir.metadata() {
-                    Ok(meta) => meta,
-                    Err(err) => {
-                        eprintln!("Error reading metadata for {:?}: {:?}", dir.path(), err);
-                        continue;
-                    }
-                };
-
-                let absolute_path = dir.path(); // begining from destination path in arg
-                let full_relative_path = match absolute_path.strip_prefix(base_path_str) {
-                    Ok(p) => p.to_path_buf(),
-                    Err(_) => absolute_path.to_path_buf(),
-                };
-                let relative_path = inner_path.to_string();
-
-                let file_name = full_relative_path
-                    .file_name()
-                    .and_then(|s| s.to_str())
-                    .unwrap_or("unknown");
-
-                if metadata.is_file() {
-                    if is_ignored(file_name, ignore_patterns) {
-                        print_ignoring_file(full_relative_path.to_str().unwrap());
-                        continue;
-                    }
-
-                    print_processing_file(file_name);
-
-                    if config.process_files {
-                        let file_info = convert_path_meta_to_file_info(
-                            &full_relative_path,
-                            relative_path,
-                            metadata,
-                            false,
-                        );
-                        files_data.push(file_info);
-                    }
-                } else {
-                    if is_ignored(file_name, ignore_patterns) {
-                        print_ignoring_folder(full_relative_path.to_str().unwrap());
-                        continue;
-                    }
-
-                    if config.process_folders {
-                        let file_info = convert_path_meta_to_file_info(
-                            &full_relative_path,
-                            relative_path,
-                            metadata,
-                            false,
-                        );
-                        files_data.push(file_info);
-                    }
-
-                    if config.recursive {
-                        if let Some(currently_processing_dir) = dir.file_name().to_str() {
-                            let full_sub_path =
-                                Path::new(inner_path).join(currently_processing_dir);
-                            let full_sub_path_str = full_sub_path.to_str().unwrap();
-
-                            collect_files_metadata(
-                                base_path_str,
-                                full_sub_path_str,
-                                files_data,
-                                ignore_patterns,
-                                config,
-                            );
-                        }
-                    }
-                }
-            }
+    let read_dir_iter = match fs::read_dir(&processed_path) {
+        Ok(rd) => rd,
+        Err(e) => {
+            eprintln!("Error reading directory {:?}: {:?}", processed_path, e);
+            return Err(AppError::FileError(format!(
+                "Error reading directory {:?}: {}",
+                processed_path, e
+            )));
         }
-        Err(err) => {
-            eprintln!("Error reading directory {:?}: {:?}", processed_path, err);
-            if !config.skip_problematic_dir {
-                panic!("Error reading directory {:?}: {:?}", processed_path, err);
+    };
+
+    print_processing_directory(processed_path.to_str().unwrap_or("[invalid path]"));
+
+    for dir_entry_result in read_dir_iter {
+        let Some((dir, metadata)) = get_dir_entry_and_metadata(dir_entry_result, config)? else {
+            continue;
+        };
+
+        let file_name = dir.file_name().to_string_lossy().to_string(); //.to_string_lossy().to_string();
+        let is_file = metadata.is_file();
+
+        let new_relative_path = relative_path.join(&file_name);
+
+        if is_ignored(&file_name, ignore_patterns) {
+            print_ignoring_entry(is_file, new_relative_path.to_str().unwrap());
+            continue;
+        }
+
+        if is_file {
+            handle_file_entry(&file_name, relative_path, metadata, config, files_data);
+        } else {
+            handle_folder_entry(file_name, relative_path, metadata, config, files_data);
+
+            if config.recursive {
+                collect_files_metadata(
+                    base_path,
+                    new_relative_path.as_path(),
+                    files_data,
+                    ignore_patterns,
+                    config,
+                )?;
             }
         }
     }
+
+    Ok(())
 }
 
 fn is_ignored(file_path: &str, ignore_patterns: &[Regex]) -> bool {
     ignore_patterns
         .iter()
         .any(|pattern| pattern.is_match(file_path))
+}
+
+fn get_dir_entry_and_metadata(
+    dir_entry_result: Result<std::fs::DirEntry, std::io::Error>,
+    config: &CollectFilesMetaConfig,
+) -> Result<Option<(std::fs::DirEntry, std::fs::Metadata)>, AppError> {
+    let dir = match dir_entry_result {
+        Ok(entry) => entry,
+        Err(e) => {
+            if config.skip_problematic_dir {
+                eprintln!("Error reading directory entry: {:?}", e);
+                return Ok(None);
+            } else {
+                return Err(AppError::FileError(e.to_string()));
+            }
+        }
+    };
+
+    let metadata = match dir.metadata() {
+        Ok(m) => m,
+        Err(e) => {
+            if config.skip_problematic_dir {
+                eprintln!("Error reading metadata for {:?}: {:?}", dir.path(), e);
+                return Ok(None);
+            } else {
+                return Err(AppError::FileError(e.to_string()));
+            }
+        }
+    };
+
+    Ok(Some((dir, metadata)))
+}
+
+fn handle_file_entry(
+    file_name: &String,
+    relative_path: &Path,
+    metadata: std::fs::Metadata,
+    config: &CollectFilesMetaConfig,
+    files_data: &mut Vec<FileInfo>,
+) {
+    print_processing_file(file_name);
+
+    if config.process_files {
+        let file_info =
+            convert_path_meta_to_file_info(file_name.to_string(), relative_path, metadata, false);
+        files_data.push(file_info);
+    }
+}
+
+fn handle_folder_entry(
+    file_name: String,
+    relative_path: &Path,
+    metadata: std::fs::Metadata,
+    config: &CollectFilesMetaConfig,
+    files_data: &mut Vec<FileInfo>,
+) {
+    if config.process_folders {
+        let file_info = convert_path_meta_to_file_info(
+            file_name.clone(),
+            relative_path,
+            metadata.clone(),
+            false,
+        );
+        files_data.push(file_info);
+    }
 }

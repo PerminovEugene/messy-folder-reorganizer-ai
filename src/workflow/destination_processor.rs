@@ -37,18 +37,24 @@ pub async fn index_destinations(
 
     let ignore_patters = parse_ignore_list(&rag_ml_config.destination_ignore);
 
+    let root_relative_path: PathBuf = PathBuf::from("");
     collect_files_metadata(
         &destination_base_folder,
-        "./",
+        &root_relative_path,
         &mut dest_files_data,
         &ignore_patters,
         &collector_config,
-    );
+    )?;
 
     if args.destination != "home" {
+        let destination_folder_name = destination_base_folder
+            .file_name()
+            .unwrap()
+            .to_string_lossy()
+            .to_string();
         let dest_file_info = convert_path_meta_to_file_info(
-            &destination_base_folder,
-            String::from("./"),
+            destination_folder_name,
+            &root_relative_path,
             destination_base_folder.metadata().unwrap(),
             true,
         );

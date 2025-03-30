@@ -42,9 +42,10 @@ pub async fn create_migration_plan(
         let clusters = cluster_vectors_hierarchical(rag_ml_config, &unknown_vectors).await;
 
         print_asking_llm_for_new_folder_names();
-        let folder_data = process_clusters(llm_config, args, &clusters, &unknown_vectors).await;
+        let cluster_id_to_path_hash =
+            process_clusters(llm_config, args, &clusters, &unknown_vectors).await;
 
-        print_clusters_ai_proposed_names(&folder_data);
+        print_clusters_ai_proposed_names(&cluster_id_to_path_hash);
 
         let reorganisation_plans: Vec<FilesReorganisationPlan> = clusters
             .iter()
@@ -54,7 +55,7 @@ pub async fn create_migration_plan(
                     FilesReorganisationPlan {
                         file_name: unknown_vector_from_cluster.source_file_name.clone(),
                         source_inner_path: unknown_vector_from_cluster.source_relative_path.clone(),
-                        destination_inner_path: format!("./{}", folder_data[&cluster.id].clone()),
+                        destination_inner_path: cluster_id_to_path_hash[&cluster.id].clone(),
                         source: args.source.clone(),
                         destination: args.destination.clone(),
                     }
