@@ -11,8 +11,12 @@ cargo fmt -- --check
 echo "Running linter (clippy)..."
 cargo clippy -- -D warnings
 
-# Check for compilation warnings
+# Compilation warnings
 echo "Checking for warnings..."
 cargo check --tests --all-features
+
+# Unit tests
+echo "Running unit tests..."
+cargo test --all --quiet
 
 echo "All checks passed! Proceeding with commit."

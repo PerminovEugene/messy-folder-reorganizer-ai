@@ -11,4 +11,7 @@ pub enum AppError {
 
     #[error("Qdrant client error: {0}")]
     QdrantClient(#[from] QdrantError),
+
+    #[error("JSON stringify error: {0}")]
+    JSONStringify(String),
 }

@@ -18,13 +18,13 @@ pub struct CollectFilesMetaConfig {
 }
 
 pub fn collect_files_metadata(
-    base_path_str: &str,            // destination or source path provided in args
+    base_path_str: &Path,           // destination or source path provided in args
     inner_path: &str,               // built during recursive calls. Use "./" for root call
     files_data: &mut Vec<FileInfo>, // result vector
     ignore_patterns: &Vec<Regex>,
     config: &CollectFilesMetaConfig,
 ) {
-    let processed_path_buf = Path::new(base_path_str).join(inner_path);
+    let processed_path_buf = base_path_str.join(inner_path);
     let processed_path = processed_path_buf.as_path();
 
     match fs::read_dir(processed_path) {

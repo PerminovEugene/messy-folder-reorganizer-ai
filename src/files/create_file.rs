@@ -1,27 +1,21 @@
 use colored::Colorize;
 
 use crate::{
-    configuration::consts::CONFIGURATION_FOLDER,
+    configuration::init::get_app_config_folder,
     console::messages::{print_migration_plan_saved, print_source_files_metadata_saved},
     file_info::FileInfo,
     files::consts::{PLAN_FILE_NAME, SOURCE_FILE_NAME},
 };
 use std::{
-    env,
     fs::{self, File},
     io::Write,
-    path::Path,
 };
 
 use super::file_info::FilesReorganisationPlan;
 
 // source file name will be used for rollback later when it will be added
 pub fn create_source_file(files_data: &Vec<FileInfo>) {
-    let home_dir: String = env::var("HOME").unwrap_or_else(|_| ".".to_string());
-
-    let path = Path::new(home_dir.as_str())
-        .join(CONFIGURATION_FOLDER)
-        .join(SOURCE_FILE_NAME);
+    let path = get_app_config_folder().join(SOURCE_FILE_NAME);
 
     if path.exists() {
         if let Err(err) = fs::remove_file(&path) {
@@ -53,11 +47,7 @@ pub fn create_source_file(files_data: &Vec<FileInfo>) {
 }
 
 pub fn create_plan_file(files_data: String) {
-    let home_dir: String = env::var("HOME").unwrap_or_else(|_| ".".to_string());
-
-    let path = Path::new(home_dir.as_str())
-        .join(CONFIGURATION_FOLDER)
-        .join(PLAN_FILE_NAME);
+    let path = get_app_config_folder().join(PLAN_FILE_NAME);
 
     if path.exists() {
         if let Err(err) = fs::remove_file(&path) {

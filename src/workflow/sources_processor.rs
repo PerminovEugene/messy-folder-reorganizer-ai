@@ -44,8 +44,9 @@ pub async fn process_sources(
 
     let ignore_patters = parse_ignore_list(&rag_ml_config.source_ignore);
 
+    let source_base_folder = PathBuf::from(args.source.clone());
     collect_files_metadata(
-        &args.source,
+        &source_base_folder,
         "./",
         &mut files_data,
         &ignore_patters,

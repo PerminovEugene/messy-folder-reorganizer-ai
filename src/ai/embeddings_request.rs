@@ -9,7 +9,7 @@ use crate::{
 pub async fn get_embeddings(
     input_strings: &Vec<String>,
     model: String,
-    ai_server_address: String,
+    server_address: String,
     config: EmbeddingModelConfig,
 ) -> Result<Vec<Vec<f32>>, AppError> {
     let client = Client::new();
@@ -36,7 +36,7 @@ pub async fn get_embeddings(
         options: &options,
     };
 
-    let mut endpoint = ai_server_address.clone();
+    let mut endpoint = server_address.clone();
     endpoint.push_str("api/embed");
 
     let mut vectors: Vec<Vec<f32>> = vec![];

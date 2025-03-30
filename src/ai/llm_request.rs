@@ -3,7 +3,7 @@ use reqwest::Client;
 use crate::{
     ai::{
         ollama_protocol::{OllamaGenerateRequest, OllamaOptions, OllamaResponse},
-        prompt::read_initial_prompt,
+        prompt::read_prompt,
     },
     configuration::config::LLMModelConfig,
     errors::app_error::AppError,
@@ -17,13 +17,21 @@ pub async fn ask_ai_for_reordering_plan(
     ai_server_address: String,
     config: LLMModelConfig,
 ) -> Result<String, AppError> {
-    let client = Client::new();
-
     let file_data_json = serde_json::to_string_pretty(&file_names)
-        .map_err(|e| AppError::OllamaResponseParse(e.to_string()))?;
+        .map_err(|e| AppError::JSONStringify(e.to_string()))?;
 
-    let initial_prompt = read_initial_prompt();
-    let prompt_with_input = format!("{}\n{}", initial_prompt, file_data_json);
+    let prompt = read_prompt();
+    let prompt_with_input = format!("{}\n{}", prompt, file_data_json);
+    generate_ai_answer(prompt_with_input, model, ai_server_address, config).await
+}
+
+pub async fn generate_ai_answer(
+    prompt: String,
+    model: String,
+    ai_server_address: String,
+    config: LLMModelConfig,
+) -> Result<String, AppError> {
+    let client = Client::new();
 
     let options = OllamaOptions {
         mirostat: config.mirostat,
@@ -43,7 +51,7 @@ pub async fn ask_ai_for_reordering_plan(
 
     let request_body = OllamaGenerateRequest {
         model,
-        prompt: prompt_with_input,
+        prompt,
         stream: true,
         options: &options,
     };

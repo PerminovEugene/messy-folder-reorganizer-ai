@@ -2,7 +2,7 @@ use std::fs;
 
 use crate::configuration::init::get_generate_folder_prompt_file_path;
 
-pub fn read_initial_prompt() -> String {
+pub fn read_prompt() -> String {
     let config_path = get_generate_folder_prompt_file_path();
 
     fs::read_to_string(config_path).unwrap_or_else(|_| "".to_string())

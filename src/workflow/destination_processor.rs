@@ -1,4 +1,3 @@
-use std::env;
 use std::path::PathBuf;
 
 use crate::ai::embedding_context::add_context_to_folders_input;
@@ -13,6 +12,7 @@ use crate::console::messages::{
 use crate::errors::app_error::AppError;
 use crate::files::dirr_processing::{collect_files_metadata, CollectFilesMetaConfig};
 use crate::files::file_info::{self, convert_path_meta_to_file_info};
+use crate::files::path::get_home_path;
 
 pub async fn index_destinations(
     embedding_config: &EmbeddingModelConfig,
@@ -22,10 +22,10 @@ pub async fn index_destinations(
     print_parsing_destination_folder();
     let mut dest_files_data: Vec<file_info::FileInfo> = Vec::new();
 
-    let dest = if args.destination != "home" {
-        args.destination.clone()
+    let destination_base_folder = if args.destination != "home" {
+        PathBuf::from(args.destination.clone())
     } else {
-        env::var("HOME").unwrap_or_else(|_| ".".to_string())
+        get_home_path()
     };
 
     let collector_config = CollectFilesMetaConfig {
@@ -38,7 +38,7 @@ pub async fn index_destinations(
     let ignore_patters = parse_ignore_list(&rag_ml_config.destination_ignore);
 
     collect_files_metadata(
-        &dest,
+        &destination_base_folder,
         "./",
         &mut dest_files_data,
         &ignore_patters,
@@ -46,8 +46,6 @@ pub async fn index_destinations(
     );
 
     if args.destination != "home" {
-        let destination_base_folder = PathBuf::from(args.destination.clone());
-
         let dest_file_info = convert_path_meta_to_file_info(
             &destination_base_folder,
             String::from("./"),
