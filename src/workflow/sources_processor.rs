@@ -14,7 +14,8 @@ use crate::console::messages::{
 };
 use crate::errors::app_error::AppError;
 use crate::files::create_file::create_source_file;
-use crate::files::dirr_processing::{collect_files_metadata, CollectFilesMetaConfig};
+use crate::files::file_collector::config::CollectFilesMetaConfig;
+use crate::files::file_collector::walker::collect_files_metadata;
 use crate::files::file_info;
 
 #[derive(Serialize, Deserialize, Debug)]

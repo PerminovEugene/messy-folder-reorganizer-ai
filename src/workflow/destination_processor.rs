@@ -10,7 +10,8 @@ use crate::console::messages::{
     print_creating_dest_embeddings, print_parsing_destination_folder, print_saving_dest_embeddings,
 };
 use crate::errors::app_error::AppError;
-use crate::files::dirr_processing::{collect_files_metadata, CollectFilesMetaConfig};
+use crate::files::file_collector::config::CollectFilesMetaConfig;
+use crate::files::file_collector::walker::collect_files_metadata;
 use crate::files::file_info::{self, convert_path_meta_to_file_info};
 use crate::files::path::get_home_path;
 
