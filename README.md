@@ -2,6 +2,8 @@
 
 ## AI-powered tool to help you clean up messy folders effortlessly
 
+[![codecov](https://codecov.io/gh/PerminovEugene/messy-folder-reorganizer-ai/branch/main/graph/badge.svg)](https://codecov.io/gh/PerminovEugene/messy-folder-reorganizer-ai)
+
 ### Overview
 
 **messy-folder-reorganizer-ai** is an AI-powered file organization tool that helps you sort and tidy up disorganized folders with minimal effort.
