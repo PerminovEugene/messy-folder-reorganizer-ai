@@ -5,7 +5,7 @@ use crate::ai::embeddings_request::get_embeddings;
 use crate::bd::quadrant::add_vectors;
 use crate::configuration::args::Args;
 use crate::configuration::config::{EmbeddingModelConfig, RagMlConfig};
-use crate::configuration::config_loader::parse_ignore_list;
+use crate::configuration::ignore_list::parse_ignore_list;
 use crate::console::messages::{
     print_creating_dest_embeddings, print_parsing_destination_folder, print_saving_dest_embeddings,
 };
@@ -36,7 +36,7 @@ pub async fn index_destinations(
         process_files: false,
     };
 
-    let ignore_patters = parse_ignore_list(&rag_ml_config.destination_ignore);
+    let ignore_patters = parse_ignore_list(&rag_ml_config.destination_ignore)?;
 
     let root_relative_path: PathBuf = PathBuf::from("");
     collect_files_metadata(

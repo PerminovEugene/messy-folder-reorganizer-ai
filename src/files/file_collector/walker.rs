@@ -2,13 +2,14 @@ use regex::Regex;
 use std::fs;
 use std::path::Path;
 
+use crate::configuration::ignore_list::is_ignored;
 use crate::console::messages::{print_ignoring_entry, print_processing_directory};
 use crate::errors::app_error::AppError;
 use crate::file_info::FileInfo;
 
 use super::config::CollectFilesMetaConfig;
 use super::handlers::{handle_file_entry, handle_folder_entry};
-use super::utils::{get_dir_entry_and_metadata, is_ignored};
+use super::utils::get_dir_entry_and_metadata;
 
 /*
   Collects files metadata and saves it to files_data vector.

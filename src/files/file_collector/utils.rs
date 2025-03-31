@@ -1,13 +1,5 @@
-use regex::Regex;
-
 use super::config::CollectFilesMetaConfig;
 use crate::errors::app_error::AppError;
-
-pub fn is_ignored(file_path: &str, ignore_patterns: &[Regex]) -> bool {
-    ignore_patterns
-        .iter()
-        .any(|pattern| pattern.is_match(file_path))
-}
 
 pub fn get_dir_entry_and_metadata(
     dir_entry_result: Result<std::fs::DirEntry, std::io::Error>,

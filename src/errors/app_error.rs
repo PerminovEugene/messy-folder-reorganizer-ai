@@ -17,4 +17,7 @@ pub enum AppError {
 
     #[error("File processing error: {0}")]
     FileError(String),
+
+    #[error("Configuration error: {0}")]
+    Configuration(String),
 }

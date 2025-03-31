@@ -7,7 +7,7 @@ use crate::ai::embeddings_request;
 use crate::bd::quadrant::find_closest_pathes;
 use crate::configuration::args::Args;
 use crate::configuration::config::{EmbeddingModelConfig, RagMlConfig};
-use crate::configuration::config_loader::parse_ignore_list;
+use crate::configuration::ignore_list::parse_ignore_list;
 use crate::console::messages::{
     print_generating_embeddings_for_sources, print_looking_for_suitable_destination,
     print_parsing_sources,
@@ -43,7 +43,7 @@ pub async fn process_sources(
 
     print_parsing_sources();
 
-    let ignore_patters = parse_ignore_list(&rag_ml_config.source_ignore);
+    let ignore_patters = parse_ignore_list(&rag_ml_config.source_ignore)?;
 
     let source_base_folder = PathBuf::from(args.source.clone());
 
