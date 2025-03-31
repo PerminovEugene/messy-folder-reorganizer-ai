@@ -1,4 +1,5 @@
 use regex::Regex;
+use std::ffi::OsStr;
 use std::fs;
 use std::path::Path;
 
@@ -8,6 +9,7 @@ use crate::console::messages::{
 use crate::errors::app_error::AppError;
 use crate::file_info::{convert_path_meta_to_file_info, FileInfo};
 
+#[derive(Debug)]
 pub struct CollectFilesMetaConfig {
     pub skip_problematic_dir: bool,
     pub recursive: bool,
@@ -16,13 +18,13 @@ pub struct CollectFilesMetaConfig {
 }
 
 /*
-  Collects file metadata and saves it to files_data vector.
+  Collects files metadata and saves it to files_data vector.
 */
 pub fn collect_files_metadata(
     base_path: &Path,
     relative_path: &Path,
     files_data: &mut Vec<FileInfo>,
-    ignore_patterns: &Vec<Regex>,
+    ignore_patterns: &[Regex],
     config: &CollectFilesMetaConfig,
 ) -> Result<(), AppError> {
     let processed_path = base_path.join(relative_path);
@@ -38,27 +40,29 @@ pub fn collect_files_metadata(
         }
     };
 
-    print_processing_directory(processed_path.to_str().unwrap_or("[invalid path]"));
+    print_processing_directory(processed_path.display());
 
     for dir_entry_result in read_dir_iter {
         let Some((dir, metadata)) = get_dir_entry_and_metadata(dir_entry_result, config)? else {
             continue;
         };
 
-        let file_name = dir.file_name().to_string_lossy().to_string(); //.to_string_lossy().to_string();
+        let entry_name_os = dir.file_name();
+
         let is_file = metadata.is_file();
 
-        let new_relative_path = relative_path.join(&file_name);
+        let new_relative_path = relative_path.join(&entry_name_os);
 
-        if is_ignored(&file_name, ignore_patterns) {
-            print_ignoring_entry(is_file, new_relative_path.to_str().unwrap());
+        let entry_name = entry_name_os.to_string_lossy();
+        if is_ignored(entry_name.as_ref(), ignore_patterns) {
+            print_ignoring_entry(is_file, &new_relative_path.display().to_string());
             continue;
         }
 
         if is_file {
-            handle_file_entry(&file_name, relative_path, metadata, config, files_data);
+            handle_file_entry(&entry_name_os, relative_path, metadata, config, files_data);
         } else {
-            handle_folder_entry(file_name, relative_path, metadata, config, files_data);
+            handle_folder_entry(&entry_name_os, relative_path, metadata, config, files_data);
 
             if config.recursive {
                 collect_files_metadata(
@@ -113,35 +117,32 @@ fn get_dir_entry_and_metadata(
 }
 
 fn handle_file_entry(
-    file_name: &String,
+    file_name_os: &OsStr,
     relative_path: &Path,
     metadata: std::fs::Metadata,
     config: &CollectFilesMetaConfig,
     files_data: &mut Vec<FileInfo>,
 ) {
-    print_processing_file(file_name);
-
     if config.process_files {
-        let file_info =
-            convert_path_meta_to_file_info(file_name.to_string(), relative_path, metadata, false);
+        let file_name = file_name_os.to_string_lossy().to_string();
+        print_processing_file(&file_name);
+
+        let file_info = convert_path_meta_to_file_info(file_name, relative_path, metadata, false);
         files_data.push(file_info);
     }
 }
 
 fn handle_folder_entry(
-    file_name: String,
+    file_name_os: &OsStr,
     relative_path: &Path,
     metadata: std::fs::Metadata,
     config: &CollectFilesMetaConfig,
     files_data: &mut Vec<FileInfo>,
 ) {
     if config.process_folders {
-        let file_info = convert_path_meta_to_file_info(
-            file_name.clone(),
-            relative_path,
-            metadata.clone(),
-            false,
-        );
+        let file_name = file_name_os.to_string_lossy().to_string();
+
+        let file_info = convert_path_meta_to_file_info(file_name, relative_path, metadata, false);
         files_data.push(file_info);
     }
 }

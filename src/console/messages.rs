@@ -1,3 +1,5 @@
+use std::path::Display;
+
 use colored::Colorize;
 
 use super::confirmation::ask_confirmation;
@@ -49,7 +51,7 @@ pub fn print_source_files_metadata_saved() {
     println!("{}", "💾 Source file metadata has been saved.".green());
 }
 
-pub fn print_processing_directory(path: &str) {
+pub fn print_processing_directory(path: Display) {
     println!("{} {:?}", "🔍 Processing directory:".green(), path);
 }
 
