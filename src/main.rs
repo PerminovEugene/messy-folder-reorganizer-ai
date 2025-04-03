@@ -3,9 +3,9 @@ use std::env;
 use clap::Parser;
 
 mod ai;
-mod bd;
 mod configuration;
 mod console;
+mod db;
 mod errors;
 mod files;
 mod ml;

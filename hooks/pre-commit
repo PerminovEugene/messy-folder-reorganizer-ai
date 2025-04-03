@@ -19,4 +19,8 @@ cargo check --tests --all-features
 echo "Running unit tests..."
 cargo test --all --quiet
 
+# Coverage check (optional fail if below threshold)
+echo "Running code coverage (tarpaulin)..."
+cargo tarpaulin --ignore-tests --fail-under 20 --quiet
+
 echo "All checks passed! Proceeding with commit."

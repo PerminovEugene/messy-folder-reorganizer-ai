@@ -1,12 +1,12 @@
-# messy-folder-reorganizer-ai
-
-## AI-powered tool to help you clean up messy folders effortlessly
-
 [![codecov](https://codecov.io/gh/PerminovEugene/messy-folder-reorganizer-ai/branch/main/graph/badge.svg)](https://codecov.io/gh/PerminovEugene/messy-folder-reorganizer-ai)
+![Build](https://img.shields.io/github/actions/workflow/status/PerminovEugene/messy-folder-reorganizer-ai/ci.yml?branch=main)
+![License](https://img.shields.io/github/license/PerminovEugene/messy-folder-reorganizer-ai)
+![Language](https://img.shields.io/github/languages/top/PerminovEugene/messy-folder-reorganizer-ai)
+![Local AI](https://img.shields.io/badge/AI-local--only-green?logo=ai)
 
-### Overview
+## messy-folder-reorganizer-ai - 🤖 AI-powered CLI for file reorganization.
 
-**messy-folder-reorganizer-ai** is an AI-powered file organization tool that helps you sort and tidy up disorganized folders with minimal effort.
+### Runs fully locally — no data leaves your machine.
 
 ### How It Works
 

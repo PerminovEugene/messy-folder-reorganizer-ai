@@ -2,17 +2,18 @@ use std::path::PathBuf;
 
 use crate::ai::embedding_context::add_context_to_folders_input;
 use crate::ai::embeddings_request::get_embeddings;
-use crate::bd::quadrant::add_vectors;
 use crate::configuration::args::Args;
 use crate::configuration::config::{EmbeddingModelConfig, RagMlConfig};
 use crate::configuration::ignore_list::parse_ignore_list;
 use crate::console::messages::{
     print_creating_dest_embeddings, print_parsing_destination_folder, print_saving_dest_embeddings,
 };
+use crate::db::qdrant;
+use crate::db::qdrant::fs_entry::meta::FS_ENTRY_COLLECTION_NAME;
 use crate::errors::app_error::AppError;
 use crate::files::file_collector::config::CollectFilesMetaConfig;
 use crate::files::file_collector::walker::collect_files_metadata;
-use crate::files::file_info::{self, convert_path_meta_to_file_info};
+use crate::files::file_info::{self, build_file_info, FileInfo};
 use crate::files::path::get_home_path;
 
 pub async fn index_destinations(
@@ -53,7 +54,7 @@ pub async fn index_destinations(
             .unwrap()
             .to_string_lossy()
             .to_string();
-        let dest_file_info = convert_path_meta_to_file_info(
+        let dest_file_info = build_file_info(
             destination_folder_name,
             &root_relative_path,
             destination_base_folder.metadata().unwrap(),
@@ -81,9 +82,21 @@ pub async fn index_destinations(
 
     print_saving_dest_embeddings();
 
-    add_vectors(args, &dest_files_data, dest_embeddings)
-        .await
-        .unwrap();
+    save_destination_files_embeddings(args, dest_embeddings, dest_files_data).await?;
+
+    Ok(())
+}
+
+async fn save_destination_files_embeddings(
+    args: &Args,
+    vectors: Vec<Vec<f32>>,
+    file_infos: Vec<FileInfo>,
+) -> Result<(), AppError> {
+    let client = qdrant::client::init(&args.qdrant_server_address).await?;
+    let dimension_size = qdrant::utils::get_dimension_size_by_vectors(&vectors)?;
+    qdrant::collection::reset(&client, FS_ENTRY_COLLECTION_NAME, dimension_size).await?;
+    qdrant::fs_entry::insert::insert_fs_entries_by_file_infos(&client, vectors, &file_infos)
+        .await?;
 
     Ok(())
 }

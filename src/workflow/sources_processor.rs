@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::ai::embedding_context::add_context_to_files_input;
 use crate::ai::embeddings_request;
-use crate::bd::quadrant::find_closest_pathes;
 use crate::configuration::args::Args;
 use crate::configuration::config::{EmbeddingModelConfig, RagMlConfig};
 use crate::configuration::ignore_list::parse_ignore_list;
@@ -12,6 +11,7 @@ use crate::console::messages::{
     print_generating_embeddings_for_sources, print_looking_for_suitable_destination,
     print_parsing_sources,
 };
+use crate::db::qdrant;
 use crate::errors::app_error::AppError;
 use crate::files::create_file::create_source_file;
 use crate::files::file_collector::config::CollectFilesMetaConfig;
@@ -73,9 +73,12 @@ pub async fn process_sources(
     .await?;
 
     print_looking_for_suitable_destination();
-    let closest_pathes = find_closest_pathes(args, embeddings).await.unwrap();
 
-    let mut result: Vec<ProcessResult> = closest_pathes
+    let client = qdrant::client::init(&args.qdrant_server_address).await?;
+    let closest_paths =
+        qdrant::fs_entry::search::find_closest_fs_entry(&client, embeddings).await?;
+
+    let mut result: Vec<ProcessResult> = closest_paths
         .into_iter()
         .zip(files_data.into_iter())
         .map(|(search_result, file_info)| {
@@ -83,7 +86,7 @@ pub async fn process_sources(
                 String::from("")
             } else {
                 PathBuf::from(search_result.relative_path)
-                    .join(search_result.file_name)
+                    .join(search_result.name)
                     .to_string_lossy()
                     .to_string()
             };
@@ -92,7 +95,7 @@ pub async fn process_sources(
                 score: search_result.score,
                 source_file_name: file_info.file_name,
                 source_relative_path: file_info.relative_path,
-                vector: search_result.vector,
+                vector: search_result.query_vector,
             }
         })
         .collect();

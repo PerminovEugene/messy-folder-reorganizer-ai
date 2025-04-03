@@ -21,7 +21,7 @@ fn get_system_time_string(time: SystemTime) -> String {
         .unwrap_or_else(|_| "unknown".to_string())
 }
 
-pub fn convert_path_meta_to_file_info(
+pub fn build_file_info(
     file_name: String,
     relative_path: &Path,
     file_meta: Metadata,
