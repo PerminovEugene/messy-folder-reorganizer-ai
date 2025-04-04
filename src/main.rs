@@ -7,7 +7,7 @@ mod configuration;
 mod console;
 mod db;
 mod errors;
-mod files;
+mod fs;
 mod ml;
 mod workflow;
 
@@ -18,8 +18,8 @@ use console::messages::print_initial_message;
 use console::table::print_migration_plan_table;
 use console::table::print_rag_processing_result;
 use errors::app_error::AppError;
-use files::create_file::save_files_reorganisation_plan;
-use files::file_info;
+use fs::file_info;
+use fs::migration::plan::save_migrations_to_file;
 use workflow::destination_processor::index_destinations;
 use workflow::migration_plan_builder::create_migration_plan;
 use workflow::plan_processor::migrate_files;
@@ -73,7 +73,7 @@ async fn run() -> Result<(), AppError> {
         create_migration_plan(&llm_config, &rag_ml_config, &args, &mut process_result).await;
 
     print_migration_plan_table(&migration_plan);
-    save_files_reorganisation_plan(migration_plan);
+    save_migrations_to_file(migration_plan);
 
     migrate_files(&args).await;
 

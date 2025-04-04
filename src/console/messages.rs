@@ -63,7 +63,7 @@ pub fn print_files_reorganization_done() {
     println!("{}", "✅ File reorganization completed.".green());
 }
 
-pub fn print_move_file(from: &str, to: &str) {
+pub fn print_move_file(from: Display, to: Display) {
     println!(
         "{} {} {} {}",
         "📦 Moving file".blue(),

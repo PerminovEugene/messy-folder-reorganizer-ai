@@ -4,7 +4,7 @@ use colored::Colorize;
 use prettytable::{format, Cell, Row, Table};
 
 use crate::{
-    configuration::config::RagMlConfig, files::file_info::FilesReorganisationPlan,
+    configuration::config::RagMlConfig, fs::migration::fs_entry_migration::FsEntryMigration,
     ml::hierarchical_clustering::Cluster, workflow::sources_processor::ProcessResult,
 };
 
@@ -90,7 +90,7 @@ pub fn print_clusters_ai_proposed_names(folder_data: &HashMap<usize, String>) {
     table.printstd();
 }
 
-pub fn print_migration_plan_table(files_reorganization_plan: &[FilesReorganisationPlan]) {
+pub fn print_migration_plan_table(files_reorganization_plan: &[FsEntryMigration]) {
     println!("{}", "🚚 Files migration plan:".green());
 
     let mut table = Table::new();

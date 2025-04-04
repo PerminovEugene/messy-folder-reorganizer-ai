@@ -13,10 +13,10 @@ use crate::console::messages::{
 };
 use crate::db::qdrant;
 use crate::errors::app_error::AppError;
-use crate::files::create_file::create_source_file;
-use crate::files::file_collector::config::CollectFilesMetaConfig;
-use crate::files::file_collector::walker::collect_files_metadata;
-use crate::files::file_info;
+use crate::fs::create_file::create_source_file;
+use crate::fs::file_info;
+use crate::fs::parser::config::CollectFilesMetaConfig;
+use crate::fs::parser::walker::collect_files_metadata;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ProcessResult {
@@ -32,7 +32,7 @@ pub async fn process_sources(
     rag_ml_config: &RagMlConfig,
     args: &Args,
 ) -> Result<Vec<ProcessResult>, AppError> {
-    let mut files_data: Vec<file_info::FileInfo> = Vec::new();
+    let mut files_data: Vec<file_info::FsEntry> = Vec::new();
 
     let collector_config = &CollectFilesMetaConfig {
         skip_problematic_dir: args.skip_problematic_dir,

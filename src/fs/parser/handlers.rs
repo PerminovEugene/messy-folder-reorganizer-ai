@@ -3,7 +3,7 @@ use std::path::Path;
 
 use crate::{
     console::messages::print_processing_file,
-    file_info::{build_file_info, FileInfo},
+    file_info::{build_fs_entry, FsEntry},
 };
 
 use super::config::CollectFilesMetaConfig;
@@ -13,13 +13,13 @@ pub fn handle_file_entry(
     relative_path: &Path,
     metadata: std::fs::Metadata,
     config: &CollectFilesMetaConfig,
-    files_data: &mut Vec<FileInfo>,
+    files_data: &mut Vec<FsEntry>,
 ) {
     if config.process_files {
         let file_name = file_name_os.to_string_lossy().to_string();
         print_processing_file(&file_name);
 
-        let file_info = build_file_info(file_name, relative_path, metadata, false);
+        let file_info = build_fs_entry(file_name, relative_path, metadata, false);
         files_data.push(file_info);
     }
 }
@@ -29,12 +29,12 @@ pub fn handle_folder_entry(
     relative_path: &Path,
     metadata: std::fs::Metadata,
     config: &CollectFilesMetaConfig,
-    files_data: &mut Vec<FileInfo>,
+    files_data: &mut Vec<FsEntry>,
 ) {
     if config.process_folders {
         let file_name = file_name_os.to_string_lossy().to_string();
 
-        let file_info = build_file_info(file_name, relative_path, metadata, false);
+        let file_info = build_fs_entry(file_name, relative_path, metadata, false);
         files_data.push(file_info);
     }
 }

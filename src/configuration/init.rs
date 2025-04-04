@@ -1,4 +1,5 @@
-use std::fs;
+use std::fs::{self, File};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use crate::configuration::consts::{
@@ -10,7 +11,7 @@ use crate::configuration::embedded_assets::{
     LLM_MODEL_CONFIG_FILE_BYTES, RAG_ML_CONFIG_FILE_BYTES,
 };
 use crate::console::messages::print_generate_config_file;
-use crate::files::path::get_home_path;
+use crate::fs::path::get_home_path;
 
 /*
   Initializes the application configuration by creating:
@@ -78,5 +79,25 @@ fn create_application_file_if_missing(config_file_path: &Path, embedded_content:
 
         fs::write(config_file_path, embedded_content).expect("Failed to write embedded content");
         print_generate_config_file(config_file_path.to_str().unwrap().to_string());
+    }
+}
+
+pub fn rewrite_app_system_file(file_name: &str, files_data: String) {
+    let path = get_app_config_folder().join(file_name);
+
+    if path.exists() {
+        if let Err(err) = fs::remove_file(&path) {
+            println!("Error deleting old {file_name} file: {:?}", err);
+            return;
+        }
+    }
+
+    match File::create(path) {
+        Ok(mut file) => {
+            if let Err(err) = file.write_all(files_data.as_bytes()) {
+                println!("Error writing to {file_name}: {:?}", err);
+            }
+        }
+        Err(err) => println!("Error creating file: {:?}", err),
     }
 }

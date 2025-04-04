@@ -9,7 +9,7 @@ Goal: Reach version 1.0.0 with a stable, user-friendly, and powerful AI-driven f
 ## Version 0.3.0 – Core Improvements & Stability
 
 - [x] Add license
-- [ ] Review codebase and refactor if needed:
+- [ ] Review codebase and refactor if needed
 - [ ] Replace all `unwrap()`s with proper error handling using `Result` and custom error types
 - [ ] Improve error messages to be more informative and user-friendly
 - [ ] Handle filename collisions (e.g., `file (1).txt`)

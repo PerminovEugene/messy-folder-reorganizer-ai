@@ -11,10 +11,10 @@ use crate::console::messages::{
 use crate::db::qdrant;
 use crate::db::qdrant::fs_entry::meta::FS_ENTRY_COLLECTION_NAME;
 use crate::errors::app_error::AppError;
-use crate::files::file_collector::config::CollectFilesMetaConfig;
-use crate::files::file_collector::walker::collect_files_metadata;
-use crate::files::file_info::{self, build_file_info, FileInfo};
-use crate::files::path::get_home_path;
+use crate::fs::file_info::{self, build_fs_entry, FsEntry};
+use crate::fs::parser::config::CollectFilesMetaConfig;
+use crate::fs::parser::walker::collect_files_metadata;
+use crate::fs::path::get_home_path;
 
 pub async fn index_destinations(
     embedding_config: &EmbeddingModelConfig,
@@ -22,7 +22,7 @@ pub async fn index_destinations(
     args: &Args,
 ) -> Result<(), AppError> {
     print_parsing_destination_folder();
-    let mut dest_files_data: Vec<file_info::FileInfo> = Vec::new();
+    let mut dest_files_data: Vec<file_info::FsEntry> = Vec::new();
 
     let destination_base_folder = if args.destination != "home" {
         PathBuf::from(args.destination.clone())
@@ -54,7 +54,7 @@ pub async fn index_destinations(
             .unwrap()
             .to_string_lossy()
             .to_string();
-        let dest_file_info = build_file_info(
+        let dest_file_info = build_fs_entry(
             destination_folder_name,
             &root_relative_path,
             destination_base_folder.metadata().unwrap(),
@@ -90,7 +90,7 @@ pub async fn index_destinations(
 async fn save_destination_files_embeddings(
     args: &Args,
     vectors: Vec<Vec<f32>>,
-    file_infos: Vec<FileInfo>,
+    file_infos: Vec<FsEntry>,
 ) -> Result<(), AppError> {
     let client = qdrant::client::init(&args.qdrant_server_address).await?;
     let dimension_size = qdrant::utils::get_dimension_size_by_vectors(&vectors)?;

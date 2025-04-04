@@ -5,7 +5,7 @@ use qdrant_client::Payload;
 use uuid::Uuid;
 
 use crate::errors::app_error::AppError;
-use crate::files::file_info::FileInfo;
+use crate::fs::file_info::FsEntry;
 
 use super::meta::FS_ENTRY_COLLECTION_NAME;
 use super::payload::FsEntryPayload;
@@ -13,7 +13,7 @@ use super::payload::FsEntryPayload;
 pub async fn insert_fs_entries_by_file_infos(
     client: &qdrant_client::Qdrant,
     vectors: Vec<Vec<f32>>,
-    file_infos: &[FileInfo],
+    file_infos: &[FsEntry],
 ) -> Result<(), AppError> {
     let points: Vec<PointStruct> = file_infos
         .iter()
@@ -32,7 +32,7 @@ pub async fn insert_fs_entries_by_file_infos(
     Ok(())
 }
 
-fn build_payload(file_info: &FileInfo) -> Payload {
+fn build_payload(file_info: &FsEntry) -> Payload {
     let mut data = HashMap::new();
     data.insert(
         FsEntryPayload::FILE_NAME,
@@ -51,8 +51,8 @@ mod tests {
     use super::*;
     use qdrant_client::qdrant::value::Kind;
 
-    fn sample_file_info() -> FileInfo {
-        FileInfo {
+    fn sample_file_info() -> FsEntry {
+        FsEntry {
             size: 100,
             file_name: "hello.txt".to_string(),
             relative_path: "docs/".to_string(),
