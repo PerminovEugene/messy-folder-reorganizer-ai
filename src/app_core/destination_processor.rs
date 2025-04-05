@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use crate::ai::embedding_context::add_context_to_folders_input;
 use crate::ai::embeddings_request::get_embeddings;
-use crate::configuration::args::Args;
+use crate::configuration::args::ProcessArgs;
 use crate::configuration::config::{EmbeddingModelConfig, RagMlConfig};
 use crate::configuration::ignore_list::parse_ignore_list;
 use crate::console::messages::{
@@ -19,7 +19,7 @@ use crate::fs::path::get_home_path;
 pub async fn index_destinations(
     embedding_config: &EmbeddingModelConfig,
     rag_ml_config: &RagMlConfig,
-    args: &Args,
+    args: &ProcessArgs,
 ) -> Result<(), AppError> {
     print_parsing_destination_folder();
     let mut dest_files_data: Vec<file_info::FsEntry> = Vec::new();
@@ -31,7 +31,7 @@ pub async fn index_destinations(
     };
 
     let collector_config = CollectFilesMetaConfig {
-        skip_problematic_dir: args.skip_problematic_dir,
+        continue_on_fs_errors: args.continue_on_fs_errors,
         recursive: true,
         process_folders: true,
         process_files: false,
@@ -88,7 +88,7 @@ pub async fn index_destinations(
 }
 
 async fn save_destination_files_embeddings(
-    args: &Args,
+    args: &ProcessArgs,
     vectors: Vec<Vec<f32>>,
     file_infos: Vec<FsEntry>,
 ) -> Result<(), AppError> {

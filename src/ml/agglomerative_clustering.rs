@@ -1,7 +1,7 @@
 use crate::{
-    configuration::config::RagMlConfig, console::table::print_clustering_table,
+    app_core::sources_processor::ProcessResult, configuration::config::RagMlConfig,
+    console::table::print_clustering_table,
     ml::hierarchical_clustering::hierarchical_clustering_auto,
-    workflow::sources_processor::ProcessResult,
 };
 
 use super::hierarchical_clustering::Cluster;

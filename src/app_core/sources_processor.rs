@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::ai::embedding_context::add_context_to_files_input;
 use crate::ai::embeddings_request;
-use crate::configuration::args::Args;
+use crate::configuration::args::ProcessArgs;
 use crate::configuration::config::{EmbeddingModelConfig, RagMlConfig};
 use crate::configuration::ignore_list::parse_ignore_list;
 use crate::console::messages::{
@@ -30,12 +30,12 @@ pub struct ProcessResult {
 pub async fn process_sources(
     embedding_config: &EmbeddingModelConfig,
     rag_ml_config: &RagMlConfig,
-    args: &Args,
+    args: &ProcessArgs,
 ) -> Result<Vec<ProcessResult>, AppError> {
     let mut files_data: Vec<file_info::FsEntry> = Vec::new();
 
     let collector_config = &CollectFilesMetaConfig {
-        skip_problematic_dir: args.skip_problematic_dir,
+        continue_on_fs_errors: args.continue_on_fs_errors,
         recursive: args.recursive,
         process_folders: false,
         process_files: true,

@@ -5,3 +5,5 @@ pub const RAG_ML_CONFIGURATION_FILE: &str = "rag_ml_config.toml";
 
 pub const PROMPTS_FOLDER: &str = "prompts";
 pub const INITIAL_PROMPT_FILE: &str = "generate_folder_name.md";
+
+pub const MIGRATIONS_LOG_FILE: &str = "migration_log.jsonl";

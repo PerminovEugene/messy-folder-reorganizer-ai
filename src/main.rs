@@ -3,27 +3,23 @@ use std::env;
 use clap::Parser;
 
 mod ai;
+mod app_core;
+mod commands;
 mod configuration;
 mod console;
 mod db;
 mod errors;
 mod fs;
 mod ml;
-mod workflow;
 
-use configuration::config_loader::load_configurations;
+use commands::apply::apply_latest_migration_plan;
+use commands::process::run_process;
+use commands::rollback::start_rollback;
+use configuration::args::{Args, Commands};
 use configuration::init::init;
-use console::errors::print_app_error;
 use console::messages::print_initial_message;
-use console::table::print_migration_plan_table;
-use console::table::print_rag_processing_result;
 use errors::app_error::AppError;
-use fs::file_info;
-use fs::migration::plan::save_migrations_to_file;
-use workflow::destination_processor::index_destinations;
-use workflow::migration_plan_builder::create_migration_plan;
-use workflow::plan_processor::migrate_files;
-use workflow::sources_processor::process_sources;
+use errors::app_error_handler::handle;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -31,51 +27,19 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 async fn main() {
     match run().await {
         Ok(_) => (),
-        Err(e) => match e {
-            AppError::OllamaConnection(_) => {
-                print_app_error("Ollama Error", e);
-                std::process::exit(1);
-            }
-            AppError::QdrantClient(_) => {
-                print_app_error("Qdrant Error", e);
-                std::process::exit(1);
-            }
-            AppError::JSONStringify(_) => {
-                print_app_error("JSON stringify error", e);
-                std::process::exit(1);
-            }
-            AppError::FileError(_) => {
-                print_app_error("File processing error", e);
-                std::process::exit(1);
-            }
-            _ => {
-                print_app_error("Panic", e);
-                panic!("Unhandled error. \n Please post error stack trace on github issues page https://github.com/PerminovEugene/messy-folder-reorganizer-ai/issues");
-            }
-        },
+        Err(e) => handle(e),
     }
 }
 
 async fn run() -> Result<(), AppError> {
     print_initial_message(VERSION);
-
     init();
 
-    let args = configuration::args::Args::parse();
-    let (embeddings_config, llm_config, rag_ml_config) = load_configurations();
+    let args = Args::parse();
 
-    index_destinations(&embeddings_config, &rag_ml_config, &args).await?;
-    let mut process_result = process_sources(&embeddings_config, &rag_ml_config, &args).await?;
-
-    print_rag_processing_result(&rag_ml_config, &process_result);
-
-    let migration_plan =
-        create_migration_plan(&llm_config, &rag_ml_config, &args, &mut process_result).await;
-
-    print_migration_plan_table(&migration_plan);
-    save_migrations_to_file(migration_plan);
-
-    migrate_files(&args).await;
-
-    Ok(())
+    match args.command {
+        Commands::Process(process_args) => run_process(process_args).await,
+        Commands::Apply {} => apply_latest_migration_plan().await,
+        Commands::Rollback {} => start_rollback().await,
+    }
 }

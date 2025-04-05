@@ -1,10 +1,8 @@
 use std::ffi::OsStr;
 use std::path::Path;
 
-use crate::{
-    console::messages::print_processing_file,
-    file_info::{build_fs_entry, FsEntry},
-};
+use crate::console::messages::print_processing_file;
+use crate::fs::file_info::{build_fs_entry, FsEntry};
 
 use super::config::CollectFilesMetaConfig;
 

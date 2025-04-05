@@ -18,7 +18,7 @@ pub enum AppError {
     #[error("JSON stringify error: {0}")]
     JSONStringify(String),
 
-    #[error("File processing error: {0}")]
+    #[error("{0}")]
     FileError(String),
 
     #[error("Configuration error: {0}")]

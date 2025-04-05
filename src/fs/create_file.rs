@@ -2,13 +2,14 @@ use colored::Colorize;
 
 use crate::{
     configuration::init::get_app_config_folder,
-    console::messages::print_source_files_metadata_saved, file_info::FsEntry,
-    fs::consts::SOURCE_FILE_NAME,
+    console::messages::print_source_files_metadata_saved, fs::consts::SOURCE_FILE_NAME,
 };
 use std::{
     fs::{self, File},
     io::Write,
 };
+
+use super::file_info::FsEntry;
 
 // source file name will be used for checking files migration quality later
 pub fn create_source_file(files_data: &Vec<FsEntry>) {

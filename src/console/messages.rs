@@ -1,3 +1,4 @@
+use std::io::{self, Write};
 use std::path::Display;
 
 use colored::Colorize;
@@ -64,13 +65,18 @@ pub fn print_files_reorganization_done() {
 }
 
 pub fn print_move_file(from: Display, to: Display) {
-    println!(
-        "{} {} {} {}",
+    print!(
+        "{} {} {} {} ... ",
         "📦 Moving file".blue(),
         from,
         "to".blue(),
         to
     );
+    io::stdout().flush().unwrap(); // flush so next text appears right after
+}
+
+pub fn print_done_to_same_string() {
+    println!("{}", "Done".green());
 }
 
 pub fn print_creating_dest_embeddings() {

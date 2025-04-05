@@ -1,43 +1,51 @@
-use clap::Parser;
+use clap::{Args as ClapArgs, Parser, Subcommand};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
-    #[arg(
-        long = "language-model",
-        short = 'L',
-        help = "Language model name loaded in ollama to use for folder names generation"
-    )]
+    #[command(subcommand)]
+    pub command: Commands,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum Commands {
+    /// Processes the files and generates a migration plan
+    Process(ProcessArgs),
+
+    /// Applies the last saved migration plan
+    Apply {
+        // TODO may be add later
+        //     #[arg(
+        //         long = "plan-file",
+        //         short = 'p',
+        //         help = "Optional path to the migration plan file"
+        //     )]
+        //     plan_file: Option<String>,
+    },
+
+    /// Rolls back the last migration using logs
+    Rollback {},
+}
+
+#[derive(ClapArgs, Debug)]
+pub struct ProcessArgs {
+    #[arg(long = "language-model", short = 'L', help = "Ollama LLM model name")]
     pub llm_model: String,
 
-    #[arg(
-        long = "embedding-model",
-        short = 'E',
-        help = "Embedding model name loaded in ollama to use for embeddings generation"
-    )]
+    #[arg(long = "embedding-model", short = 'E', help = "Embedding model name")]
     pub embedding_model: String,
 
-    #[arg(
-        long = "source",
-        short = 'S',
-        help = "Path to the folder with files to reorder"
-    )]
+    #[arg(long = "source", short = 'S', help = "Source folder to reorder")]
     pub source: String,
 
-    #[arg(
-        long = "destination",
-        short = 'D',
-        default_value_t = String::from("home"),
-        help = "Path to the folder which will be used as destination for reordering. If not specified, the home folder will be used"
-    )]
+    #[arg(long = "destination", short = 'D', default_value_t = String::from("home"), help = "Destination folder")]
     pub destination: String,
 
-    // optional arguments
     #[arg(
         long = "recursive",
         short = 'R',
         default_value_t = false,
-        help = "Should inner folders be processed"
+        help = "Process subfolders"
     )]
     pub recursive: bool,
 
@@ -45,31 +53,22 @@ pub struct Args {
         long = "force-apply",
         short = 'F',
         default_value_t = false,
-        help = "Will apply the reordering plan without review from user side"
+        help = "Apply without review"
     )]
     pub force_apply: bool,
 
+    // todo add dry-run
     #[arg(
-        long = "skip-problematic-dir",
-        short = 'd',
+        long = "continue-on-fs-errors",
+        short = 'C',
         default_value_t = false,
-        help = "Will skip problematic dirrectories and files"
+        help = "Allow partial migration, when some of folders/files produce errors (because of access rights, file is locked, etc)"
     )]
-    pub skip_problematic_dir: bool,
+    pub continue_on_fs_errors: bool,
 
-    #[arg(
-      long = "llm-address",
-      short = 'n',
-      default_value_t = String::from("http://localhost:11434/"),
-      help = "Will replace default LLM server address (default address is http://localhost:11434/)"
-    )]
+    #[arg(long = "llm-address", short = 'n', default_value_t = String::from("http://localhost:11434/"), help = "LLM server address")]
     pub ai_server_address: String,
 
-    #[arg(
-      long = "qdrant-address",
-      short = 'q',
-      default_value_t = String::from("http://localhost:6334/"),
-      help = "Will replace default qdrant server address (default address is http://localhost:6334/)"
-  )]
+    #[arg(long = "qdrant-address", short = 'q', default_value_t = String::from("http://localhost:6334/"), help = "Qdrant server address")]
     pub qdrant_server_address: String,
 }

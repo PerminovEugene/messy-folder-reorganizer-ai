@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::configuration::args::Args;
+use crate::configuration::args::ProcessArgs;
 use crate::configuration::config::{LLMModelConfig, RagMlConfig};
 use crate::console::messages::{
     print_asking_llm_for_new_folder_names, print_clustering_unknown_vectors,
@@ -17,7 +17,7 @@ use super::sources_processor::ProcessResult;
 pub async fn create_migration_plan(
     llm_config: &LLMModelConfig,
     rag_ml_config: &RagMlConfig,
-    args: &Args,
+    args: &ProcessArgs,
     process_result: &mut [ProcessResult],
 ) -> Vec<FsEntryMigration> {
     let threshhold = rag_ml_config.valid_embedding_threshold.unwrap();
@@ -78,7 +78,7 @@ struct AiResponse {
 
 async fn process_clusters(
     config: &LLMModelConfig,
-    args: &Args,
+    args: &ProcessArgs,
     clusters: &Vec<Cluster>,
     unknown_vectors: &[&ProcessResult],
 ) -> HashMap<usize, String> {

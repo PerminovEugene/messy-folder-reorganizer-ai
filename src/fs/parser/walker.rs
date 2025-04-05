@@ -5,7 +5,7 @@ use std::path::Path;
 use crate::configuration::ignore_list::is_ignored;
 use crate::console::messages::{print_ignoring_entry, print_processing_directory};
 use crate::errors::app_error::AppError;
-use crate::file_info::FsEntry;
+use crate::fs::file_info::FsEntry;
 
 use super::config::CollectFilesMetaConfig;
 use super::handlers::{handle_file_entry, handle_folder_entry};

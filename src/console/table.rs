@@ -4,8 +4,8 @@ use colored::Colorize;
 use prettytable::{format, Cell, Row, Table};
 
 use crate::{
-    configuration::config::RagMlConfig, fs::migration::fs_entry_migration::FsEntryMigration,
-    ml::hierarchical_clustering::Cluster, workflow::sources_processor::ProcessResult,
+    app_core::sources_processor::ProcessResult, configuration::config::RagMlConfig,
+    fs::migration::fs_entry_migration::FsEntryMigration, ml::hierarchical_clustering::Cluster,
 };
 
 pub fn print_rag_processing_result(config: &RagMlConfig, process_result: &[ProcessResult]) {

@@ -8,7 +8,7 @@ pub fn get_dir_entry_and_metadata(
     let dir = match dir_entry_result {
         Ok(entry) => entry,
         Err(e) => {
-            if config.skip_problematic_dir {
+            if config.continue_on_fs_errors {
                 eprintln!("Error reading directory entry: {:?}", e);
                 return Ok(None);
             } else {
@@ -20,7 +20,7 @@ pub fn get_dir_entry_and_metadata(
     let metadata = match dir.metadata() {
         Ok(m) => m,
         Err(e) => {
-            if config.skip_problematic_dir {
+            if config.continue_on_fs_errors {
                 eprintln!("Error reading metadata for {:?}: {:?}", dir.path(), e);
                 return Ok(None);
             } else {
