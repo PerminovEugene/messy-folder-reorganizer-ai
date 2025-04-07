@@ -18,8 +18,8 @@ use crate::fs::file_info;
 use crate::fs::parser::config::CollectFilesMetaConfig;
 use crate::fs::parser::walker::collect_files_metadata;
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct ProcessResult {
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct FileProcessingResult {
     pub destination_relative_path: String,
     pub source_relative_path: String,
     pub score: f32,
@@ -31,7 +31,7 @@ pub async fn process_sources(
     embedding_config: &EmbeddingModelConfig,
     rag_ml_config: &RagMlConfig,
     args: &ProcessArgs,
-) -> Result<Vec<ProcessResult>, AppError> {
+) -> Result<Vec<FileProcessingResult>, AppError> {
     let mut files_data: Vec<file_info::FsEntry> = Vec::new();
 
     let collector_config = &CollectFilesMetaConfig {
@@ -78,7 +78,7 @@ pub async fn process_sources(
     let closest_paths =
         qdrant::fs_entry::search::find_closest_fs_entry(&client, embeddings).await?;
 
-    let mut result: Vec<ProcessResult> = closest_paths
+    let mut result: Vec<FileProcessingResult> = closest_paths
         .into_iter()
         .zip(files_data.into_iter())
         .map(|(search_result, file_info)| {
@@ -90,7 +90,7 @@ pub async fn process_sources(
                     .to_string_lossy()
                     .to_string()
             };
-            ProcessResult {
+            FileProcessingResult {
                 destination_relative_path,
                 score: search_result.score,
                 source_file_name: file_info.file_name,

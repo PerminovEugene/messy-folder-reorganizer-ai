@@ -107,7 +107,31 @@ pub fn print_saving_dest_embeddings() {
 // Warning Messages
 
 pub fn print_files_not_updated() {
-    println!("{}", "🚫 File locations were not updated.".yellow());
+    println!("{}", "⚠️ File locations were not updated.".yellow());
+}
+
+pub fn print_file_not_found(path: Display) {
+    println!(
+        "{} {} {}",
+        "⚠️ File".yellow(),
+        path,
+        "not found. Skipped".yellow()
+    );
+}
+
+pub fn print_skipped_failed_migration(from: Display, to: Display) {
+    println!(
+        "{} {} {} {} {}",
+        "⚠️ Reason: Migration".yellow(),
+        from,
+        "to".yellow(),
+        to,
+        " was not successfull".yellow()
+    );
+}
+
+pub fn print_skipped_to_same_string() {
+    println!("{}", " Skipped".yellow(),);
 }
 
 pub fn print_ignoring_entry(is_file: bool, path: &str) {

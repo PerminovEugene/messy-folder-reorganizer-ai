@@ -4,11 +4,11 @@ use colored::Colorize;
 use prettytable::{format, Cell, Row, Table};
 
 use crate::{
-    app_core::sources_processor::ProcessResult, configuration::config::RagMlConfig,
+    app_core::sources_processor::FileProcessingResult, configuration::config::RagMlConfig,
     fs::migration::fs_entry_migration::FsEntryMigration, ml::hierarchical_clustering::Cluster,
 };
 
-pub fn print_rag_processing_result(config: &RagMlConfig, process_result: &[ProcessResult]) {
+pub fn print_rag_processing_result(config: &RagMlConfig, process_result: &[FileProcessingResult]) {
     println!("{}", "📊 Files RAG processing result:".green());
 
     let mut table = Table::new();
@@ -97,15 +97,15 @@ pub fn print_migration_plan_table(files_reorganization_plan: &[FsEntryMigration]
     table.set_format(*format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
 
     files_reorganization_plan.first().iter().for_each(|plan| {
-        let from = format!("📤 From: {}/", plan.source);
-        let to = format!("📥 To: {}/", plan.destination);
+        let from = format!("📤 From: {}/", plan.source_arg);
+        let to = format!("📥 To: {}/", plan.destination_arg);
 
         table.set_titles(Row::new(vec![Cell::new(&from), Cell::new(&to)]));
     });
 
     files_reorganization_plan.iter().for_each(|plan| {
-        let from_path = Path::new(&plan.source_inner_path).join(&plan.file_name);
-        let to_path = Path::new(&plan.destination_inner_path).join(&plan.file_name);
+        let from_path = Path::new(&plan.source_relative_path).join(&plan.source_file_name);
+        let to_path = Path::new(&plan.destination_relative_path).join(&plan.source_file_name);
 
         let from = from_path.display().to_string();
         let to = to_path.display().to_string();

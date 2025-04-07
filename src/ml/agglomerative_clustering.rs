@@ -1,5 +1,5 @@
 use crate::{
-    app_core::sources_processor::ProcessResult, configuration::config::RagMlConfig,
+    app_core::sources_processor::FileProcessingResult, configuration::config::RagMlConfig,
     console::table::print_clustering_table,
     ml::hierarchical_clustering::hierarchical_clustering_auto,
 };
@@ -8,7 +8,7 @@ use super::hierarchical_clustering::Cluster;
 
 pub async fn cluster_vectors_hierarchical(
     config: &RagMlConfig,
-    vectors: &Vec<&ProcessResult>,
+    vectors: &[FileProcessingResult],
 ) -> Vec<Cluster> {
     let pathes = vectors
         .iter()

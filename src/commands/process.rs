@@ -5,7 +5,7 @@ use crate::app_core::sources_processor::process_sources;
 use crate::configuration::config_loader::load_configurations;
 use crate::console::table::{print_migration_plan_table, print_rag_processing_result};
 use crate::errors::app_error::AppError;
-use crate::fs::migration::plan::save_migrations_to_file;
+use crate::fs::migration::storage::save_migrations_to_file;
 
 use crate::configuration::args::ProcessArgs;
 

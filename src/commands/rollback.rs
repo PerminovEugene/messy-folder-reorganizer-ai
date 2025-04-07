@@ -1,6 +1,6 @@
-use crate::{app_core::rollback_processor::rollback, errors::app_error::AppError};
+use crate::{errors::app_error::AppError, fs::migration::rollback::rollback};
 
 pub async fn start_rollback() -> Result<(), AppError> {
-    rollback();
+    rollback()?;
     Ok(())
 }
