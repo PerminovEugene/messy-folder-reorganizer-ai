@@ -10,6 +10,10 @@
 
 ### How It Works
 
+CLI supports multiple commands:
+
+#### Process
+
 1. **User Input** – The user runs the app and provides:
 
    - a **source folder** path containing the files to organize
@@ -39,6 +43,14 @@
 
 6. **User Decision**
    - The user reviews the suggested structure and decides whether to apply the changes.
+
+#### Apply
+
+If you decided to not apply changes after `process`, you can apply changes later with `apply` command. It expects that you didn't change files locations. This command applied migrations from the latest succesfull `process` launch.
+
+#### Rollback
+
+For the case if after files migrations you are changed your mind and want to return everything back.
 
 > ⚠️ **Warning:** Do not use `messy-folder-reorganizer-ai` on important files such as passwords, confidential documents, or critical system files.  
 > In the event of a bug or interruption, the app may irreversibly modify or delete files. Always create backups before using it on valuable data.  
@@ -201,19 +213,27 @@ messy-folder-reorganizer-ai \
   -D <DESTINATION_FOLDER_PATH>
 ```
 
-### Command-Line Arguments
+#### `process` Subcommand
 
-| Flag                     | Short | Default                   | Description                                                                                |
-| ------------------------ | ----- | ------------------------- | ------------------------------------------------------------------------------------------ |
-| `--language-model`       | `-L`  | _required_                | Language model name loaded in Ollama for folder name generation.                           |
-| `--embedding-model`      | `-E`  | _required_                | Embedding model name used for generating file and folder embeddings.                       |
-| `--source`               | `-S`  | _required_                | Path to the folder with files to organize.                                                 |
-| `--destination`          | `-D`  | `home`                    | Path for the organized output. Defaults to the user's home directory.                      |
-| `--recursive`            | `-R`  | `false`                   | Whether to scan the source folder recursively (destination is always scanned recursively). |
-| `--force-apply`          | `-F`  | `false`                   | Automatically apply the reorganization plan without user confirmation.                     |
-| `--skip-problematic-dir` | `-d`  | `false`                   | Skip problematic directories or files instead of stopping execution.                       |
-| `--llm-address`          | `-n`  | `http://localhost:11434/` | Override the default LLM server address.                                                   |
-| `--qdrant-address`       | `-q`  | `http://localhost:6334/`  | Override the default Qdrant server address.                                                |
+| Flag                      | Short | Default                   | Description                                                                                  |
+| ------------------------- | ----- | ------------------------- | -------------------------------------------------------------------------------------------- |
+| `--language-model`        | `-L`  | _required_                | Language model name loaded in Ollama for folder name generation.                             |
+| `--embedding-model`       | `-E`  | _required_                | Embedding model name used for generating file and folder embeddings.                         |
+| `--source`                | `-S`  | _required_                | Path to the folder with files to organize.                                                   |
+| `--destination`           | `-D`  | `home`                    | Path for the organized output. Defaults to the user's home directory.                        |
+| `--recursive`             | `-R`  | `false`                   | Whether to scan the source folder recursively. Destination is always scanned recursively.    |
+| `--force-apply`           | `-F`  | `false`                   | Automatically apply the reorganization plan without user confirmation.                       |
+| `--continue-on-fs-errors` | `-C`  | `false`                   | Allow partial migration when files or folders cause filesystem errors (e.g., access issues). |
+| `--llm-address`           | `-n`  | `http://localhost:11434/` | Override the default LLM server address.                                                     |
+| `--qdrant-address`        | `-q`  | `http://localhost:6334/`  | Override the default Qdrant vector database address.                                         |
+
+#### `apply` Subcommand
+
+No additional arguments.
+
+#### `rollback` Subcommand
+
+No additional arguments.
 
 ## Configuration
 

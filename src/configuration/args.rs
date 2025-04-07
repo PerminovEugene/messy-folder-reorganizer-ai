@@ -13,15 +13,7 @@ pub enum Commands {
     Process(ProcessArgs),
 
     /// Applies the last saved migration plan
-    Apply {
-        // TODO may be add later
-        //     #[arg(
-        //         long = "plan-file",
-        //         short = 'p',
-        //         help = "Optional path to the migration plan file"
-        //     )]
-        //     plan_file: Option<String>,
-    },
+    Apply {},
 
     /// Rolls back the last migration using logs
     Rollback {},
@@ -57,7 +49,6 @@ pub struct ProcessArgs {
     )]
     pub force_apply: bool,
 
-    // todo add dry-run
     #[arg(
         long = "continue-on-fs-errors",
         short = 'C',

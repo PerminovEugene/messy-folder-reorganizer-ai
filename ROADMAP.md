@@ -10,10 +10,10 @@ Goal: Reach version 1.0.0 with a stable, user-friendly, and powerful AI-driven f
 
 - [x] Add license
 - [ ] Review codebase and refactor if needed
-- [ ] Replace all `unwrap()`s with proper error handling using `Result` and custom error types
-- [ ] Improve error messages to be more informative and user-friendly
+- [x] Replace all `unwrap()`s with proper error handling using `Result` and custom error types
+- [x] Improve error messages to be more informative and user-friendly
 - [ ] Handle filename collisions (e.g., `file (1).txt`)
-- [ ] Add rollback system via `plan.json` (reverse plan executor)
+- [x] Add rollback system via `plan.json` (reverse plan executor)
 - [ ] Add unit and integration tests for:
   - Files parsing
   - File clustering logic
@@ -23,7 +23,7 @@ Goal: Reach version 1.0.0 with a stable, user-friendly, and powerful AI-driven f
 
 ---
 
-## Version 0.4.0 – One-Baton Setup (Beginner Friendly)
+## Version 0.4.0 – One-Button Setup (Beginner Friendly)
 
 - [ ] Add automatic installation script for:
   - Ollama (OS detection + install)
