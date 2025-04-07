@@ -21,9 +21,9 @@ pub async fn run_process(args: ProcessArgs) -> Result<(), AppError> {
         create_migration_plan(&llm_config, &rag_ml_config, &args, &mut process_result).await;
 
     print_migration_plan_table(&migration_plan);
-    save_migrations_to_file(migration_plan);
+    save_migrations_to_file(migration_plan)?;
 
-    migrate_files(&args)?;
+    migrate_files(args.force_apply, args.continue_on_fs_errors)?;
 
     Ok(())
 }

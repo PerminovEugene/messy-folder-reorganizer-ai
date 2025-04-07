@@ -28,8 +28,10 @@ pub struct FsEntryMigrationResult {
 
 pub fn save_successful_migration_log(migration: &FsEntryMigration) -> Result<(), AppError> {
     let result = FsEntryMigrationResult {
-        from: build_migration_source_path(migration).display().to_string(),
-        to: build_migration_destination_path(migration)
+        from: build_migration_source_path(migration, &PathBuf::from(""))
+            .display()
+            .to_string(),
+        to: build_migration_destination_path(migration, &PathBuf::from(""))
             .display()
             .to_string(),
         status: "success".to_string(),
@@ -46,8 +48,10 @@ pub fn save_failed_migration_log(
     error_message: String,
 ) -> Result<(), AppError> {
     let result = FsEntryMigrationResult {
-        from: build_migration_source_path(migration).display().to_string(),
-        to: build_migration_destination_path(migration)
+        from: build_migration_source_path(migration, &PathBuf::from(""))
+            .display()
+            .to_string(),
+        to: build_migration_destination_path(migration, &PathBuf::from(""))
             .display()
             .to_string(),
         status: "failed".to_string(),

@@ -61,7 +61,7 @@ pub fn print_processing_file(file_name: &String) {
 }
 
 pub fn print_files_reorganization_done() {
-    println!("{}", "✅ File reorganization completed.".green());
+    println!("{}", "✅ File migration completed.".green());
 }
 
 pub fn print_move_file(from: Display, to: Display) {
@@ -101,6 +101,22 @@ pub fn print_saving_dest_embeddings() {
     println!(
         "{}",
         "💾 Saving destination embeddings to the database...".green()
+    );
+}
+
+pub fn print_starting_rollack(time: String) {
+    println!(
+        "{} {}",
+        "💾 Starting rollback files migrations from ".green(),
+        time
+    );
+}
+
+pub fn print_starting_apply_migrations(time: String) {
+    println!(
+        "{} {}",
+        "💾 Starting apply files migrations generated from ".green(),
+        time
     );
 }
 
