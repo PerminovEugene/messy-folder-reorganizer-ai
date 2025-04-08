@@ -16,7 +16,7 @@ use crate::errors::app_error::AppError;
 use crate::fs::create_file::create_source_file;
 use crate::fs::file_info;
 use crate::fs::parser::config::CollectFilesMetaConfig;
-use crate::fs::parser::walker::collect_files_metadata;
+use crate::fs::parser::walker::collect_fs_entries_data;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct FileProcessingResult {
@@ -49,7 +49,7 @@ pub async fn process_sources(
 
     let root_relative_path: PathBuf = PathBuf::from("");
 
-    collect_files_metadata(
+    collect_fs_entries_data(
         &source_base_folder,
         &root_relative_path,
         &mut files_data,

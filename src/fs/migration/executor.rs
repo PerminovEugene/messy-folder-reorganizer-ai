@@ -33,8 +33,11 @@ pub fn process_migration(
         &migration.destination_file_name,
     )?;
     migration.destination_file_name = new_name.clone();
-    print_file_renamed(&migration.destination_file_name, new_name);
     print_done_to_same_string();
+    if new_name != destination_path.file_name().unwrap().to_string_lossy() {
+        print_file_renamed(&migration.source_file_name, new_name);
+    }
+
     Ok(())
 }
 

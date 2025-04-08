@@ -5,10 +5,19 @@ use colored::Colorize;
 
 use super::confirmation::ask_confirmation;
 
-// Information Messages
+// ───────────── Information Messages ─────────────
+
+pub fn print_initial_message(version: &str) {
+    println!();
+    println!(
+        "{} {}",
+        "🚀 Messy-folder-reorganizer-ai - version".green(),
+        version
+    );
+}
 
 pub fn print_parsing_destination_folder() {
-    println!("{}", "📂 Parsing destination folders structure...".green());
+    println!("{}", "📁 Parsing destination folder structure...".green());
 }
 
 pub fn print_parsing_sources() {
@@ -22,102 +31,93 @@ pub fn print_generating_embeddings_for_sources() {
 pub fn print_looking_for_suitable_destination() {
     println!(
         "{}",
-        "📍 Searching for a suitable destination folder for each source file...".green()
-    );
-}
-
-pub fn print_initial_message(version: &str) {
-    println!();
-    println!(
-        "{} {}",
-        "🚀 Messy-folder-reorganizer-ai - Version".green(),
-        version
+        "📍 Searching for the best destination folder for each source file...".green()
     );
 }
 
 pub fn print_migration_plan_saved() {
-    println!("{}", "💾 Migration plan has been saved.".green());
+    println!("{}", "💾 Migration plan saved.".green());
     println!();
 }
 
 pub fn print_generate_config_file(config_file_path: String) {
     println!(
         "{} {:?}",
-        "⚙️ Initialized configuration file:".green(),
+        "⚙️  Configuration file created:".green(),
         config_file_path
     );
 }
 
 pub fn print_source_files_metadata_saved() {
-    println!("{}", "💾 Source file metadata has been saved.".green());
+    println!("{}", "💾 Source file metadata saved.".green());
 }
 
 pub fn print_processing_directory(path: Display) {
-    println!("{} {:?}", "🔍 Processing directory:".green(), path);
+    print!("{} {:?} ", "📁 Processing directory:".blue(), path);
+    io::stdout().flush().unwrap();
 }
 
 pub fn print_processing_file(file_name: &String) {
-    println!("{} {:?}", "📄 Processing file:".blue(), file_name);
+    print!("{} {:?}", "📄 Processing file:".blue(), file_name);
+    io::stdout().flush().unwrap();
 }
 
 pub fn print_files_reorganization_done() {
-    println!("{}", "✅ File migration completed.".green());
+    println!("{}", "✅ File migration completed successfully.".green());
 }
 
 pub fn print_move_file(from: Display, to: Display) {
-    print!(
-        "{} {} {} {} ... ",
-        "📦 Moving file".blue(),
-        from,
-        "to".blue(),
-        to
-    );
-    io::stdout().flush().unwrap(); // flush so next text appears right after
+    print!("{} {} {} {}... ", "📦 Moving".blue(), from, "to".blue(), to);
+    io::stdout().flush().unwrap();
 }
 
 pub fn print_done_to_same_string() {
-    println!("{}", "Done".green());
+    println!("{}", "✅ Done".green());
 }
 
 pub fn print_creating_dest_embeddings() {
     println!(
         "{}",
-        "🗂️ Creating embeddings for the destination folder structure...".green()
+        "🗂️ Generating embeddings for destination folders...".green()
     );
 }
 
 pub fn print_clustering_unknown_vectors() {
-    println!("{}", "🔢 Clustering unidentified vectors...".green());
+    println!(
+        "{}",
+        "🔢 Clustering unidentified file embeddings...".green()
+    );
 }
 
 pub fn print_asking_llm_for_new_folder_names() {
     println!(
-      "{}", 
-      "🤖 Requesting the LLM to generate folder names for clustered files... (This might take some time, please be patient.)".blue()
+        "{}",
+        "🤖 Asking the LLM to generate folder names for clusters... (This may take a moment.)"
+            .blue()
     );
 }
 
 pub fn print_saving_dest_embeddings() {
     println!(
         "{}",
-        "💾 Saving destination embeddings to the database...".green()
+        "💾 Saving destination folder embeddings to database...".green()
     );
 }
 
 pub fn print_file_renamed(old_name: &String, new_name: String) {
     println!(
         "{} {} {} {}",
-        "💾 Renaming file to avoid name collision. Initial name:".green(),
+        "✏️  File renamed due to name conflict. Original:".green(),
         old_name,
-        "New name".green(),
-        new_name,
+        "New:".green(),
+        new_name
     );
 }
 
 pub fn print_starting_rollack(time: String) {
     println!(
         "{} {}",
-        "💾 Starting rollback files migrations from ".green(),
+        "🔄 Starting rollback of file migrations from".green(),
         time
     );
 }
@@ -125,62 +125,81 @@ pub fn print_starting_rollack(time: String) {
 pub fn print_starting_apply_migrations(time: String) {
     println!(
         "{} {}",
-        "💾 Starting apply files migrations generated from ".green(),
+        "📤 Applying file migrations created at".green(),
         time
     );
 }
 
-// Warning Messages
+pub fn print_reading_directory_entries(path: Display) {
+    print!("{} {:?} ", "📂 Reading directory:".blue(), path);
+    io::stdout().flush().unwrap();
+}
+
+// ───────────── Warning Messages ─────────────
 
 pub fn print_files_not_updated() {
-    println!("{}", "⚠️ File locations were not updated.".yellow());
+    println!("{}", "⚠️  File paths were not updated.".yellow());
 }
 
 pub fn print_file_not_found(path: Display) {
     println!(
         "{} {} {}",
-        "⚠️ File".yellow(),
+        "⚠️  File".yellow(),
         path,
-        "not found. Skipped".yellow()
+        "not found. Skipping.".yellow()
     );
 }
 
 pub fn print_skipped_failed_migration(from: Display, to: Display) {
     println!(
         "{} {} {} {} {}",
-        "⚠️ Reason: Migration".yellow(),
+        "⚠️  Skipped: failed to migrate".yellow(),
         from,
         "to".yellow(),
         to,
-        " was not successfull".yellow()
+        "(operation unsuccessful)".yellow()
     );
 }
 
 pub fn print_skipped_to_same_string() {
-    println!("{}", " Skipped".yellow(),);
+    println!("{}", "⚠️  Skipped.".yellow());
 }
 
-pub fn print_ignoring_entry(is_file: bool, path: &str) {
+pub fn print_ignoring_entry(is_file: bool, is_symlink: bool, path: String) {
     if is_file {
         print_ignoring_file(path);
+    } else if is_symlink {
+        print_ignoring_symlink(path);
     } else {
         print_ignoring_folder(path);
     }
 }
 
-pub fn print_ignoring_file(path: &str) {
+pub fn print_ignoring_unix_uniq_entry_type(path: String) {
+    println!(
+        "{} {:?}",
+        "⚠️  Skipping unsupported special file type:".yellow(),
+        path
+    );
+}
+
+pub fn print_ignoring_file(path: String) {
     println!("{} {:?}", "⚠️ Ignoring file:".yellow(), path);
 }
 
-pub fn print_ignoring_folder(path: &str) {
+pub fn print_ignoring_symlink(path: String) {
+    println!("{} {:?}", "⚠️ Ignoring symlink:".yellow(), path);
+}
+
+pub fn print_ignoring_folder(path: String) {
     println!("{} {:?}", "⚠️ Ignoring folder:".yellow(), path);
 }
 
-// Confirmation Messages
+// ───────────── Confirmation / Error Messages ─────────────
 
 pub fn ask_for_files_migration() -> bool {
     ask_confirmation(
-        "❓ Are you satisfied with the file reorganization plan? Would you like to apply it?",
+        "❓ Are you satisfied with the proposed file organization? Apply the migration now?",
     )
 }
 

@@ -13,7 +13,7 @@ use crate::db::qdrant::fs_entry::meta::FS_ENTRY_COLLECTION_NAME;
 use crate::errors::app_error::AppError;
 use crate::fs::file_info::{self, build_fs_entry, FsEntry};
 use crate::fs::parser::config::CollectFilesMetaConfig;
-use crate::fs::parser::walker::collect_files_metadata;
+use crate::fs::parser::walker::collect_fs_entries_data;
 use crate::fs::path::get_home_path;
 
 pub async fn index_destinations(
@@ -40,7 +40,7 @@ pub async fn index_destinations(
     let ignore_patters = parse_ignore_list(&rag_ml_config.destination_ignore)?;
 
     let root_relative_path: PathBuf = PathBuf::from("");
-    collect_files_metadata(
+    collect_fs_entries_data(
         &destination_base_folder,
         &root_relative_path,
         &mut dest_files_data,
