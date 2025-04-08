@@ -13,15 +13,15 @@ pub fn start_migrations(
     migrations_config: MigrationsConfig,
     continue_on_fs_errors: bool,
 ) -> Result<(), AppError> {
-    let migrations = migrations_config.migrations;
+    let mut migrations = migrations_config.migrations;
     clean_up_previous_logs()?;
-    for migration in migrations {
-        match process_migration(&migration, &migrations_config.root_dir) {
-            Ok(_) => save_successful_migration_log(&migration)?,
+    for migration in migrations.iter_mut() {
+        match process_migration(migration, &migrations_config.root_dir) {
+            Ok(_) => save_successful_migration_log(migration)?,
             Err(e) => {
                 print_error_to_same_string();
 
-                save_failed_migration_log(&migration, e.to_string())?;
+                save_failed_migration_log(migration, e.to_string())?;
                 if !continue_on_fs_errors {
                     return Err(e);
                 } else {

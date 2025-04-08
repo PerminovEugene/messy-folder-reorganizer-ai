@@ -104,6 +104,16 @@ pub fn print_saving_dest_embeddings() {
     );
 }
 
+pub fn print_file_renamed(old_name: &String, new_name: String) {
+    println!(
+        "{} {} {} {}",
+        "💾 Renaming file to avoid name collision. Initial name:".green(),
+        old_name,
+        "New name".green(),
+        new_name,
+    );
+}
+
 pub fn print_starting_rollack(time: String) {
     println!(
         "{} {}",

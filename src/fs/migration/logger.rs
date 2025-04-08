@@ -1,4 +1,3 @@
-// src/fs/migration_logger.rs
 use crate::configuration::init::get_migrations_log_file_path;
 use crate::errors::app_error::AppError;
 

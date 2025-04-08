@@ -23,6 +23,7 @@ pub async fn create_migration_plan(
         .iter()
         .map(|x| FsEntryMigration {
             source_file_name: x.source_file_name.clone(),
+            destination_file_name: x.source_file_name.clone(),
             destination_relative_path: x.destination_relative_path.clone(),
             source_relative_path: x.source_relative_path.clone(),
             source_arg: args.source.clone(),
@@ -49,6 +50,7 @@ pub async fn create_migration_plan(
                     let unknown = &low_confidence_results[member];
                     FsEntryMigration {
                         source_file_name: unknown.source_file_name.clone(),
+                        destination_file_name: unknown.source_file_name.clone(),
                         source_relative_path: unknown.source_relative_path.clone(),
                         destination_relative_path: cluster_id_to_path_hash[&cluster.id].clone(),
                         source_arg: args.source.clone(),
