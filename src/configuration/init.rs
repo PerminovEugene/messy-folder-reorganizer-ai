@@ -23,7 +23,6 @@ use super::consts::MIGRATIONS_LOG_FILE;
 */
 pub fn init() {
     create_application_config_folder();
-
     let embedding_config_file_path = get_config_file_path(EMBEDDINGS_GENERATION_CONFIGURATION_FILE); // e.g. ~/.messy-folder-reorganizer-ai/config.toml
     create_application_file_if_missing(
         &embedding_config_file_path,

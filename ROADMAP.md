@@ -19,7 +19,7 @@ Goal: Reach version 1.0.0 with a stable, user-friendly, and powerful AI-driven f
   - File clustering logic
   - Plan generation
   - File movement
-- [ ] Check what's up with symlinks
+- [x] Check what's up with symlinks
 
 ---
 

@@ -6,7 +6,7 @@ use serde_json::to_string;
 use std::{
     fs::{self, OpenOptions},
     io::Write,
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
 use std::fs::File;
@@ -62,7 +62,7 @@ pub fn save_failed_migration_log(
         .map_err(|e| AppError::FileError(format!("Failed to write migration failed log: {}", e)))
 }
 
-fn append_migration_result(path: &PathBuf, result: &FsEntryMigrationResult) -> std::io::Result<()> {
+fn append_migration_result(path: &Path, result: &FsEntryMigrationResult) -> std::io::Result<()> {
     let mut file = OpenOptions::new().create(true).append(true).open(path)?;
     let line = to_string(result)?;
     writeln!(file, "{}", line)?;

@@ -9,7 +9,7 @@ use super::fs_entry_migration::FsEntryMigration;
 
 pub fn process_migration(
     migration: &mut FsEntryMigration,
-    root_dir: &PathBuf,
+    root_dir: &Path,
 ) -> Result<(), AppError> {
     let source_path = build_migration_source_path(migration, root_dir);
     if !source_path.exists() {
@@ -41,7 +41,7 @@ pub fn process_migration(
     Ok(())
 }
 
-pub fn safe_rename(from: &PathBuf, to: &Path, file_name: &str) -> Result<String, AppError> {
+pub fn safe_rename(from: &Path, to: &Path, file_name: &str) -> Result<String, AppError> {
     let safe_path_buf = generate_new_safe_path_buf(to, file_name)?;
 
     match fs::rename(from, &safe_path_buf) {
@@ -56,8 +56,9 @@ pub fn safe_rename(from: &PathBuf, to: &Path, file_name: &str) -> Result<String,
     }
 }
 
+const MAX_RENAME_ATTEMPTS: u32 = 10;
 fn generate_new_safe_path_buf(to: &Path, file_name: &str) -> Result<PathBuf, AppError> {
-    for counter in 0..=10 {
+    for counter in 0..=MAX_RENAME_ATTEMPTS {
         let candidate_path = if counter == 0 {
             to.to_path_buf()
         } else {
@@ -95,7 +96,7 @@ fn split_file_name(full_name: &str) -> (String, Option<String>) {
     (file_stem, extension)
 }
 
-pub fn build_migration_source_path(migration: &FsEntryMigration, root_dir: &PathBuf) -> PathBuf {
+pub fn build_migration_source_path(migration: &FsEntryMigration, root_dir: &Path) -> PathBuf {
     PathBuf::from(root_dir)
         .join(&migration.source_arg)
         .join(&migration.source_relative_path)
@@ -103,10 +104,7 @@ pub fn build_migration_source_path(migration: &FsEntryMigration, root_dir: &Path
         .clean()
 }
 
-pub fn build_migration_destination_path(
-    migration: &FsEntryMigration,
-    root_dir: &PathBuf,
-) -> PathBuf {
+pub fn build_migration_destination_path(migration: &FsEntryMigration, root_dir: &Path) -> PathBuf {
     PathBuf::from(root_dir)
         .join(&migration.destination_arg)
         .join(&migration.destination_relative_path)
