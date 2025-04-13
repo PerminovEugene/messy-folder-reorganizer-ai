@@ -2,3 +2,5 @@
 /storage
 .qdrant-initialized
 /qdrant_storage
+/tests/test_cases/*/*/
+/tests/test_cases/*/test_case.log

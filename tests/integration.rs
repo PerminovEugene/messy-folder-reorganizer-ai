@@ -1,19 +1,22 @@
 use std::{fs, path::PathBuf};
+use test_case::test_case;
 
 use helpers::{
-    check::check_expected_structure, cli::run_reorganization, config::TestCase,
+    check::check_expected_structure,
+    cli::{run_reorganization, OutputMode},
+    config::TestCase,
     prepare_fs::create_test_folders,
 };
 
 mod helpers;
 
-#[test]
-fn integration_cli_file_organizer() {
-    let base = "tests/file_collision";
-
+#[test_case("clustering")]
+#[test_case("file_collision")]
+fn integration_cli_file_organizer(case_folder: &str) -> Result<(), String> {
+    let base_path_to_cases = "tests/test_cases";
     let config_name = "case.json";
 
-    let path_to_case: PathBuf = PathBuf::from(base);
+    let path_to_case: PathBuf = PathBuf::from(base_path_to_cases).join(case_folder);
     let path_to_config = &path_to_case.join(config_name);
 
     let json_str = fs::read_to_string(path_to_config).unwrap();
@@ -27,8 +30,9 @@ fn integration_cli_file_organizer() {
     let destination_path = &path_to_case.join(&test_case.destination.folder);
     let destination = destination_path.to_str().unwrap();
 
-    println!("{}", source);
-    println!("{}", destination);
+    let log_file_path = path_to_case.join("test_case.log");
+    let mode = OutputMode::ToFile(log_file_path.to_string_lossy().to_string());
+
     run_reorganization(
         source,
         destination,
@@ -36,10 +40,11 @@ fn integration_cli_file_organizer() {
         "deepseek-r1:latest",
         "http://localhost:11434/",
         "http://localhost:6334/",
-    );
+        mode,
+    )
+    .expect("CLI process failed");
 
-    match check_expected_structure(&test_case, &path_to_case) {
-        Ok(_) => println!("✅ Folder structure matches expected!"),
-        Err(e) => eprintln!("❌ Folder structure check failed: {e}"),
-    }
+    check_expected_structure(&test_case, &path_to_case)?;
+
+    Ok(())
 }

@@ -1,0 +1,96 @@
+{
+  "source": {
+    "folder": "messy-folder",
+    "files": [
+      { "path": "how-to-train-dragon.txt" },
+      { "path": "master-and-margarita.fb2" },
+
+      { "path": "residence-permit.pdf" },
+      { "path": "bill.docx" },
+
+      { "path": "game.exe" },
+      { "path": "editor.app" },
+      { "path": "installer.pkg" },
+      { "path": "script.sh" },
+      { "path": "run.bat" },
+      { "path": "utility.bin" },
+      { "path": "software.deb" },
+      { "path": "program.msi" },
+      { "path": "system.out" },
+      { "path": "autoupdater.run" },
+
+      { "path": "rock.mp3" },
+      { "path": "classical.wav" },
+      { "path": "jazz.flac" },
+      { "path": "pop.ogg" },
+      { "path": "metal.aac" },
+      { "path": "radio.m4a" },
+      { "path": "podcast.aiff" },
+      { "path": "blues.3gp" },
+      { "path": "orchestra.mid" },
+      { "path": "electronic.mka" },
+      { "path": "folk.webm" },
+      { "path": "reggae.tta" },
+      { "path": "dubstep.wma" },
+      { "path": "lofi.alac" },
+
+      { "path": "main.rs" },
+      { "path": "app.py" },
+      { "path": "index.js" },
+      { "path": "module.cpp" },
+      { "path": "library.java" },
+      { "path": "script.ts" },
+      { "path": "program.cs" }
+    ]
+  },
+  "destination": {
+    "folder": "structured-folder",
+    "structure": ["books/", "documents/"],
+    "existing_files": []
+  },
+  "expected": {
+    "structure": {
+      "structured-folder": {
+        "books": ["how-to-train-dragon.txt", "master-and-margarita.fb2"],
+        "documents": ["bill.docx", "residence-permit.pdf"],
+        "executables": [
+          "autoupdater.run",
+          "editor.app",
+          "game.exe",
+          "installer.pkg",
+          "program.msi",
+          "run.bat",
+          "script.sh",
+          "software.deb",
+          "system.out",
+          "utility.bin"
+        ],
+        "audio": [
+          "blues.3gp",
+          "classical.wav",
+          "dubstep.wma",
+          "electronic.mka",
+          "folk.webm",
+          "jazz.flac",
+          "lofi.alac",
+          "metal.aac",
+          "orchestra.mid",
+          "podcast.aiff",
+          "pop.ogg",
+          "radio.m4a",
+          "reggae.tta",
+          "rock.mp3"
+        ],
+        "code": [
+          "app.py",
+          "index.js",
+          "library.java",
+          "main.rs",
+          "module.cpp",
+          "program.cs",
+          "script.ts"
+        ]
+      }
+    }
+  }
+}

@@ -6,8 +6,6 @@ use super::config::TestCase;
 pub fn check_expected_structure(test: &TestCase, path_to_case: &Path) -> Result<(), String> {
     for (base_folder, subfolders) in &test.expected.structure {
         let base_path = path_to_case.join(base_folder);
-        println!("{:?}", base_path);
-        println!("{:?}", subfolders);
 
         for (subfolder, expected_files) in subfolders {
             let folder_path = base_path.join(subfolder);
@@ -26,7 +24,6 @@ pub fn check_expected_structure(test: &TestCase, path_to_case: &Path) -> Result<
             let mut expected_files_sorted = expected_files.clone();
             expected_files_sorted.sort();
 
-            println!("{:?}", expected_files_sorted);
             if actual_files != expected_files_sorted {
                 return Err(format!(
                     "Mismatch in folder '{}':\n  Expected: {:?}\n  Found:    {:?}",
