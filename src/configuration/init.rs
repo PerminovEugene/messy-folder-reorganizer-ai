@@ -13,7 +13,9 @@ use crate::configuration::embedded_assets::{
 use crate::console::messages::print_generate_config_file;
 use crate::fs::path::get_home_path;
 
-use super::consts::{INITIAL_PROMPT_FILE, MIGRATIONS_FOLDER, MIGRATIONS_LOG_FILE};
+use super::consts::{
+    INITIAL_PROMPT_FILE, MIGRATIONS_FOLDER, MIGRATIONS_LOG_FILE_BASE, MIGRATIONS_LOG_FILE_FORMAT,
+};
 
 /*
   Initializes the application configuration by creating:
@@ -70,8 +72,12 @@ pub fn get_app_prompts_folder_path() -> PathBuf {
     get_app_config_folder().join(PROMPTS_FOLDER)
 }
 
-pub fn get_migrations_log_file_path() -> PathBuf {
-    get_app_migrations_folder().join(MIGRATIONS_LOG_FILE)
+pub fn get_migrations_log_file_path(session_id: &String) -> PathBuf {
+    let file_name = format!(
+        "{}_{}.{}",
+        MIGRATIONS_LOG_FILE_BASE, session_id, MIGRATIONS_LOG_FILE_FORMAT
+    );
+    get_app_migrations_folder().join(file_name)
 }
 
 fn create_application_file_if_missing(config_file_path: &Path, embedded_content: &[u8]) {

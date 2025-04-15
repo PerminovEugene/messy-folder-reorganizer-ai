@@ -7,8 +7,8 @@ use crate::console::messages::{
 use crate::errors::app_error::AppError;
 use crate::fs::migration::logger::read_migration_log;
 
-pub fn rollback() -> Result<(), AppError> {
-    let entries = read_migration_log().map_err(|e| {
+pub fn rollback(session_id: &String) -> Result<(), AppError> {
+    let entries = read_migration_log(session_id).map_err(|e| {
         AppError::FileError(format!("Failed to read migration log for rollback: {e}"))
     })?;
 

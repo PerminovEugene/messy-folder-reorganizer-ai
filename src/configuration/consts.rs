@@ -8,4 +8,5 @@ pub const PROMPTS_FOLDER: &str = "prompts";
 pub const INITIAL_PROMPT_FILE: &str = "generate_folder_name.md";
 
 pub const MIGRATIONS_FOLDER: &str = "migrations";
-pub const MIGRATIONS_LOG_FILE: &str = "migration_log.jsonl";
+pub const MIGRATIONS_LOG_FILE_BASE: &str = "migration_log";
+pub const MIGRATIONS_LOG_FILE_FORMAT: &str = "jsonl";

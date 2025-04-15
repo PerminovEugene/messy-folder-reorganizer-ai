@@ -8,6 +8,6 @@ use crate::{
 pub async fn start_rollback(args: RollbackArgs) -> Result<(), AppError> {
     let config = read_migrations_config(&args.session_id)?;
     print_starting_rollack(config.created_at);
-    rollback()?;
+    rollback(&args.session_id)?;
     Ok(())
 }

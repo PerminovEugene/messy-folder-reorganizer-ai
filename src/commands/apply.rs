@@ -8,6 +8,6 @@ use crate::{
 pub async fn apply_latest_migration_plan(args: ApplyArgs) -> Result<(), AppError> {
     let migrations_config = read_migrations_config(&args.session_id)?;
     print_starting_apply_migrations(migrations_config.created_at.clone());
-    start_migrations(migrations_config, true)?;
+    start_migrations(migrations_config, true, &args.session_id)?;
     Ok(())
 }

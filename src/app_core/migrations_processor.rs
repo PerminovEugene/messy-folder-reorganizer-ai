@@ -10,7 +10,7 @@ pub fn migrate_files(
 ) -> Result<(), AppError> {
     if force_apply || ask_for_files_migration() {
         let migrations_config = read_migrations_config(session_id)?;
-        start_migrations(migrations_config, continue_on_fs_errors)?;
+        start_migrations(migrations_config, continue_on_fs_errors, session_id)?;
     } else {
         print_files_not_updated();
     }

@@ -4,7 +4,7 @@ use crate::errors::app_error::AppError;
 use serde::{Deserialize, Serialize};
 use serde_json::to_string;
 use std::{
-    fs::{self, OpenOptions},
+    fs::OpenOptions,
     io::Write,
     path::{Path, PathBuf},
 };
@@ -25,7 +25,10 @@ pub struct FsEntryMigrationResult {
     pub err_message: Option<String>,
 }
 
-pub fn save_successful_migration_log(migration: &FsEntryMigration) -> Result<(), AppError> {
+pub fn save_successful_migration_log(
+    migration: &FsEntryMigration,
+    session_id: &String,
+) -> Result<(), AppError> {
     let result = FsEntryMigrationResult {
         from: build_migration_source_path(migration, &PathBuf::from(""))
             .display()
@@ -37,7 +40,7 @@ pub fn save_successful_migration_log(migration: &FsEntryMigration) -> Result<(),
         err_message: None,
     };
 
-    let log_path: PathBuf = get_migrations_log_file_path();
+    let log_path: PathBuf = get_migrations_log_file_path(session_id);
     append_migration_result(&log_path, &result)
         .map_err(|e| AppError::FileError(format!("Failed to write migration success log: {}", e)))
 }
@@ -45,6 +48,7 @@ pub fn save_successful_migration_log(migration: &FsEntryMigration) -> Result<(),
 pub fn save_failed_migration_log(
     migration: &FsEntryMigration,
     error_message: String,
+    session_id: &String,
 ) -> Result<(), AppError> {
     let result = FsEntryMigrationResult {
         from: build_migration_source_path(migration, &PathBuf::from(""))
@@ -57,7 +61,7 @@ pub fn save_failed_migration_log(
         err_message: Some(error_message),
     };
 
-    let log_path = get_migrations_log_file_path();
+    let log_path = get_migrations_log_file_path(session_id);
     append_migration_result(&log_path, &result)
         .map_err(|e| AppError::FileError(format!("Failed to write migration failed log: {}", e)))
 }
@@ -69,20 +73,20 @@ fn append_migration_result(path: &Path, result: &FsEntryMigrationResult) -> std:
     Ok(())
 }
 
-pub fn clean_up_previous_logs() -> Result<(), AppError> {
-    let log_path: PathBuf = get_migrations_log_file_path();
+// pub fn clean_up_previous_logs(session_id: &String) -> Result<(), AppError> {
+//     let log_path: PathBuf = get_migrations_log_file_path(session_id);
 
-    if log_path.exists() {
-        fs::remove_file(&log_path).map_err(|e| {
-            AppError::FileError(format!("Failed to delete previous migration logs: {}", e))
-        })?;
-    }
+//     if log_path.exists() {
+//         fs::remove_file(&log_path).map_err(|e| {
+//             AppError::FileError(format!("Failed to delete previous migration logs: {}", e))
+//         })?;
+//     }
 
-    Ok(())
-}
+//     Ok(())
+// }
 
-pub fn read_migration_log() -> std::io::Result<Vec<FsEntryMigrationResult>> {
-    let path: PathBuf = get_migrations_log_file_path();
+pub fn read_migration_log(session_id: &String) -> std::io::Result<Vec<FsEntryMigrationResult>> {
+    let path: PathBuf = get_migrations_log_file_path(session_id);
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 
