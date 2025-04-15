@@ -3,8 +3,8 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use crate::configuration::consts::{
-    CONFIGURATION_FOLDER, EMBEDDINGS_GENERATION_CONFIGURATION_FILE, INITIAL_PROMPT_FILE,
-    LLM_CONFIGURATION_FILE, PROMPTS_FOLDER, RAG_ML_CONFIGURATION_FILE,
+    CONFIGURATION_FOLDER, EMBEDDINGS_GENERATION_CONFIGURATION_FILE, LLM_CONFIGURATION_FILE,
+    PROMPTS_FOLDER, RAG_ML_CONFIGURATION_FILE,
 };
 use crate::configuration::embedded_assets::{
     EMBEDDINGS_MODEL_CONFIG_FILE_BYTES, GENERATE_FOLDER_NAME_PROMPT_FILE_BYTES,
@@ -13,7 +13,7 @@ use crate::configuration::embedded_assets::{
 use crate::console::messages::print_generate_config_file;
 use crate::fs::path::get_home_path;
 
-use super::consts::{MIGRATIONS_FOLDER, MIGRATIONS_LOG_FILE};
+use super::consts::{INITIAL_PROMPT_FILE, MIGRATIONS_FOLDER, MIGRATIONS_LOG_FILE};
 
 /*
   Initializes the application configuration by creating:
@@ -35,7 +35,7 @@ pub fn init() {
     let rag_ml_config_file_path = get_config_file_path(RAG_ML_CONFIGURATION_FILE);
     create_application_file_if_missing(&rag_ml_config_file_path, RAG_ML_CONFIG_FILE_BYTES);
 
-    let generate_folder_prompt_file_path = get_generate_folder_prompt_file_path(); // e.g. ~/.messy-folder-reorganizer-ai/prompts/prompt.txt
+    let generate_folder_prompt_file_path = get_app_prompts_folder_path().join(INITIAL_PROMPT_FILE); // e.g. ~/.messy-folder-reorganizer-ai/prompts/prompt.txt
     create_application_file_if_missing(
         &generate_folder_prompt_file_path,
         GENERATE_FOLDER_NAME_PROMPT_FILE_BYTES,
@@ -48,7 +48,7 @@ fn create_application_config_folder() {
         fs::create_dir_all(app_config_dir).expect("Failed to create config directory");
     }
 
-    let app_prompts_config_dir = get_app_prompt_config_folder();
+    let app_prompts_config_dir = get_app_prompts_folder_path();
     if !app_prompts_config_dir.exists() {
         fs::create_dir_all(&app_prompts_config_dir).expect("Failed to create prompts directory");
     }
@@ -66,18 +66,12 @@ pub fn get_config_file_path(file_name: &str) -> PathBuf {
     get_app_config_folder().join(file_name)
 }
 
-pub fn get_generate_folder_prompt_file_path() -> PathBuf {
-    get_app_config_folder().join(INITIAL_PROMPT_FILE)
+pub fn get_app_prompts_folder_path() -> PathBuf {
+    get_app_config_folder().join(PROMPTS_FOLDER)
 }
 
 pub fn get_migrations_log_file_path() -> PathBuf {
-    get_app_config_folder().join(MIGRATIONS_LOG_FILE)
-}
-
-pub fn get_app_prompt_config_folder() -> PathBuf {
-    get_home_path()
-        .join(CONFIGURATION_FOLDER)
-        .join(PROMPTS_FOLDER)
+    get_app_migrations_folder().join(MIGRATIONS_LOG_FILE)
 }
 
 fn create_application_file_if_missing(config_file_path: &Path, embedded_content: &[u8]) {
