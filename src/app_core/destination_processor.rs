@@ -20,6 +20,7 @@ pub async fn index_destinations(
     embedding_config: &EmbeddingModelConfig,
     rag_ml_config: &RagMlConfig,
     args: &ProcessArgs,
+    session_id: &str,
 ) -> Result<(), AppError> {
     print_parsing_destination_folder();
     let mut dest_files_data: Vec<file_info::FsEntry> = Vec::new();
@@ -82,7 +83,7 @@ pub async fn index_destinations(
 
     print_saving_dest_embeddings();
 
-    save_destination_files_embeddings(args, dest_embeddings, dest_files_data).await?;
+    save_destination_files_embeddings(args, dest_embeddings, dest_files_data, session_id).await?;
 
     Ok(())
 }
@@ -90,13 +91,21 @@ pub async fn index_destinations(
 async fn save_destination_files_embeddings(
     args: &ProcessArgs,
     vectors: Vec<Vec<f32>>,
-    file_infos: Vec<FsEntry>,
+    fs_entries: Vec<FsEntry>,
+    session_id: &str,
 ) -> Result<(), AppError> {
     let client = qdrant::client::init(&args.qdrant_server_address).await?;
     let dimension_size = qdrant::utils::get_dimension_size_by_vectors(&vectors)?;
-    qdrant::collection::reset(&client, FS_ENTRY_COLLECTION_NAME, dimension_size).await?;
-    qdrant::fs_entry::insert::insert_fs_entries_by_file_infos(&client, vectors, &file_infos)
+    qdrant::collection::safe_create_collection(&client, FS_ENTRY_COLLECTION_NAME, dimension_size)
         .await?;
+    qdrant::fs_entry::insert::insert_fs_entries_by_file_infos(
+        &client,
+        &args.destination,
+        vectors,
+        &fs_entries,
+        session_id,
+    )
+    .await?;
 
     Ok(())
 }

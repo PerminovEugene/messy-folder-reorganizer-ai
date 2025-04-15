@@ -1,0 +1,56 @@
+{
+  "source": {
+    "messy-folder": {
+      "files": [
+        "harry-potter.mpeg4",
+        "lord-of-the-rings.mp4",
+        "lovecraft-novels.txt",
+        "hobbit.epub",
+        "invoice_from_google.pdf",
+        "police_report.docx",
+        "meme.png",
+        "funny-cat.jpg",
+        "crack.exe",
+        "database-admin.pkg"
+      ]
+    }
+  },
+  "destination": {
+    "home": {
+      "movies": {
+        "files": []
+      },
+      "books": {
+        "files": []
+      },
+      "docs": {
+        "files": []
+      },
+      "images": {
+        "files": []
+      },
+      "programs": {
+        "files": []
+      }
+    }
+  },
+  "expected": {
+    "home": {
+      "movies": {
+        "files": ["harry-potter.mpeg4", "lord-of-the-rings.mp4"]
+      },
+      "books": {
+        "files": ["lovecraft-novels.txt", "hobbit.epub"]
+      },
+      "docs": {
+        "files": ["invoice_from_google.pdf", "police_report.docx"]
+      },
+      "images": {
+        "files": ["meme.png", "funny-cat.jpg"]
+      },
+      "programs": {
+        "files": ["crack.exe", "database-admin.pkg"]
+      }
+    }
+  }
+}

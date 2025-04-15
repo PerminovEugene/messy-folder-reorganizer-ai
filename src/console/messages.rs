@@ -35,8 +35,12 @@ pub fn print_looking_for_suitable_destination() {
     );
 }
 
-pub fn print_migration_plan_saved() {
-    println!("{}", "💾 Migration plan saved.".green());
+pub fn print_migration_plan_saved(migrations_plan_file_name: &String) {
+    println!(
+        "{} {}",
+        "💾 Migrations plan saved in file:".green(),
+        migrations_plan_file_name
+    );
     println!();
 }
 
@@ -72,7 +76,7 @@ pub fn print_move_file(from: Display, to: Display) {
 }
 
 pub fn print_done_to_same_string() {
-    println!("{}", "✅ Done".green());
+    println!("{}", " Done".green());
 }
 
 pub fn print_creating_dest_embeddings() {
@@ -107,11 +111,15 @@ pub fn print_saving_dest_embeddings() {
 pub fn print_file_renamed(old_name: &String, new_name: String) {
     println!(
         "{} {} {} {}",
-        "✏️  File renamed due to name conflict. Original:".green(),
+        "✏️ File renamed due to name conflict. Original:".green(),
         old_name,
         "New:".green(),
         new_name
     );
+}
+
+pub fn print_session_id(session_id: &String) {
+    println!("{} {}", "✏️ Session id:".green(), session_id,);
 }
 
 pub fn print_starting_rollack(time: String) {
@@ -144,7 +152,7 @@ pub fn print_files_not_updated() {
 pub fn print_file_not_found(path: Display) {
     println!(
         "{} {} {}",
-        "⚠️  File".yellow(),
+        "⚠️ File".yellow(),
         path,
         "not found. Skipping.".yellow()
     );
@@ -153,7 +161,7 @@ pub fn print_file_not_found(path: Display) {
 pub fn print_skipped_failed_migration(from: Display, to: Display) {
     println!(
         "{} {} {} {} {}",
-        "⚠️  Skipped: failed to migrate".yellow(),
+        "⚠️ Skipped: failed to migrate".yellow(),
         from,
         "to".yellow(),
         to,
@@ -162,7 +170,7 @@ pub fn print_skipped_failed_migration(from: Display, to: Display) {
 }
 
 pub fn print_skipped_to_same_string() {
-    println!("{}", "⚠️  Skipped.".yellow());
+    println!("{}", "⚠️ Skipped.".yellow());
 }
 
 pub fn print_ignoring_entry(is_file: bool, is_symlink: bool, path: String) {
@@ -178,7 +186,7 @@ pub fn print_ignoring_entry(is_file: bool, is_symlink: bool, path: String) {
 pub fn print_ignoring_unix_uniq_entry_type(path: String) {
     println!(
         "{} {:?}",
-        "⚠️  Skipping unsupported special file type:".yellow(),
+        "⚠️ Skipping unsupported special file type:".yellow(),
         path
     );
 }

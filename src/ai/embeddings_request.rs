@@ -37,7 +37,7 @@ pub async fn get_embeddings(
     };
 
     let mut endpoint = server_address.clone();
-    endpoint.push_str("api/embed");
+    endpoint.push_str("/api/embed");
 
     let mut vectors: Vec<Vec<f32>> = vec![];
 

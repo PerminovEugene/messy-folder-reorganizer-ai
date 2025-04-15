@@ -1,0 +1,30 @@
+{
+  "source": {
+    "messy-folder": {
+      "Downloads": {
+        "files": ["doc.docx", "target.txt"],
+        "symlinks": {
+          "link-to-target.txt": "target.txt",
+          "broken-link.txt": "nonexistent.txt"
+        }
+      }
+    }
+  },
+  "destination": {
+    "home": {
+      "documents": {
+        "files": ["doc2.docx"],
+        "symlinks": {
+          "symlink-to-doc2.docx": "doc2.docx"
+        }
+      }
+    }
+  },
+  "expected": {
+    "home": {
+      "documents": {
+        "files": ["doc.docx", "target.txt", "doc2.docx", "symlink-to-doc2.docx"]
+      }
+    }
+  }
+}

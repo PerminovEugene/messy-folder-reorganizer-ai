@@ -1,0 +1,22 @@
+{
+  "source": {
+    "messy-folder": {
+      "node_modules": { "files": ["lib.js"] },
+      "files": [".git", "harry_potter.txt", "temp_1221.log"]
+    }
+  },
+  "destination": {
+    "dest": {
+      "Projects": {},
+      "books": {}
+    }
+  },
+  "expected": {
+    "dest": {
+      "books": {
+        "files": ["harry_potter.txt"]
+      },
+      "Projects": []
+    }
+  }
+}

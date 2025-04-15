@@ -8,6 +8,7 @@ use std::{
 #[derive(Serialize, Deserialize, Debug)]
 pub struct FsEntry {
     pub file_name: String,
+    /// relative for what
     pub relative_path: String,
     pub size: u64,
     pub created_at: String,

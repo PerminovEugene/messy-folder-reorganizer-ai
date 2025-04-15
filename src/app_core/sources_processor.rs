@@ -31,6 +31,7 @@ pub async fn process_sources(
     embedding_config: &EmbeddingModelConfig,
     rag_ml_config: &RagMlConfig,
     args: &ProcessArgs,
+    session_id: &str,
 ) -> Result<Vec<FileProcessingResult>, AppError> {
     let mut files_data: Vec<file_info::FsEntry> = Vec::new();
 
@@ -75,23 +76,36 @@ pub async fn process_sources(
     print_looking_for_suitable_destination();
 
     let client = qdrant::client::init(&args.qdrant_server_address).await?;
-    let closest_paths =
-        qdrant::fs_entry::search::find_closest_fs_entry(&client, embeddings).await?;
+    let absolute_path_to_dest = std::env::current_dir()
+        .unwrap()
+        .join(args.destination.clone());
+    let closest_paths = qdrant::fs_entry::search::find_closest_fs_entry(
+        &client,
+        embeddings,
+        &absolute_path_to_dest,
+        session_id,
+    )
+    .await?;
 
     let mut result: Vec<FileProcessingResult> = closest_paths
         .into_iter()
         .zip(files_data.into_iter())
         .map(|(search_result, file_info)| {
-            let destination_relative_path = if search_result.is_root {
-                String::from("")
-            } else {
-                PathBuf::from(search_result.relative_path)
-                    .join(search_result.name)
-                    .to_string_lossy()
-                    .to_string()
-            };
+            let target_absolute_path = PathBuf::from(&search_result.absolute_path);
+            let destination_relative_path = target_absolute_path
+                .strip_prefix(&absolute_path_to_dest)
+                .unwrap();
+
+            // if search_result.is_root {
+            //     String::from("")
+            // } else {
+            //     PathBuf::from(search_result.absolute_path)
+            //         // .join(search_result.name)
+            //         .to_string_lossy()
+            //         .to_string()
+            // };
             FileProcessingResult {
-                destination_relative_path,
+                destination_relative_path: destination_relative_path.to_string_lossy().to_string(),
                 score: search_result.score,
                 source_file_name: file_info.file_name,
                 source_relative_path: file_info.relative_path,

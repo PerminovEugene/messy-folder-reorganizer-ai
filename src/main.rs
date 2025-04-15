@@ -39,7 +39,7 @@ async fn run() -> Result<(), AppError> {
 
     match args.command {
         Commands::Process(process_args) => run_process(process_args).await,
-        Commands::Apply {} => apply_latest_migration_plan().await,
-        Commands::Rollback {} => start_rollback().await,
+        Commands::Apply(apply_args) => apply_latest_migration_plan(apply_args).await,
+        Commands::Rollback(rollback_args) => start_rollback(rollback_args).await,
     }
 }

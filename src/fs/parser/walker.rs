@@ -60,7 +60,6 @@ pub fn collect_fs_entries_data(
         let is_file = metadata.is_file();
         let file_type = metadata.file_type();
         let is_symlink = file_type.is_symlink();
-        let new_relative_path = relative_path.join(&entry_name_os);
 
         if let Some(reason) = should_skip_entry(entry_name.as_ref(), &file_type, ignore_patterns) {
             match reason {
@@ -86,6 +85,8 @@ pub fn collect_fs_entries_data(
             handle_folder_entry(&entry_name_os, relative_path, metadata, config, fs_entries);
 
             if config.recursive {
+                let new_relative_path = relative_path.join(&entry_name_os);
+
                 collect_fs_entries_data(
                     base_path,
                     new_relative_path.as_path(),

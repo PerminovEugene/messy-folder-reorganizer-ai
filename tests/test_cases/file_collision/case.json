@@ -1,30 +1,22 @@
 {
   "source": {
-    "folder": "messy-folder",
-    "files": [
-      {
-        "path": "Downloads/doc.docx"
+    "messy-folder": {
+      "Downloads": {
+        "files": ["doc.docx"]
       }
-    ]
+    }
   },
   "destination": {
-    "folder": "home",
-    "structure": ["documents/"],
-    "existing_files": [
-      "documents/doc.docx",
-      "documents/doc (1).docx",
-      "documents/doc (2).docx"
-    ]
+    "home": {
+      "documents": {
+        "files": ["doc.docx", "doc (1).docx", "doc (2).docx"]
+      }
+    }
   },
   "expected": {
-    "structure": {
-      "home": {
-        "documents": [
-          "doc.docx",
-          "doc (1).docx",
-          "doc (2).docx",
-          "doc (3).docx"
-        ]
+    "home": {
+      "documents": {
+        "files": ["doc.docx", "doc (1).docx", "doc (2).docx", "doc (3).docx"]
       }
     }
   }

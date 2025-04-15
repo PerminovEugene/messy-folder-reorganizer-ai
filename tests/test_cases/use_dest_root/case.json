@@ -1,0 +1,17 @@
+{
+  "source": {
+    "messy-folder": {
+      "files": ["harry-potter.mpeg4", "blade-runner.blueray"]
+    }
+  },
+  "destination": {
+    "epic-movies": {
+      "files": []
+    }
+  },
+  "expected": {
+    "epic-movies": {
+      "files": ["harry-potter.mpeg4", "blade-runner.blueray"]
+    }
+  }
+}

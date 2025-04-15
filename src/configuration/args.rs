@@ -13,10 +13,10 @@ pub enum Commands {
     Process(ProcessArgs),
 
     /// Applies the last saved migration plan
-    Apply {},
+    Apply(ApplyArgs),
 
     /// Rolls back the last migration using logs
-    Rollback {},
+    Rollback(RollbackArgs),
 }
 
 #[derive(ClapArgs, Debug)]
@@ -57,9 +57,29 @@ pub struct ProcessArgs {
     )]
     pub continue_on_fs_errors: bool,
 
-    #[arg(long = "llm-address", short = 'n', default_value_t = String::from("http://localhost:11434/"), help = "LLM server address")]
+    #[arg(long = "llm-address", short = 'n', default_value_t = String::from("http://localhost:11434"), help = "LLM server address")]
     pub ai_server_address: String,
 
-    #[arg(long = "qdrant-address", short = 'q', default_value_t = String::from("http://localhost:6334/"), help = "Qdrant server address")]
+    #[arg(long = "qdrant-address", short = 'q', default_value_t = String::from("http://localhost:6334"), help = "Qdrant server address")]
     pub qdrant_server_address: String,
+}
+
+#[derive(ClapArgs, Debug)]
+pub struct RollbackArgs {
+    #[arg(
+        long = "session-id",
+        short = 'i',
+        help = "Process command session id which migrations should be rolled back"
+    )]
+    pub session_id: String,
+}
+
+#[derive(ClapArgs, Debug)]
+pub struct ApplyArgs {
+    #[arg(
+        long = "session-id",
+        short = 'i',
+        help = "Process command session id which migrations should be applied"
+    )]
+    pub session_id: String,
 }

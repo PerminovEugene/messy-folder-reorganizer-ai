@@ -1,6 +1,7 @@
 use std::env;
 use std::path::PathBuf;
 
+/// Returns absolute path to home folder
 pub fn get_home_path() -> PathBuf {
     env::var("HOME")
         .map(PathBuf::from)

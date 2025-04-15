@@ -38,7 +38,8 @@ pub fn handle_folder_entry(
 
         let file_name = file_name_os.to_string_lossy().to_string();
 
-        let file_info = build_fs_entry(file_name, relative_path, metadata, false);
+        let rp = relative_path.join(&file_name);
+        let file_info = build_fs_entry(file_name, rp.as_path(), metadata, false);
         files_data.push(file_info);
         print_done_to_same_string();
     }

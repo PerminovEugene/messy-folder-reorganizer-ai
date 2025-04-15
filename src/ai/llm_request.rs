@@ -60,7 +60,7 @@ pub async fn generate_ai_answer(
     let mut thinking_is_over = false;
 
     let mut endpoint = ai_server_address.clone();
-    endpoint.push_str("api/generate");
+    endpoint.push_str("/api/generate");
 
     let response = client
         .post(endpoint)

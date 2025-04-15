@@ -23,6 +23,24 @@ Goal: Reach version 1.0.0 with a stable, user-friendly, and powerful AI-driven f
 
 ---
 
+### Tech decisions
+
+#### Cleaning command
+
+- Add command for cleaning collections? Currently there is a problem - for supporting multifolder processing - each collection keeps path segments, and isn't resetting before/after launching process. May be we need to remember new entities IDS and clean them up after CLI has finished
+
+#### Migrations
+
+- Each cli process command creates session_id. It's added to qdrant records, migration plan.
+  If dirty flag is not provided then db session entities should stay, otherwise they should be deleted after process. Revert and apply now will expect migration plan file name.
+  Some additional info about migrations should be saved for better UX. Currently Session ID is shown in logs and should be used for rollback and apply
+
+#### Symlinks review:
+
+- Symlinks become broken if file was moved, even if symlinks are in source dir they will be ignored and not updated by CLI. OS doesn't provide symlinks tracking for files, so it's on USER shoulders to support them, currently CLI shouldn't scan entire FS to track and update symlinks.
+
+---
+
 ## Version 0.4.0 – One-Button Setup (Beginner Friendly)
 
 - [ ] Add automatic installation script for:

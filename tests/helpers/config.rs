@@ -1,32 +1,18 @@
-use serde::Deserialize;
 use std::collections::HashMap;
 
-#[derive(Debug, Deserialize)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TestCase {
-    pub source: Source,
-    pub destination: Destination,
-    pub expected: Expected,
+    pub source: HashMap<String, FolderEntry>,
+    pub destination: HashMap<String, FolderEntry>,
+    pub expected: HashMap<String, FolderEntry>,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct Source {
-    pub folder: String,
-    pub files: Vec<FilePath>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Destination {
-    pub folder: String,
-    pub structure: Vec<String>,
-    pub existing_files: Vec<String>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Expected {
-    pub structure: HashMap<String, HashMap<String, Vec<String>>>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct FilePath {
-    pub path: String,
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum FolderEntry {
+    Folder(HashMap<String, FolderEntry>),
+    FileList(Vec<String>),
+    SymlinkTarget(HashMap<String, String>),
 }

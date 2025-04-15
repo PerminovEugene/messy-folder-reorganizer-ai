@@ -13,7 +13,7 @@ use crate::configuration::embedded_assets::{
 use crate::console::messages::print_generate_config_file;
 use crate::fs::path::get_home_path;
 
-use super::consts::MIGRATIONS_LOG_FILE;
+use super::consts::{MIGRATIONS_FOLDER, MIGRATIONS_LOG_FILE};
 
 /*
   Initializes the application configuration by creating:
@@ -58,6 +58,10 @@ pub fn get_app_config_folder() -> PathBuf {
     get_home_path().join(CONFIGURATION_FOLDER)
 }
 
+pub fn get_app_migrations_folder() -> PathBuf {
+    get_app_config_folder().join(MIGRATIONS_FOLDER)
+}
+
 pub fn get_config_file_path(file_name: &str) -> PathBuf {
     get_app_config_folder().join(file_name)
 }
@@ -87,12 +91,16 @@ fn create_application_file_if_missing(config_file_path: &Path, embedded_content:
     }
 }
 
-pub fn rewrite_app_system_file(file_name: &str, files_data: String) {
-    let path = get_app_config_folder().join(file_name);
-
+pub fn rewrite_app_system_path(path: &Path, files_data: String) {
+    if let Some(parent) = path.parent() {
+        if let Err(err) = fs::create_dir_all(parent) {
+            println!("Error creating directories for {:?}: {:?}", path, err);
+            return;
+        }
+    }
     if path.exists() {
-        if let Err(err) = fs::remove_file(&path) {
-            println!("Error deleting old {file_name} file: {:?}", err);
+        if let Err(err) = fs::remove_file(path) {
+            println!("Error deleting old {:?} file: {:?}", path, err);
             return;
         }
     }
@@ -100,7 +108,7 @@ pub fn rewrite_app_system_file(file_name: &str, files_data: String) {
     match File::create(path) {
         Ok(mut file) => {
             if let Err(err) = file.write_all(files_data.as_bytes()) {
-                println!("Error writing to {file_name}: {:?}", err);
+                println!("Error writing to {:?}: {:?}", path, err);
             }
         }
         Err(err) => println!("Error creating file: {:?}", err),

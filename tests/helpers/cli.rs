@@ -28,7 +28,6 @@ pub fn run_reorganization(
         "-F",
         "-R",
     ];
-    println!("--->");
 
     let binary_path = "./target/debug/messy-folder-reorganizer-ai";
     run_command_realtime(binary_path, &args, mode)
@@ -52,8 +51,6 @@ fn setup_command_and_logging(
     let (stdout, stderr, log_file): (Stdio, Stdio, Option<File>) = match output {
         OutputMode::ToConsole => (Stdio::piped(), Stdio::piped(), None),
         OutputMode::ToFile(path) => {
-            println!("path {:?}", path);
-
             let file = OpenOptions::new()
                 .read(true)
                 .write(true)
@@ -61,14 +58,10 @@ fn setup_command_and_logging(
                 .truncate(true)
                 .open(path)?;
             let file_for_stderr = file.try_clone()?; // for separate use in stderr thread
-            println!("path {:?}", path);
-
             (Stdio::piped(), Stdio::from(file_for_stderr), Some(file))
         }
         OutputMode::Silent => (Stdio::null(), Stdio::null(), None),
     };
-
-    println!("command {:?}", command);
 
     command.stdout(stdout).stderr(stderr);
     Ok((command, log_file))
@@ -111,10 +104,7 @@ pub fn run_command_realtime(
     args: &[&str],
     output: OutputMode,
 ) -> std::io::Result<()> {
-    println!("args: {}", args.join(" "));
-
     let (mut command, log_file) = setup_command_and_logging(program, args, &output)?;
-    println!("a>> ");
 
     assert!(
         std::path::Path::new("./target/debug/messy-folder-reorganizer-ai").exists(),
@@ -161,7 +151,10 @@ pub fn run_command_realtime(
     }
 
     if !status.success() {
-        eprintln!("Command exited with status: {}", status);
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("CLI execution exited with status: {}", status),
+        ));
     }
 
     Ok(())
