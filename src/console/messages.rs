@@ -119,7 +119,7 @@ pub fn print_file_renamed(old_name: &String, new_name: String) {
 }
 
 pub fn print_session_id(session_id: &String) {
-    println!("{} {}", "✏️ Session id:".green(), session_id,);
+    println!("{} {}", "✏️ Session id:".green(), session_id); // if you change it don't forget update integration test - cli.rs file session_id capture
 }
 
 pub fn print_starting_rollack(time: String) {

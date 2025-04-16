@@ -1,9 +1,12 @@
-use std::{fs, path::PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 use test_case::test_case;
 
 use helpers::{
-    check::check_expected_structure,
-    cli::{run_reorganization, OutputMode},
+    check::assert_fs_structure,
+    cli::{run_apply, run_reorganization, run_rollback, OutputMode},
     config::TestCase,
     prepare_fs::create_test_folders,
 };
@@ -11,11 +14,15 @@ use helpers::{
 mod helpers;
 
 // #[test_case("clustering")]
-#[test_case("file_collision")]
-#[test_case("with_ignored_items")]
-#[test_case("use_dest_root")]
-#[test_case("symlinks")]
+// #[test_case("deep_folders_structure")]
 #[test_case("embedding_only")]
+// #[test_case("embedding_partial")]
+// #[test_case("failed_migration")]
+#[test_case("file_collision")]
+// #[test_case("llm_only")]
+#[test_case("symlinks")]
+#[test_case("use_dest_root")]
+#[test_case("with_ignored_items")]
 
 fn integration_cli_file_organizer(case_folder: &str) -> Result<(), String> {
     let base_path_to_cases = "tests/test_cases";
@@ -37,21 +44,39 @@ fn integration_cli_file_organizer(case_folder: &str) -> Result<(), String> {
     let destination_path = &path_to_case.join(destination_root_folder_name);
     let destination = destination_path.to_str().unwrap();
 
-    let log_file_path = path_to_case.join("test_case.log");
-    let mode = OutputMode::ToFile(log_file_path.to_string_lossy().to_string());
+    let mode = setup_log_mode(&path_to_case, "process.log");
+    // process
 
-    run_reorganization(
+    let session_id = run_reorganization(
         source,
         destination,
         "mxbai-embed-large",
         "deepseek-r1:latest",
         "http://localhost:11434",
         "http://localhost:6334",
-        mode,
+        &mode,
     )
-    .expect("CLI process failed");
+    .expect("CLI process failed")
+    .expect("Session ID not captured");
 
-    check_expected_structure(&test_case, &path_to_case)?;
+    assert_fs_structure(&test_case, &path_to_case, "expected")?;
+
+    // rolback
+
+    let mode = setup_log_mode(&path_to_case, "rollback.log");
+    run_rollback(&mode, &session_id).expect("CLI rollback failed");
+    assert_fs_structure(&test_case, &path_to_case, "source")?;
+
+    // apply
+
+    let mode = setup_log_mode(&path_to_case, "apply.log");
+    run_apply(&mode, &session_id).expect("CLI apply failed");
+    assert_fs_structure(&test_case, &path_to_case, "expected")?;
 
     Ok(())
+}
+
+fn setup_log_mode(path: &Path, log_file_name: &str) -> OutputMode {
+    let log_file_path = path.join(log_file_name);
+    OutputMode::ToFile(log_file_path.to_string_lossy().to_string())
 }

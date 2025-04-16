@@ -1,6 +1,7 @@
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
+use std::sync::mpsc;
 
 pub fn run_reorganization(
     source: &str,
@@ -9,8 +10,8 @@ pub fn run_reorganization(
     llm_model_name: &str,
     llm_address: &str,
     qdrant_address: &str,
-    mode: OutputMode,
-) -> std::io::Result<()> {
+    mode: &OutputMode,
+) -> std::io::Result<Option<String>> {
     let args = [
         "process",
         "--source",
@@ -29,9 +30,22 @@ pub fn run_reorganization(
         "-R",
     ];
 
-    let binary_path = "./target/debug/messy-folder-reorganizer-ai";
-    run_command_realtime(binary_path, &args, mode)
+    run_command_realtime(PATH_TO_BINARY, &args, mode)
 }
+
+pub fn run_rollback(mode: &OutputMode, session_id: &str) -> std::io::Result<Option<String>> {
+    let args = ["rollback", "-i", session_id];
+
+    run_command_realtime(PATH_TO_BINARY, &args, mode)
+}
+
+pub fn run_apply(mode: &OutputMode, session_id: &str) -> std::io::Result<Option<String>> {
+    let args = ["apply", "-i", session_id];
+
+    run_command_realtime(PATH_TO_BINARY, &args, mode)
+}
+
+const PATH_TO_BINARY: &str = "./target/debug/messy-folder-reorganizer-ai";
 
 pub enum OutputMode {
     ToConsole,
@@ -71,12 +85,22 @@ fn spawn_output_thread<R: std::io::Read + Send + 'static>(
     stream: R,
     label: &'static str,
     mut output: OutputTarget,
+    session_tx: Option<mpsc::Sender<String>>,
 ) -> std::thread::JoinHandle<()> {
     std::thread::spawn(move || {
         let reader = BufReader::new(stream);
         for line in reader.lines().map_while(Result::ok) {
             let msg = format!("[{}] {}\n", label, line);
             output.write(&msg);
+
+            if let Some(tx) = &session_tx {
+                if line.contains("Session id: ") {
+                    if let Some(id) = line.split("Session id: ").nth(1) {
+                        // string should be sa,e as in messages.rs
+                        tx.send(id.trim().to_string()).ok();
+                    }
+                }
+            }
         }
     })
 }
@@ -102,18 +126,21 @@ impl OutputTarget {
 pub fn run_command_realtime(
     program: &str,
     args: &[&str],
-    output: OutputMode,
-) -> std::io::Result<()> {
-    let (mut command, log_file) = setup_command_and_logging(program, args, &output)?;
+    output: &OutputMode,
+) -> std::io::Result<Option<String>> {
+    let (mut command, log_file) = setup_command_and_logging(program, args, output)?;
 
     assert!(
         std::path::Path::new("./target/debug/messy-folder-reorganizer-ai").exists(),
         "Binary not built. Run `cargo build` first."
     );
+
     let mut child = command.spawn()?;
 
     let mut stdout_thread = None;
     let mut stderr_thread = None;
+
+    let (session_tx, session_rx) = mpsc::channel();
 
     if let Some(stdout) = child.stdout.take() {
         let log_for_stdout = match &output {
@@ -127,17 +154,22 @@ pub fn run_command_realtime(
             None => OutputTarget::ConsoleStdout,
         };
 
-        stdout_thread = Some(spawn_output_thread(stdout, "stdout", target));
+        stdout_thread = Some(spawn_output_thread(
+            stdout,
+            "stdout",
+            target,
+            Some(session_tx),
+        ));
     }
 
     if let Some(stderr) = child.stderr.take() {
         let target = match &output {
             OutputMode::ToFile(_) => OutputTarget::File(log_file.unwrap()),
             OutputMode::ToConsole => OutputTarget::ConsoleStderr,
-            OutputMode::Silent => OutputTarget::ConsoleStderr, // you can ignore this too
+            OutputMode::Silent => OutputTarget::ConsoleStderr,
         };
 
-        stderr_thread = Some(spawn_output_thread(stderr, "stderr", target));
+        stderr_thread = Some(spawn_output_thread(stderr, "stderr", target, None));
     }
 
     let status = child.wait()?;
@@ -157,5 +189,6 @@ pub fn run_command_realtime(
         ));
     }
 
-    Ok(())
+    let session_id = session_rx.try_recv().ok();
+    Ok(session_id)
 }

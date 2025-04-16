@@ -23,7 +23,10 @@
   "expected": {
     "home": {
       "documents": {
-        "files": ["doc.docx", "target.txt", "doc2.docx", "symlink-to-doc2.docx"]
+        "files": ["doc.docx", "target.txt", "doc2.docx"],
+        "symlinks": {
+          "symlink-to-doc2.docx": "doc2.docx"
+        }
       }
     }
   }
