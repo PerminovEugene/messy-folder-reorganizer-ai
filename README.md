@@ -296,6 +296,26 @@ If you break or delete any config/prompt files, simply re-run the app — missin
    cargo +nightly udeps
    ```
 
+### Running tests:
+
+To run all tests
+
+```sh
+cargo test
+```
+
+To run integration tests
+
+```sh
+cargo test --test '*' -- --nocapture
+```
+
+To run specific integration test (file_collision for example)
+
+```sh
+cargo test file_collision -- --nocapture
+```
+
 ## Uninstall & Purge
 
 ```sh

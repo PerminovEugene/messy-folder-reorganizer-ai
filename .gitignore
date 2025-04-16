@@ -3,4 +3,7 @@
 .qdrant-initialized
 /qdrant_storage
 /tests/test_cases/*/*/
+/tests/test_cases/*/process.log
+/tests/test_cases/*/rollback.log
+/tests/test_cases/*/apply.log
 /tests/test_cases/*/test_case.log

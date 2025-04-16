@@ -44,7 +44,7 @@ fn integration_cli_file_organizer(case_folder: &str) -> Result<(), String> {
     let destination_path = &path_to_case.join(destination_root_folder_name);
     let destination = destination_path.to_str().unwrap();
 
-    let mode = setup_log_mode(&path_to_case, "process.log");
+    let mode = setup_output_mode(&path_to_case, "process.log");
     // process
 
     let session_id = run_reorganization(
@@ -63,20 +63,20 @@ fn integration_cli_file_organizer(case_folder: &str) -> Result<(), String> {
 
     // rolback
 
-    let mode = setup_log_mode(&path_to_case, "rollback.log");
+    let mode = setup_output_mode(&path_to_case, "rollback.log");
     run_rollback(&mode, &session_id).expect("CLI rollback failed");
     assert_fs_structure(&test_case, &path_to_case, "source")?;
 
     // apply
 
-    let mode = setup_log_mode(&path_to_case, "apply.log");
+    let mode = setup_output_mode(&path_to_case, "apply.log");
     run_apply(&mode, &session_id).expect("CLI apply failed");
     assert_fs_structure(&test_case, &path_to_case, "expected")?;
 
     Ok(())
 }
 
-fn setup_log_mode(path: &Path, log_file_name: &str) -> OutputMode {
+fn setup_output_mode(path: &Path, log_file_name: &str) -> OutputMode {
     let log_file_path = path.join(log_file_name);
     OutputMode::ToFile(log_file_path.to_string_lossy().to_string())
 }

@@ -48,9 +48,7 @@ pub fn run_apply(mode: &OutputMode, session_id: &str) -> std::io::Result<Option<
 const PATH_TO_BINARY: &str = "./target/debug/messy-folder-reorganizer-ai";
 
 pub enum OutputMode {
-    ToConsole,
-    ToFile(String),
-    Silent,
+    ToFile(String), // we always need to log to file for capturing session_id from logs
 }
 
 fn setup_command_and_logging(
@@ -63,7 +61,6 @@ fn setup_command_and_logging(
     command.env("RUST_BACKTRACE", "1");
 
     let (stdout, stderr, log_file): (Stdio, Stdio, Option<File>) = match output {
-        OutputMode::ToConsole => (Stdio::piped(), Stdio::piped(), None),
         OutputMode::ToFile(path) => {
             let file = OpenOptions::new()
                 .read(true)
@@ -74,7 +71,6 @@ fn setup_command_and_logging(
             let file_for_stderr = file.try_clone()?; // for separate use in stderr thread
             (Stdio::piped(), Stdio::from(file_for_stderr), Some(file))
         }
-        OutputMode::Silent => (Stdio::null(), Stdio::null(), None),
     };
 
     command.stdout(stdout).stderr(stderr);
@@ -107,7 +103,6 @@ fn spawn_output_thread<R: std::io::Read + Send + 'static>(
 
 enum OutputTarget {
     ConsoleStdout,
-    ConsoleStderr,
     File(File),
 }
 
@@ -115,7 +110,6 @@ impl OutputTarget {
     fn write(&mut self, line: &str) {
         match self {
             OutputTarget::ConsoleStdout => print!("{}", line),
-            OutputTarget::ConsoleStderr => eprint!("{}", line),
             OutputTarget::File(file) => {
                 let _ = file.write_all(line.as_bytes());
             }
@@ -145,8 +139,6 @@ pub fn run_command_realtime(
     if let Some(stdout) = child.stdout.take() {
         let log_for_stdout = match &output {
             OutputMode::ToFile(_) => Some(log_file.as_ref().unwrap().try_clone()?),
-            OutputMode::ToConsole => None,
-            OutputMode::Silent => None,
         };
 
         let target = match log_for_stdout {
@@ -165,8 +157,6 @@ pub fn run_command_realtime(
     if let Some(stderr) = child.stderr.take() {
         let target = match &output {
             OutputMode::ToFile(_) => OutputTarget::File(log_file.unwrap()),
-            OutputMode::ToConsole => OutputTarget::ConsoleStderr,
-            OutputMode::Silent => OutputTarget::ConsoleStderr,
         };
 
         stderr_thread = Some(spawn_output_thread(stderr, "stderr", target, None));
