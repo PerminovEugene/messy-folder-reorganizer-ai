@@ -2,24 +2,14 @@ use std::env;
 
 use clap::Parser;
 
-mod ai;
-mod app_core;
-mod commands;
-mod configuration;
-mod console;
-mod db;
-mod errors;
-mod fs;
-mod ml;
-
-use commands::apply::apply_latest_migration_plan;
-use commands::process::run_process;
-use commands::rollback::start_rollback;
-use configuration::args::{Args, Commands};
-use configuration::init::init;
-use console::messages::print_initial_message;
-use errors::app_error::AppError;
-use errors::app_error_handler::handle;
+use messy_folder_reorganizer_ai::commands::apply::apply_latest_migration_plan;
+use messy_folder_reorganizer_ai::commands::process::run_process;
+use messy_folder_reorganizer_ai::commands::rollback::start_rollback;
+use messy_folder_reorganizer_ai::configuration::args::{Args, Commands};
+use messy_folder_reorganizer_ai::configuration::init::init;
+use messy_folder_reorganizer_ai::console::messages::print_initial_message;
+use messy_folder_reorganizer_ai::errors::app_error::AppError;
+use messy_folder_reorganizer_ai::errors::app_error_handler::handle;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 

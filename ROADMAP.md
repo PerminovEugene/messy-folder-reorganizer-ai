@@ -13,13 +13,28 @@ Goal: Reach version 1.0.0 with a stable, user-friendly, and powerful AI-driven f
 - [x] Replace all `unwrap()`s with proper error handling using `Result` and custom error types
 - [x] Improve error messages to be more informative and user-friendly
 - [x] Handle filename collisions (e.g., `file (1).txt`)
-- [x] Add rollback system via `plan.json` (reverse plan executor)
-- [ ] Add unit and integration tests for:
-  - Files parsing
-  - File clustering logic
-  - Plan generation
-  - File movement
+- [x] Add rollback system via `migrations` (reverse plan executor)
+- [>] Add unit and integration tests for:
+  - [x] Files parsing
+  - [-] File clustering logic
+  - [x] Plan generation
+  - [x] File movement
+  - [x] Embeddings usage
+  - [-] Generation usage
+  - [x] Process command
+  - [x] Rollback command
+  - [x] Apply command
 - [x] Check what's up with symlinks
+- [x] Add customizable path ENV for system folder
+
+---
+
+### TECH DEBT :(
+
+- CI/CD with real Ollama/Qdrant
+- Testing folder name generation
+- Some tests were not migratied
+- Migrate to nextest test runner
 
 ---
 
@@ -41,6 +56,20 @@ Goal: Reach version 1.0.0 with a stable, user-friendly, and powerful AI-driven f
 
 ---
 
+## Version 0.4.0 – Embedding Improvements
+
+- [ ] Add support for embedding file contents (text-based only)
+- [ ] Add embeddings context configuration
+- [ ] Optimize LLM folder naming generation:
+  - Use prompt templates that skip reasoning
+  - Limit max tokens
+  - Lower temperature
+  - Trim output to first line
+  - Set better default request parameters
+- [ ] Use GPU if available, speed up answers (stream no, etc)
+
+---
+
 ## Version 0.4.0 – One-Button Setup (Beginner Friendly)
 
 - [ ] Add automatic installation script for:
@@ -56,25 +85,12 @@ Goal: Reach version 1.0.0 with a stable, user-friendly, and powerful AI-driven f
 
 ---
 
-## Version 0.5.0 – Embedding Improvements
-
-- [ ] Add support for embedding file contents (text-based only)
-- [ ] Add embeddings context configuration
-- [ ] Optimize LLM folder naming generation:
-  - Use prompt templates that skip reasoning
-  - Limit max tokens
-  - Lower temperature
-  - Trim output to first line
-  - Set better default request parameters
-
----
-
 ## Version 0.6.0 – UX & CLI Enhancements
 
-- [ ] Add logging and verbose mode
+- [ ] Add cleaning command
 - [ ] Improve CLI UX:
-  - Display cluster structure as tree
-  - Better formatting and readability
+  - Display fs structure as tree
+  - Show migrations files details (date, command, status)
 - [ ] Support images parsing for abstract file names:
   - Detect images with unclear names (e.g. `IMG_1234.jpg`)
   - Use folder/cluster context to guess semantic meaning

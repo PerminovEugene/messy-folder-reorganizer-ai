@@ -1,5 +1,5 @@
 [package]
-name = "messy-folder-reorganizer-ai"
+name = "messy_folder_reorganizer_ai"
 version = "0.2.1"
 edition = "2021"
 authors = ["Eugene Perminov <perminov.eugene@gmail.com>"]
@@ -8,7 +8,7 @@ repository = "https://github.com/PerminovEugene/messy-folder-reorganizer-ai"
 homepage = "https://github.com/PerminovEugene/messy-folder-reorganizer-ai"
 description = "An AI-powered tool to organize messy folders intelligently."
 readme = "README.md"
-keywords = ["AI", "file-organization", "automation", "cli", "Rust", "Ollama", "Qdrant", "RAG", "ML"]
+keywords = ["AI", "file-organization", "automation", "CLI", "Rust", "Ollama", "Qdrant", "RAG", "ML"]
 categories = ["command-line-utilities", "artificial-intelligence"]
 rust-version = "1.84"
 include = [
@@ -41,4 +41,3 @@ assert_cmd = "2.0.16"
 predicates = "3.1.3"
 testcontainers = "0.23.3"
 test-case = "3.3.1"
-# testcontainers = { version = "^0.23.3", features = ["generic", "tokio"] }

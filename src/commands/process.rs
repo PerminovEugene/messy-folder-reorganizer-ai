@@ -18,6 +18,8 @@ pub async fn run_process(args: ProcessArgs) -> Result<(), AppError> {
     let session_id = Uuid::new_v4().to_string();
     print_session_id(&session_id);
 
+    println!("{:?}", embeddings_config);
+
     index_destinations(&embeddings_config, &rag_ml_config, &args, &session_id).await?;
     let mut process_result =
         process_sources(&embeddings_config, &rag_ml_config, &args, &session_id).await?;

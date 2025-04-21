@@ -3,7 +3,7 @@ use std::io::Result;
 use std::os::unix::fs::symlink;
 use std::path::Path;
 
-use super::config::{FolderEntry, TestCase};
+use super::test_case::{FolderEntry, TestCase};
 
 fn reset_dir(path: &Path) -> Result<()> {
     if path.exists() {

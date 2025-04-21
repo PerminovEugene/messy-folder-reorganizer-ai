@@ -1,3 +1,6 @@
+/// env variable with path where to .messy-folder-reorganizer-ai folder
+pub const MESSY_FOLDER_REORGANIZER_AI_PATH: &str = "MESSY_FOLDER_REORGANIZER_AI_PATH";
+
 pub const CONFIGURATION_FOLDER: &str = ".messy-folder-reorganizer-ai";
 
 pub const EMBEDDINGS_GENERATION_CONFIGURATION_FILE: &str = "embeddings_config.toml";

@@ -14,7 +14,7 @@ pub async fn get_embeddings(
 ) -> Result<Vec<Vec<f32>>, AppError> {
     let client = Client::new();
 
-    let options = OllamaOptions {
+    let options: OllamaOptions = OllamaOptions {
         mirostat: config.mirostat,
         mirostat_tau: config.mirostat_tau,
         mirostat_eta: config.mirostat_eta,
@@ -42,7 +42,6 @@ pub async fn get_embeddings(
     let mut vectors: Vec<Vec<f32>> = vec![];
 
     let result = client.post(endpoint).json(&request_body).send().await;
-
     match result {
         Ok(response) => {
             let parsed: Result<OllamaEmbedResponse, _> = response.json().await;
@@ -53,7 +52,7 @@ pub async fn get_embeddings(
                 }
                 Err(e) => Err(AppError::OllamaResponseParse(format!(
                     "JSON parsing error: {}",
-                    e
+                    e,
                 ))),
             }
         }

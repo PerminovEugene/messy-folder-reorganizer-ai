@@ -8,6 +8,10 @@ pub fn handle(e: AppError) {
             print_app_error("Ollama Error", e);
             std::process::exit(1);
         }
+        AppError::OllamaResponseParse(_) => {
+            print_app_error("Ollama Response Error", e);
+            std::process::exit(1);
+        }
         AppError::QdrantClient(_) => {
             print_app_error("Qdrant Error", e);
             std::process::exit(1);

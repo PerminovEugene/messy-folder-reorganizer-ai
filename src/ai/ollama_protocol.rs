@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 // model configuration params https://github.com/ollama/ollama/blob/main/docs/api.md
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct OllamaOptions {
     #[serde(skip_serializing_if = "Option::is_none")] // Top-k sampling value
     pub mirostat: Option<u8>, // 0 = disabled, 1 = Mirostat, 2 = Mirostat 2.0
@@ -51,7 +51,7 @@ pub struct OllamaGenerateRequest<'a> {
     pub options: &'a OllamaOptions,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct OllamaEmbedRequest<'a> {
     pub model: String,
     pub input: &'a Vec<String>,

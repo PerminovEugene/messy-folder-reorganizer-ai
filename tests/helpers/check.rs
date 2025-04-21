@@ -1,8 +1,8 @@
 use std::{collections::HashMap, fs, path::Path};
 
-use crate::helpers::config::FolderEntry;
+use crate::helpers::test_case::FolderEntry;
 
-use super::config::TestCase;
+use super::test_case::TestCase;
 
 pub fn assert_fs_structure(
     test: &TestCase,

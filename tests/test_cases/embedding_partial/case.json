@@ -1,0 +1,50 @@
+{
+  "source": {
+    "messy-folder": {
+      "files": [
+        "harry-potter.mpeg4",
+        "lord-of-the-rings.mp4",
+        "jungle_book.epub",
+        "short-history-of-time.epub",
+        "invoice_from_google.pdf",
+        "police_report.docx",
+        "meme.png",
+        "funny-cat.jpg",
+        "crack.exe",
+        "database-admin.pkg"
+      ]
+    }
+  },
+  "destination": {
+    "home": {
+      "docs": {
+        "files": []
+      },
+      "images": {
+        "files": []
+      },
+      "programs": {
+        "files": []
+      }
+    }
+  },
+  "expected": {
+    "home": {
+      "movies": {
+        "files": ["harry-potter.mpeg4", "lord-of-the-rings.mp4"]
+      },
+      "books": {
+        "files": ["jungle_book.epub", "short-history-of-time.epub"]
+      },
+      "docs": {
+        "files": ["invoice_from_google.pdf", "police_report.docx"]
+      },
+      "images": {
+        "files": ["meme.png", "funny-cat.jpg"]
+      },
+      "programs": {
+        "files": ["crack.exe", "database-admin.pkg"]
+      }
+    }
+  }
+}

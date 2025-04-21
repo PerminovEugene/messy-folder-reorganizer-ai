@@ -3,7 +3,10 @@ use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
 
+use messy_folder_reorganizer_ai::configuration::consts::MESSY_FOLDER_REORGANIZER_AI_PATH;
+
 pub fn run_reorganization(
+    path_to_app_folder: &str,
     source: &str,
     destination: &str,
     embeddings_model_name: &str,
@@ -30,35 +33,44 @@ pub fn run_reorganization(
         "-R",
     ];
 
-    run_command_realtime(PATH_TO_BINARY, &args, mode)
+    run_command_realtime(path_to_app_folder, PATH_TO_BINARY, &args, mode)
 }
 
-pub fn run_rollback(mode: &OutputMode, session_id: &str) -> std::io::Result<Option<String>> {
+pub fn run_rollback(
+    path_to_app_folder: &str,
+    mode: &OutputMode,
+    session_id: &str,
+) -> std::io::Result<Option<String>> {
     let args = ["rollback", "-i", session_id];
-
-    run_command_realtime(PATH_TO_BINARY, &args, mode)
+    run_command_realtime(path_to_app_folder, PATH_TO_BINARY, &args, mode)
 }
 
-pub fn run_apply(mode: &OutputMode, session_id: &str) -> std::io::Result<Option<String>> {
+pub fn run_apply(
+    path_to_app_folder: &str,
+    mode: &OutputMode,
+    session_id: &str,
+) -> std::io::Result<Option<String>> {
     let args = ["apply", "-i", session_id];
-
-    run_command_realtime(PATH_TO_BINARY, &args, mode)
+    run_command_realtime(path_to_app_folder, PATH_TO_BINARY, &args, mode)
 }
 
-const PATH_TO_BINARY: &str = "./target/debug/messy-folder-reorganizer-ai";
+const PATH_TO_BINARY: &str = "./target/debug/messy_folder_reorganizer_ai";
 
 pub enum OutputMode {
     ToFile(String), // we always need to log to file for capturing session_id from logs
 }
 
 fn setup_command_and_logging(
+    path_to_app_folder: &str,
     program: &str,
     args: &[&str],
     output: &OutputMode,
 ) -> std::io::Result<(Command, Option<File>)> {
     let mut command = Command::new(program);
     command.args(args);
-    command.env("RUST_BACKTRACE", "1");
+    command
+        .env("RUST_BACKTRACE", "1")
+        .env(MESSY_FOLDER_REORGANIZER_AI_PATH, path_to_app_folder);
 
     let (stdout, stderr, log_file): (Stdio, Stdio, Option<File>) = match output {
         OutputMode::ToFile(path) => {
@@ -118,14 +130,16 @@ impl OutputTarget {
 }
 
 pub fn run_command_realtime(
+    path_to_app_folder: &str,
     program: &str,
     args: &[&str],
     output: &OutputMode,
 ) -> std::io::Result<Option<String>> {
-    let (mut command, log_file) = setup_command_and_logging(program, args, output)?;
+    let (mut command, log_file) =
+        setup_command_and_logging(path_to_app_folder, program, args, output)?;
 
     assert!(
-        std::path::Path::new("./target/debug/messy-folder-reorganizer-ai").exists(),
+        std::path::Path::new(PATH_TO_BINARY).exists(),
         "Binary not built. Run `cargo build` first."
     );
 

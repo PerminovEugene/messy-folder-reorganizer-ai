@@ -1,4 +1,5 @@
-[![codecov](https://codecov.io/gh/PerminovEugene/messy-folder-reorganizer-ai/branch/main/graph/badge.svg)](https://codecov.io/gh/PerminovEugene/messy-folder-reorganizer-ai)
+<!-- [![codecov](https://codecov.io/gh/PerminovEugene/messy-folder-reorganizer-ai/branch/main/graph/badge.svg)](https://codecov.io/gh/PerminovEugene/messy-folder-reorganizer-ai) -->
+
 ![Build](https://img.shields.io/github/actions/workflow/status/PerminovEugene/messy-folder-reorganizer-ai/ci.yml?branch=main)
 ![License](https://img.shields.io/github/license/PerminovEugene/messy-folder-reorganizer-ai)
 ![Language](https://img.shields.io/github/languages/top/PerminovEugene/messy-folder-reorganizer-ai)
@@ -190,50 +191,71 @@ For the case if after files migrations you are changed your mind and want to ret
      -D ./test_cases/clustering/structured-folder
    ```
 
-4. Playground
-
-You can test different cases using the `test_cases` folder.
-If you applied reorganization to `strucutred-folder` or `dest` folders - simply run `bash generate.sh` script to return it to the initial state. The flow will be improved in next releases with rollback feature
-
-- Example:
-
-```sh
-cargo run -- -E mxbai-embed-large -L deepseek-r1:latest -S ./test_cases/clustering/messy-folder -D ./test_cases/clustering/structured-folder
-```
-
 ## Usage
 
 ### Run the App
 
 ```sh
-messy-folder-reorganizer-ai \
+messy-folder-reorganizer-ai process \
   -E <EMBEDDING_MODEL_NAME> \
   -L <LLM_MODEL_NAME> \
   -S <SOURCE_FOLDER_PATH> \
   -D <DESTINATION_FOLDER_PATH>
 ```
 
-#### `process` Subcommand
+```sh
+messy-folder-reorganizer-ai apply \
+  -i <SESSION_ID>
+```
 
-| Flag                      | Short | Default                   | Description                                                                                  |
-| ------------------------- | ----- | ------------------------- | -------------------------------------------------------------------------------------------- |
-| `--language-model`        | `-L`  | _required_                | Language model name loaded in Ollama for folder name generation.                             |
-| `--embedding-model`       | `-E`  | _required_                | Embedding model name used for generating file and folder embeddings.                         |
-| `--source`                | `-S`  | _required_                | Path to the folder with files to organize.                                                   |
-| `--destination`           | `-D`  | `home`                    | Path for the organized output. Defaults to the user's home directory.                        |
-| `--recursive`             | `-R`  | `false`                   | Whether to scan the source folder recursively. Destination is always scanned recursively.    |
-| `--force-apply`           | `-F`  | `false`                   | Automatically apply the reorganization plan without user confirmation.                       |
-| `--continue-on-fs-errors` | `-C`  | `false`                   | Allow partial migration when files or folders cause filesystem errors (e.g., access issues). |
-| `--llm-address`           | `-n`  | `http://localhost:11434/` | Override the default LLM server address.                                                     |
-| `--qdrant-address`        | `-q`  | `http://localhost:6334/`  | Override the default Qdrant vector database address.                                         |
+```sh
+messy-folder-reorganizer-ai rollback \
+ -i <SESSION_ID>
+```
 
-#### `apply` Subcommand
+## Command-Line Arguments
 
-No additional arguments.
+The CLI supports the following subcommands:
 
-#### `rollback` Subcommand
+---
 
-No additional arguments.
+### `process`
+
+Processes source files, finds best-matching destination folders using embeddings, and generates a migration plan.
+
+| Argument                  | Short | Default                  | Description                                                                          |
+| ------------------------- | ----- | ------------------------ | ------------------------------------------------------------------------------------ |
+| `--language-model`        | `-L`  | _required_               | Ollama LLM model name used to generate semantic folder names.                        |
+| `--embedding-model`       | `-E`  | _required_               | Embedding model used for representing folder and file names as vectors.              |
+| `--source`                | `-S`  | _required_               | Path to the folder with unorganized files.                                           |
+| `--destination`           | `-D`  | `home`                   | Path to the folder where organized files should go.                                  |
+| `--recursive`             | `-R`  | `false`                  | Whether to scan subfolders of the source folder recursively.                         |
+| `--force-apply`           | `-F`  | `false`                  | Automatically apply changes after processing without showing preview.                |
+| `--continue-on-fs-errors` | `-C`  | `false`                  | Allow skipping files/folders that throw filesystem errors (e.g., permission denied). |
+| `--llm-address`           | `-n`  | `http://localhost:11434` | Address of the local or remote Ollama LLM server.                                    |
+| `--qdrant-address`        | `-q`  | `http://localhost:6334`  | Address of the Qdrant vector database instance.                                      |
+
+---
+
+### `apply`
+
+Applies a previously saved migration plan using the session ID.
+Session Id will be printed during `process` execution.
+
+| Argument       | Short | Description                                        |
+| -------------- | ----- | -------------------------------------------------- |
+| `--session-id` | `-i`  | The session ID generated by the `process` command. |
+
+---
+
+### 🔙 `rollback`
+
+Rolls back a previously applied migration using the session ID.
+Session Id will be printed during `process` execution.
+
+| Argument       | Short | Description                                              |
+| -------------- | ----- | -------------------------------------------------------- |
+| `--session-id` | `-i`  | The session ID used to identify which migration to undo. |
 
 ## Configuration
 
@@ -251,6 +273,8 @@ More information about LLM and Embedding model configuration options can be foun
 
 RAG and ML configuration parameters are required and should always be present in rag_ml_config.toml.
 You also can set up ignore lists for destionation and source pathes in that config file.
+
+You can change the path where `.messy-folder-reorganizer-ai` will be created. Simply add `MESSY_FOLDER_REORGANIZER_AI_PATH` environment variable with path with desired location.
 
 ### Prompt Customization
 

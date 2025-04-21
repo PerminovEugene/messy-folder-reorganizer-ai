@@ -1,0 +1,20 @@
+# Mirostat settings (disabled for full output control)
+mirostat = 0            # Disable Mirostat
+mirostat_eta = 0.1
+mirostat_tau = 5.0
+
+# Context and repetition settings
+num_ctx = 4096          # Maximum context window
+repeat_last_n = 256     # Retain longer history
+repeat_penalty = 1.2    # Prevent repetitive folder names
+
+# Temperature and randomness settings
+temperature = 0.0       # Fully deterministic output
+top_k = 1               # No sampling beyond top token
+top_p = 1.0             # Ignored with temperature=0
+min_p = 0.0             # Ignored with temperature=0
+
+# Seed and stopping conditions
+seed = 42               # Fixed seed for reproducibility
+# stop = ""               # No early stopping string
+num_predict = -1        # Let model generate as much as needed

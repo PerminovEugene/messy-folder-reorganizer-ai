@@ -1,3 +1,4 @@
+use std::env;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -14,7 +15,8 @@ use crate::console::messages::print_generate_config_file;
 use crate::fs::path::get_home_path;
 
 use super::consts::{
-    INITIAL_PROMPT_FILE, MIGRATIONS_FOLDER, MIGRATIONS_LOG_FILE_BASE, MIGRATIONS_LOG_FILE_FORMAT,
+    INITIAL_PROMPT_FILE, MESSY_FOLDER_REORGANIZER_AI_PATH, MIGRATIONS_FOLDER,
+    MIGRATIONS_LOG_FILE_BASE, MIGRATIONS_LOG_FILE_FORMAT,
 };
 
 /*
@@ -44,7 +46,7 @@ pub fn init() {
     );
 }
 
-fn create_application_config_folder() {
+pub fn create_application_config_folder() {
     let app_config_dir = get_app_config_folder();
     if !app_config_dir.exists() {
         fs::create_dir_all(app_config_dir).expect("Failed to create config directory");
@@ -57,7 +59,10 @@ fn create_application_config_folder() {
 }
 
 pub fn get_app_config_folder() -> PathBuf {
-    get_home_path().join(CONFIGURATION_FOLDER)
+    env::var(MESSY_FOLDER_REORGANIZER_AI_PATH)
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| get_home_path())
+        .join(CONFIGURATION_FOLDER)
 }
 
 pub fn get_app_migrations_folder() -> PathBuf {
@@ -80,7 +85,7 @@ pub fn get_migrations_log_file_path(session_id: &String) -> PathBuf {
     get_app_migrations_folder().join(file_name)
 }
 
-fn create_application_file_if_missing(config_file_path: &Path, embedded_content: &[u8]) {
+pub fn create_application_file_if_missing(config_file_path: &Path, embedded_content: &[u8]) {
     if !config_file_path.exists() {
         if let Some(parent) = config_file_path.parent() {
             fs::create_dir_all(parent).expect("Failed to create parent directories");
