@@ -8,14 +8,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install Rust
-        run: rustup update stable
+      # TODO:
+      # integration tests demand ollama and qdrant
+      # update usage to nextest
+      # - name: Install Rust
+      #   run: rustup update stable
 
       - name: Install tarpaulin
         run: cargo install cargo-tarpaulin
 
-      - name: Run Coverage
-        run: cargo tarpaulin --out Xml
+      - name: Run Unit Test Coverage
+        run: cargo tarpaulin --out Xml --lib
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
