@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 
 use crate::ai::embedding_context::add_context_to_files_input;
-use crate::ai::embeddings_request;
+use crate::ai::embeddings_request::get_ai_embeddings;
 use crate::configuration::args::ProcessArgs;
 use crate::configuration::config::{EmbeddingModelConfig, RagMlConfig};
 use crate::configuration::ignore_list::parse_ignore_list;
@@ -65,11 +65,10 @@ pub async fn process_sources(
     let original_file_names = files_data.iter().map(|d| &d.file_name).collect::<Vec<_>>();
     let formatted_file_names = format_file_names(&original_file_names);
     let embeddings_input = add_context_to_files_input(&formatted_file_names);
-    let embeddings = embeddings_request::get_embeddings(
+    let embeddings = get_ai_embeddings(
         &embeddings_input,
-        args.embedding_model.clone(),
-        args.ai_server_address.clone(),
-        embedding_config.clone(),
+        args,
+        embedding_config,
     )
     .await?;
 
