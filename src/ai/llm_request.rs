@@ -1,39 +1,62 @@
-use reqwest::Client;
-
-use crate::{
-    ai::{
-        ollama_protocol::{OllamaGenerateRequest, OllamaOptions, OllamaResponse},
-        prompt::read_prompt,
-    },
-    configuration::config::LLMModelConfig,
-    errors::app_error::AppError,
+use reqwest::Client as ReqwestClient;
+use crate::ai::{
+    ollama_protocol::{OllamaGenerateRequest, OllamaOptions as OllamaModelOptions, OllamaResponse as OllamaLLMResponse},
+    openai_client::OpenAIClient, // Added
+    prompt::read_prompt,
 };
+use crate::configuration::config::LLMModelConfig as OllamaLLMConfig;
+use crate::errors::app_error::AppError;
+use crate::configuration::args::{ProcessArgs, AiProvider}; // Added
 use serde_json;
-use std::result::Result;
 
-pub async fn ask_ai_for_reordering_plan(
+pub async fn get_ai_reordering_plan(
     file_names: Vec<&String>,
-    model: String,
-    ai_server_address: String,
-    config: LLMModelConfig,
+    args: &ProcessArgs,
+    ollama_config: &OllamaLLMConfig, // Still needed for Ollama path
+) -> Result<String, AppError> {
+    match args.ai_provider {
+        AiProvider::Local => {
+            let model_name = args.ollama_llm_model.as_ref().ok_or(AppError::OllamaLlmModelMissing)?.clone();
+            ask_ollama_for_reordering_plan(
+                file_names,
+                model_name,
+                args.ollama_server_address.clone(),
+                ollama_config.clone(),
+            ).await
+        }
+        AiProvider::OpenAI => {
+            let api_key = args.openai_api_key.clone()
+                .or_else(|| std::env::var("OPENAI_API_KEY").ok())
+                .ok_or_else(|| AppError::Configuration("OpenAI API key not provided. Set --openai-api-key or OPENAI_API_KEY env var.".to_string()))?;
+            let client = OpenAIClient::new(args, api_key);
+            client.generate_openai_folder_name(file_names).await
+        }
+    }
+}
+
+async fn ask_ollama_for_reordering_plan(
+    file_names: Vec<&String>,
+    ollama_model_name: String,
+    ollama_server_address: String,
+    ollama_config: OllamaLLMConfig,
 ) -> Result<String, AppError> {
     let file_data_json = serde_json::to_string_pretty(&file_names)
         .map_err(|e| AppError::JSONStringify(e.to_string()))?;
-
-    let prompt = read_prompt();
-    let prompt_with_input = format!("{}\n{}", prompt, file_data_json);
-    generate_ai_answer(prompt_with_input, model, ai_server_address, config).await
+    
+    let prompt_template = read_prompt(); // This is Ollama's prompt structure
+    let prompt_with_input = format!("{}\n{}", prompt_template, file_data_json);
+    
+    generate_ollama_answer(prompt_with_input, ollama_model_name, ollama_server_address, ollama_config).await
 }
 
-pub async fn generate_ai_answer(
+async fn generate_ollama_answer(
     prompt: String,
     model: String,
-    ai_server_address: String,
-    config: LLMModelConfig,
+    ollama_server_address: String,
+    config: OllamaLLMConfig,
 ) -> Result<String, AppError> {
-    let client = Client::new();
-
-    let options = OllamaOptions {
+    let client = ReqwestClient::new();
+    let options = OllamaModelOptions {
         mirostat: config.mirostat,
         mirostat_tau: config.mirostat_tau,
         mirostat_eta: config.mirostat_eta,
@@ -52,61 +75,55 @@ pub async fn generate_ai_answer(
     let request_body = OllamaGenerateRequest {
         model,
         prompt,
-        stream: true,
+        stream: true, // Current implementation streams
         options: &options,
     };
 
     let mut response_text = String::new();
-    let mut thinking_is_over = false;
+    let mut thinking_is_over = false; 
 
-    let mut endpoint = ai_server_address.clone();
+    let mut endpoint = ollama_server_address.clone();
     endpoint.push_str("/api/generate");
 
-    let response = client
+    let mut ollama_response_stream = client
         .post(endpoint)
         .json(&request_body)
         .send()
         .await
         .map_err(|e| AppError::OllamaConnection(e.to_string()))?;
 
-    let mut response = response;
-
-    while let Some(chunk) = response
+    while let Some(chunk) = ollama_response_stream
         .chunk()
         .await
         .map_err(|e| AppError::OllamaConnection(e.to_string()))?
     {
-        let olama_response_token: OllamaResponse = serde_json::from_slice::<OllamaResponse>(&chunk)
+        let olama_response_token: OllamaLLMResponse = serde_json::from_slice::<OllamaLLMResponse>(&chunk)
             .map_err(|e| AppError::OllamaResponseParse(e.to_string()))?;
 
         if olama_response_token.response.is_empty() {
             continue;
         }
-
-        if thinking_is_over {
+        if thinking_is_over { 
             response_text.push_str(&olama_response_token.response);
         }
-
-        if olama_response_token.response == "</think>" {
+        if olama_response_token.response == "</think>" { // Assuming this tag is significant
             thinking_is_over = true;
+        } else if !thinking_is_over && !read_prompt().contains("</think>") { // If no think tag expected, append directly
+             response_text.push_str(&olama_response_token.response);
         }
     }
-
-    let response_text = clean_json_string(&response_text);
-    Ok(response_text)
+    Ok(clean_json_string(&response_text))
 }
 
-// Sometimes LLM response contains extra characters that need to be cleaned
 fn clean_json_string(input: &str) -> String {
-    if let Some(start_index) = input.find("```json") {
-        let after_json = &input[start_index + 7..]; // 7 is the length of "```json"
-
-        let parts: Vec<&str> = after_json.split("```").collect();
-        if !parts.is_empty() {
-            return parts[0].trim().to_string();
+    let trimmed_input = input.trim();
+    if let Some(start_index) = trimmed_input.find("```json") {
+        if let Some(json_block_content) = trimmed_input.get(start_index + 7..) {
+            if let Some(end_index) = json_block_content.rfind("```") {
+                 return json_block_content[..end_index].trim().to_string();
+            }
+            return json_block_content.trim().to_string();
         }
     }
-
-    // If ```json is not found, return the original string
-    input.to_string()
+    trimmed_input.to_string()
 }

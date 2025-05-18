@@ -3,11 +3,11 @@
 ![Build](https://img.shields.io/github/actions/workflow/status/PerminovEugene/messy-folder-reorganizer-ai/ci.yml?branch=main)
 ![License](https://img.shields.io/github/license/PerminovEugene/messy-folder-reorganizer-ai)
 ![Language](https://img.shields.io/github/languages/top/PerminovEugene/messy-folder-reorganizer-ai)
-![Local AI](https://img.shields.io/badge/AI-local--only-green?logo=ai)
+![AI Options](https://img.shields.io/badge/AI-local%20%26%20OpenAI-green?logo=ai)
 
 ## messy-folder-reorganizer-ai - 🤖 AI-powered CLI for file reorganization.
 
-### Runs fully locally — no data leaves your machine.
+### Runs fully locally with Ollama or connects to OpenAI API for enhanced capabilities.
 
 ### How It Works
 
@@ -19,8 +19,8 @@ CLI supports multiple commands:
 
    - a **source folder** path containing the files to organize
    - a **destination folder** path where organized files will be placed
-   - an **AI model name** (loaded in Ollama) used to generate folder names
-   - an **embedding model name** (also loaded in Ollama) used to generate vector embeddings
+   - an **AI provider** (Ollama or OpenAI) for generating folder names and embeddings
+   - **model names** for the selected provider (Ollama models or OpenAI models)
 
 2. **Destination Folder Scan**
 
@@ -213,6 +213,54 @@ messy-folder-reorganizer-ai rollback \
  -i <SESSION_ID>
 ```
 
+## AI Provider Configuration
+
+This tool supports using either local AI models via Ollama or remote models via the OpenAI API.
+
+### Local AI (Ollama - Default)
+
+By default, or by specifying `--ai-provider local`, the tool will use Ollama.
+You must have Ollama installed and running.
+
+-   `--language-model` / `-L <OLLAMA_LLM_MODEL_NAME>`: (Required for local) Specifies the Ollama model for generating folder names (e.g., `deepseek-r1:latest`).
+-   `--embedding-model` / `-E <OLLAMA_EMBEDDING_MODEL_NAME>`: (Required for local) Specifies the Ollama model for generating embeddings (e.g., `mxbai-embed-large`).
+-   `--ollama-server-address` / `-n <URL>`: Specifies the Ollama server address (default: `http://localhost:11434`).
+
+**Example (Local):**
+```sh
+messy-folder-reorganizer-ai process \
+  -L deepseek-r1:latest \
+  -E mxbai-embed-large \
+  -S ./messy-folder \
+  -D ./organized-folder
+```
+
+### OpenAI API (Remote)
+
+To use OpenAI models, specify `--ai-provider openai`.
+
+-   `--openai-api-key <YOUR_API_KEY>`: (Required for OpenAI) Your OpenAI API key. Can also be set via the `OPENAI_API_KEY` environment variable.
+-   `--openai-llm-model <MODEL_ID>`: Specifies the OpenAI model for folder name generation (default: `gpt-4o-mini`).
+-   `--openai-embedding-model <MODEL_ID>`: Specifies the OpenAI model for embeddings (default: `text-embedding-ada-002`).
+-   `--openai-api-base <URL>`: Optional. Custom base URL for OpenAI-compatible APIs (default: `https://api.openai.com/v1`).
+-   `--openai-temperature <FLOAT>`: Optional. Sampling temperature for OpenAI LLM (0.0-2.0).
+-   `--openai-max-tokens <INT>`: Optional. Max completion tokens for OpenAI LLM.
+-   `--openai-embedding-dimensions <INT>`: Optional. Output dimensions for newer OpenAI embedding models (e.g., `text-embedding-3-small`).
+
+**Example (OpenAI):**
+```sh
+# Ensure OPENAI_API_KEY is set in your environment or use --openai-api-key
+messy-folder-reorganizer-ai process \
+  --ai-provider openai \
+  --openai-llm-model "gpt-4o-mini" \
+  --openai-embedding-model "text-embedding-3-small" \
+  -S ./messy-folder \
+  -D ./organized-folder \
+  -q http://localhost:6334 # Qdrant is still used for local embedding storage
+```
+
+**Note on Qdrant with OpenAI:** Even when using OpenAI for generating embeddings, Qdrant is still used locally to store these embeddings and perform similarity searches. Ensure Qdrant is running.
+
 ## Command-Line Arguments
 
 The CLI supports the following subcommands:
@@ -223,17 +271,25 @@ The CLI supports the following subcommands:
 
 Processes source files, finds best-matching destination folders using embeddings, and generates a migration plan.
 
-| Argument                  | Short | Default                  | Description                                                                          |
-| ------------------------- | ----- | ------------------------ | ------------------------------------------------------------------------------------ |
-| `--language-model`        | `-L`  | _required_               | Ollama LLM model name used to generate semantic folder names.                        |
-| `--embedding-model`       | `-E`  | _required_               | Embedding model used for representing folder and file names as vectors.              |
-| `--source`                | `-S`  | _required_               | Path to the folder with unorganized files.                                           |
-| `--destination`           | `-D`  | `home`                   | Path to the folder where organized files should go.                                  |
-| `--recursive`             | `-R`  | `false`                  | Whether to scan subfolders of the source folder recursively.                         |
-| `--force-apply`           | `-F`  | `false`                  | Automatically apply changes after processing without showing preview.                |
-| `--continue-on-fs-errors` | `-C`  | `false`                  | Allow skipping files/folders that throw filesystem errors (e.g., permission denied). |
-| `--llm-address`           | `-n`  | `http://localhost:11434` | Address of the local or remote Ollama LLM server.                                    |
-| `--qdrant-address`        | `-q`  | `http://localhost:6334`  | Address of the Qdrant vector database instance.                                      |
+| Argument                       | Short | Default                  | Description                                                                          |
+| ------------------------------ | ----- | ------------------------ | ------------------------------------------------------------------------------------ |
+| `--ai-provider`                |       | `local`                  | AI provider to use (`local` for Ollama, or `openai`).                                |
+| `--language-model`             | `-L`  | _required for local_     | Ollama LLM model name used to generate semantic folder names.                        |
+| `--embedding-model`            | `-E`  | _required for local_     | Ollama embedding model used for representing folder and file names as vectors.       |
+| `--ollama-server-address`      | `-n`  | `http://localhost:11434` | Address of the Ollama server (if using local provider).                              |
+| `--openai-api-key`             |       | _required for OpenAI_    | OpenAI API key (can also be set via OPENAI_API_KEY environment variable).            |
+| `--openai-llm-model`           |       | `gpt-4o-mini`            | OpenAI model for folder name generation (if using OpenAI provider).                  |
+| `--openai-embedding-model`     |       | `text-embedding-ada-002` | OpenAI model for embeddings (if using OpenAI provider).                              |
+| `--openai-api-base`            |       | `https://api.openai.com/v1` | Custom base URL for OpenAI-compatible APIs.                                       |
+| `--openai-temperature`         |       | `0.7`                    | Sampling temperature for OpenAI LLM (0.0-2.0).                                       |
+| `--openai-max-tokens`          |       | `150`                    | Max completion tokens for OpenAI LLM.                                                |
+| `--openai-embedding-dimensions`|       | _model default_          | Output dimensions for newer OpenAI embedding models.                                 |
+| `--source`                     | `-S`  | _required_               | Path to the folder with unorganized files.                                           |
+| `--destination`                | `-D`  | `home`                   | Path to the folder where organized files should go.                                  |
+| `--recursive`                  | `-R`  | `false`                  | Whether to scan subfolders of the source folder recursively.                         |
+| `--force-apply`                | `-F`  | `false`                  | Automatically apply changes after processing without showing preview.                |
+| `--continue-on-fs-errors`      | `-C`  | `false`                  | Allow skipping files/folders that throw filesystem errors (e.g., permission denied). |
+| `--qdrant-address`             | `-q`  | `http://localhost:6334`  | Address of the Qdrant vector database instance.                                      |
 
 ---
 
