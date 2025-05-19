@@ -8,7 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: [x86_64-unknown-linux-gnu]
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
 
     steps:
       - uses: actions/checkout@v4
@@ -23,13 +25,11 @@ jobs:
           target: ${{ matrix.target }}
           override: true
 
-      - name: Build Release Binary (verbose)
-        run: |
-          set -eux
-          cargo build --release --target ${{ matrix.target }} --verbose
+      - name: Install Target
+        run: rustup target add ${{ matrix.target }}
 
-      - name: Inspect Build Artifacts
-        run: ls -lah target/${{ matrix.target }}/release
+      - name: Build Release Binary
+        run: cargo build --release --target ${{ matrix.target }}
 
       - name: Package Binary
         run: |
@@ -43,4 +43,4 @@ jobs:
         with:
           files: messy-folder-reorganizer-ai-${{ env.VERSION }}-*.tar.gz
         env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
