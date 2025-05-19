@@ -11,14 +11,20 @@ jobs:
         target:
           - x86_64-unknown-linux-gnu
           - aarch64-unknown-linux-gnu
+
     env:
       RUSTFLAGS: ""
-      # Set the C linker for the respective target.
-      RUSTC_LINKER: ${{ matrix.target == 'aarch64-unknown-linux-gnu' && 'aarch64-linux-gnu-gcc' || 'gcc' }}
-      # For vendored builds, openssl-sys needs a C compiler for the target.
-      # CC_aarch64_unknown_linux_gnu tells a C build system (like 'cc' crate used by openssl-sys)
-      # which compiler to use when building C code for that target. Set conditionally.
-      CC_aarch64_unknown_linux_gnu: ${{ matrix.target == 'aarch64-unknown-linux-gnu' && 'aarch64-linux-gnu-gcc' || '' }}
+      # --- C Compiler for the 'cc' crate when vendoring OpenSSL ---
+      # For building OpenSSL C code for the aarch64 target
+      CC_aarch64_unknown_linux_gnu: "aarch64-linux-gnu-gcc"
+      # For building OpenSSL C code for the x86_64 target (host compiler)
+      CC_x86_64_unknown_linux_gnu: "gcc"
+
+      # --- Linker for Rustc's final link step ---
+      # For linking the final Rust binary for the aarch64 target
+      CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "aarch64-linux-gnu-gcc"
+      # For linking the final Rust binary for the x86_64 target (host linker)
+      CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: "gcc"
 
     steps:
       - uses: actions/checkout@v4
@@ -26,20 +32,23 @@ jobs:
       - name: Extract Version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Install Build Toolchain (AArch64 Target)
+      - name: Install Host Build Tools
+        # build-essential (for make, host gcc) and perl are required by OpenSSL's build scripts (./config or ./Configure)
+        # These tools run on the host (x86_64) even when cross-compiling OpenSSL's C code.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            perl
+
+      - name: Install AArch64 C Cross-Compiler
+        # Only needed if we are building for the aarch64 target.
+        # This is the C compiler that will compile OpenSSL's C sources for aarch64.
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            gcc-aarch64-linux-gnu \
-            build-essential # For make, perl, etc., required by OpenSSL's build system (runs on host)
-
-      - name: Install Build Toolchain (x86_64 Target)
-        if: matrix.target == 'x86_64-unknown-linux-gnu'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential # For native gcc, make, perl, etc. (for vendoring on host for host target)
+          sudo apt-get install -y --no-install-recommends \
+            gcc-aarch64-linux-gnu
 
       - name: Setup Rust Toolchain & Target
         uses: actions-rs/toolchain@v1
@@ -53,12 +62,9 @@ jobs:
           set -eux
           echo "--- Build Environment ---"
           echo "Target: ${{ matrix.target }}"
-          echo "Rustc Linker: $RUSTC_LINKER"
-          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
-            echo "CC_aarch64_unknown_linux_gnu: $CC_aarch64_unknown_linux_gnu"
-          fi
+          echo "Cargo Linker for Target: $(eval echo \$CARGO_TARGET_$(echo ${{ matrix.target }} | tr '[:lower:]' '[:upper:]' | tr '-' '_')_LINKER)"
+          echo "CC for Target: $(eval echo \$CC_$(echo ${{ matrix.target }} | tr '[:lower:]' '[:upper:]' | tr '-' '_'))"
           echo "-------------------------"
-          # Assumes your Cargo.toml is correctly configured for vendoring OpenSSL.
           cargo build --release --target ${{ matrix.target }}
 
       - name: Inspect Artifacts
@@ -72,9 +78,8 @@ jobs:
         run: |
           set -eux
           mkdir -p release
-          # Ensure this binary name matches your actual output.
-          # If your crate name in Cargo.toml is 'messy-folder-reorganizer-ai',
-          # the binary name will likely be 'messy_folder_reorganizer_ai'.
+          # Assuming the binary name from your original workflow is 'messy_folder_reorganizer_ai'
+          # This should match your crate name (with hyphens replaced by underscores if it's a library crate name used as binary).
           cp target/${{ matrix.target }}/release/messy_folder_reorganizer_ai release/
           tar czvf messy-folder-reorganizer-ai-${{ env.VERSION }}-${{ matrix.target }}.tar.gz \
             -C release messy_folder_reorganizer_ai
