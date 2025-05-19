@@ -13,8 +13,8 @@ jobs:
           - aarch64-unknown-linux-gnu
 
     env:
-      # Allow pkg-config to detect cross-compiled libraries
-      PKG_CONFIG_ALLOW_CROSS: "1"
+      RUSTFLAGS: "" # Or any other global Rust flags you need
+      RUSTC_LINKER: ${{ matrix.target == 'aarch64-unknown-linux-gnu' && 'aarch64-linux-gnu-gcc' || 'gcc' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -22,16 +22,32 @@ jobs:
       - name: Extract Version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Install System Dependencies
+      - name: Install aarch64 Build Dependencies and Set Cross-Compile Env
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
           sudo dpkg --add-architecture arm64
           sudo apt-get update
-          # Host dev libs and pkg-config
-          sudo apt-get install -y build-essential pkg-config libssl-dev
-          # ARM cross-compiler and ARM OpenSSL headers
-          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
-            sudo apt-get install -y gcc-aarch64-linux-gnu libssl-dev:arm64
-          fi
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            gcc-aarch64-linux-gnu \
+            libssl-dev:arm64 \
+            pkg-config-aarch64-linux-gnu
+
+          echo "Setting environment variables for aarch64 OpenSSL cross-compilation..."
+          echo "PKG_CONFIG_ALLOW_CROSS=1" >> $GITHUB_ENV
+          echo "PKG_CONFIG=aarch64-linux-gnu-pkg-config" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig:${PKG_CONFIG_PATH:-}" >> $GITHUB_ENV
+          echo "AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_LIB_DIR=/usr/lib/aarch64-linux-gnu" >> $GITHUB_ENV
+          echo "AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_INCLUDE_DIR=/usr/include/aarch64-linux-gnu" >> $GITHUB_ENV
+
+      - name: Install x86_64 Build Dependencies
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            libssl-dev \
+            pkg-config
 
       - name: Setup Rust Toolchain & Target
         uses: actions-rs/toolchain@v1
@@ -43,10 +59,19 @@ jobs:
       - name: Build Release Binary
         run: |
           set -eux
-          # Hyphens in crate names become underscores in binary filenames
+          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
+            echo "--- AArch64 Cross-Compile Environment (Verification) ---"
+            echo "RUSTC_LINKER: $RUSTC_LINKER"
+            echo "PKG_CONFIG_ALLOW_CROSS: $PKG_CONFIG_ALLOW_CROSS"
+            echo "PKG_CONFIG: $PKG_CONFIG"
+            echo "PKG_CONFIG_PATH: $PKG_CONFIG_PATH"
+            echo "AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_LIB_DIR: $AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_LIB_DIR"
+            echo "AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_INCLUDE_DIR: $AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_INCLUDE_DIR"
+            echo "-------------------------------------------------------"
+          fi
           cargo build --release --target ${{ matrix.target }}
 
-      - name: Inspect Build Artifacts
+      - name: Inspect Artifacts
         run: |
           echo "Contents of target/${{ matrix.target }}/release:"
           ls -l target/${{ matrix.target }}/release
@@ -57,14 +82,13 @@ jobs:
         run: |
           set -eux
           mkdir -p release
-          # Use underscore to match actual binary name
           cp target/${{ matrix.target }}/release/messy_folder_reorganizer_ai release/
           tar czvf messy-folder-reorganizer-ai-${{ env.VERSION }}-${{ matrix.target }}.tar.gz \
             -C release messy_folder_reorganizer_ai
 
-      - name: Upload Release Binaries
+      - name: Upload Release Artifacts
         uses: softprops/action-gh-release@v2
         with:
           files: messy-folder-reorganizer-ai-${{ env.VERSION }}-*.tar.gz
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
