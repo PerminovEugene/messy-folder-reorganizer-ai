@@ -12,11 +12,22 @@ jobs:
           - x86_64-unknown-linux-gnu
           - aarch64-unknown-linux-gnu
 
+    # Set linker for aarch64 only
+    env:
+      RUSTFLAGS: ""
+      RUSTC_LINKER: ${{ matrix.target == 'aarch64-unknown-linux-gnu' && 'aarch64-linux-gnu-gcc' || 'gcc' }}
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Extract Version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Install Build Dependencies
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential gcc-aarch64-linux-gnu
 
       - name: Setup Rust Toolchain & Target
         uses: actions-rs/toolchain@v1
@@ -25,33 +36,28 @@ jobs:
           target: ${{ matrix.target }}
           override: true
 
-      - name: Install Target
-        run: rustup target add ${{ matrix.target }}
-
       - name: Build Release Binary
         run: |
           set -eux
-          # Rust crate names with hyphens become underscores in binary names
-          cargo build --release --target ${{ matrix.target }} --verbose
+          # Hyphens in crate names become underscores in binary filenames
+          cargo build --release --target ${{ matrix.target }}
 
-      - name: Inspect Release Directory
+      - name: Inspect Artifacts
         run: |
-          echo "Artifacts in target/${{ matrix.target }}/release:"
+          echo "Contents of target/${{ matrix.target }}/release:"
           ls -l target/${{ matrix.target }}/release
-          echo "Executable files:"
-          find target/${{ matrix.target }}/release -type f -perm -u+x -maxdepth 1
+          echo "Executables:"
+          find target/${{ matrix.target }}/release -maxdepth 1 -type f -perm -u+x
 
       - name: Package Binary
         run: |
           set -eux
           mkdir -p release
-          # The built binary uses underscores (Rust naming convention)
           cp target/${{ matrix.target }}/release/messy_folder_reorganizer_ai release/
-          # Archive name can remain hyphenated for readability
-          tar -czvf messy-folder-reorganizer-ai-${{ env.VERSION }}-${{ matrix.target }}.tar.gz \
+          tar czvf messy-folder-reorganizer-ai-${{ env.VERSION }}-${{ matrix.target }}.tar.gz \
             -C release messy_folder_reorganizer_ai
 
-      - name: Upload Release Binaries
+      - name: Upload Release Artifacts
         uses: softprops/action-gh-release@v2
         with:
           files: messy-folder-reorganizer-ai-${{ env.VERSION }}-*.tar.gz
