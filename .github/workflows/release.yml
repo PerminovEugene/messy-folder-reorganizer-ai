@@ -29,14 +29,27 @@ jobs:
         run: rustup target add ${{ matrix.target }}
 
       - name: Build Release Binary
-        run: cargo build --release --target ${{ matrix.target }}
+        run: |
+          set -eux
+          # Rust crate names with hyphens become underscores in binary names
+          cargo build --release --target ${{ matrix.target }} --verbose
+
+      - name: Inspect Release Directory
+        run: |
+          echo "Artifacts in target/${{ matrix.target }}/release:"
+          ls -l target/${{ matrix.target }}/release
+          echo "Executable files:"
+          find target/${{ matrix.target }}/release -type f -perm -u+x -maxdepth 1
 
       - name: Package Binary
         run: |
+          set -eux
           mkdir -p release
-          cp target/${{ matrix.target }}/release/messy-folder-reorganizer-ai release/
+          # The built binary uses underscores (Rust naming convention)
+          cp target/${{ matrix.target }}/release/messy_folder_reorganizer_ai release/
+          # Archive name can remain hyphenated for readability
           tar -czvf messy-folder-reorganizer-ai-${{ env.VERSION }}-${{ matrix.target }}.tar.gz \
-            -C release messy-folder-reorganizer-ai
+            -C release messy_folder_reorganizer_ai
 
       - name: Upload Release Binaries
         uses: softprops/action-gh-release@v2
