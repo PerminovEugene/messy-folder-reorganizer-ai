@@ -1,50 +1,46 @@
 name: Release Build
-
 on:
   push:
-    tags:
-      - "v*" # Triggers on tags like v0.3.2
+    tags: ["v*"]
 
 jobs:
   build:
-    name: Build and Release Binaries
-    runs-on: ${{ matrix.os }}
-
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        include:
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
+        target: [x86_64-unknown-linux-gnu]
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install Rust Toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Extract Version from Git Tag
+      - name: Extract Version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Add Target for Cross Compilation
-        run: rustup target add ${{ matrix.target }}
+      - name: Setup Rust Toolchain & Target
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+          override: true
 
-      - name: Build Release Binary
-        run: cargo build --release --target ${{ matrix.target }}
+      - name: Build Release Binary (verbose)
+        run: |
+          set -eux
+          cargo build --release --target ${{ matrix.target }} --verbose
+
+      - name: Inspect Build Artifacts
+        run: ls -lah target/${{ matrix.target }}/release
 
       - name: Package Binary
         run: |
           mkdir -p release
           cp target/${{ matrix.target }}/release/messy-folder-reorganizer-ai release/
-          tar -czvf messy-folder-reorganizer-ai-${VERSION}-${{ matrix.target }}.tar.gz -C release messy-folder-reorganizer-ai
-
-      - name: List Built Files
-        run: ls -lah .
+          tar -czvf messy-folder-reorganizer-ai-${{ env.VERSION }}-${{ matrix.target }}.tar.gz \
+            -C release messy-folder-reorganizer-ai
 
       - name: Upload Release Binaries
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            messy-folder-reorganizer-ai-${{ env.VERSION }}-*.tar.gz
+          files: messy-folder-reorganizer-ai-${{ env.VERSION }}-*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
