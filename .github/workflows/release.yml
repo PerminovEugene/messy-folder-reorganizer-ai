@@ -1,9 +1,7 @@
 name: Release Build
-
 on:
   push:
-    tags:
-      - 'v*'
+    tags: ["v*"]
 
 jobs:
   build:
@@ -13,15 +11,13 @@ jobs:
         target:
           - x86_64-unknown-linux-gnu
           - aarch64-unknown-linux-gnu
+
     env:
       # Allow pkg-config to detect cross-compiled libraries
       PKG_CONFIG_ALLOW_CROSS: "1"
-      # Set Rust flags if needed globally, or per command
-      RUSTFLAGS: ""
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4 # Updated to v4 from user's v3
+      - uses: actions/checkout@v4
 
       - name: Extract Version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
@@ -29,100 +25,46 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo dpkg --add-architecture arm64
-          sudo apt-get update -qq
-          # Install common build tools, host OpenSSL dev (for host tools if any, or x86_64 build), and pkg-config
-          sudo apt-get install -y -qq build-essential pkg-config libssl-dev
-
-          # Install cross-compilation tools specifically for aarch64 target
+          sudo apt-get update
+          # Host dev libs and pkg-config
+          sudo apt-get install -y build-essential pkg-config libssl-dev
+          # ARM cross-compiler and ARM OpenSSL headers
           if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
-            sudo apt-get install -y -qq gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu libssl-dev:arm64
+            sudo apt-get install -y gcc-aarch64-linux-gnu libssl-dev:arm64
           fi
-        shell: bash
 
-      # Setup Rust toolchain and install the Rust target
-      # actions-rs/toolchain@v1 will run `rustup target add ${{ matrix.target }}`
       - name: Setup Rust Toolchain & Target
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           target: ${{ matrix.target }}
           override: true
-          # components: # You can add components like clippy, rustfmt if needed
-      
-      # Configure Cargo for aarch64 cross-compilation using .cargo/config.toml
-      - name: Configure Cargo for AArch64 cross-compile
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          mkdir -p .cargo
-          cat << 'EOF' > .cargo/config.toml
-          [target.aarch64-unknown-linux-gnu]
-          linker = "aarch64-linux-gnu-gcc"
-          ar = "aarch64-linux-gnu-ar"
-
-          # Set PKG_CONFIG_PATH specifically for this target's build process
-          # This helps find the .pc files for libssl-dev:arm64
-          PKG_CONFIG_PATH = "/usr/lib/aarch64-linux-gnu/pkgconfig"
-          EOF
-          # For openssl-sys, explicitly setting these can be more robust than relying on pkg-config alone
-          # These point to where libssl-dev:arm64 typically installs its files.
-          echo "AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_DIR=/usr" >> $GITHUB_ENV
-          echo "AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_LIB_DIR=/usr/lib/aarch64-linux-gnu" >> $GITHUB_ENV
-          echo "AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_INCLUDE_DIR=/usr/include/aarch64-linux-gnu" >> $GITHUB_ENV
-          # For crates like `ring` that use the `cc` crate directly:
-          echo "CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-          echo "AR_aarch64_unknown_linux_gnu=aarch64-linux-gnu-ar" >> $GITHUB_ENV
-        shell: bash
 
       - name: Build Release Binary
         run: |
           set -eux
-          echo "Current RUSTFLAGS: $RUSTFLAGS"
-          echo "Current RUSTC_LINKER for target ${{ matrix.target }}: $(rustc +stable-${{ matrix.target }} --print cfg | grep target_linker | cut -d '"' -f2)"
-          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
-            echo "OpenSSL Dir for AARCH64: $AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_DIR"
-            echo "OpenSSL Lib Dir for AARCH64: $AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_LIB_DIR"
-            echo "OpenSSL Include Dir for AARCH64: $AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_INCLUDE_DIR"
-            echo "CC for AARCH64: $CC_aarch64_unknown_linux_gnu"
-            echo "AR for AARCH64: $AR_aarch64_unknown_linux_gnu"
-          fi
-          cargo build --release --target ${{ matrix.target }} --verbose
-        shell: bash
+          # Hyphens in crate names become underscores in binary filenames
+          cargo build --release --target ${{ matrix.target }}
 
       - name: Inspect Build Artifacts
         run: |
           echo "Contents of target/${{ matrix.target }}/release:"
-          ls -lA target/${{ matrix.target }}/release
+          ls -l target/${{ matrix.target }}/release
           echo "Executables:"
-          find target/${{ matrix.target }}/release -maxdepth 1 -type f -perm /a+x # Check for any executable permission
-        shell: bash
+          find target/${{ matrix.target }}/release -maxdepth 1 -type f -perm -u+x
 
       - name: Package Binary
         run: |
           set -eux
-          BINARY_NAME="messy_folder_reorganizer_ai" # Ensure this matches your crate's binary name
-          ARTIFACT_DIR="target/${{ matrix.target }}/release"
-          
-          echo "Looking for binary at ${ARTIFACT_DIR}/${BINARY_NAME}"
-          if [ ! -f "${ARTIFACT_DIR}/${BINARY_NAME}" ]; then
-            echo "Error: Binary ${BINARY_NAME} not found in ${ARTIFACT_DIR}!"
-            echo "Files available:"
-            ls -lA "${ARTIFACT_DIR}"
-            exit 1
-          fi
-
           mkdir -p release
-          cp "${ARTIFACT_DIR}/${BINARY_NAME}" release/
-          
-          ARCHIVE_NAME="messy-folder-reorganizer-ai-${{ env.VERSION }}-${{ matrix.target }}.tar.gz"
-          tar czvf "${ARCHIVE_NAME}" -C release "${BINARY_NAME}"
-          echo "Created archive: ${ARCHIVE_NAME}"
-        shell: bash
+          # Use underscore to match actual binary name
+          cp target/${{ matrix.target }}/release/messy_folder_reorganizer_ai release/
+          tar czvf messy-folder-reorganizer-ai-${{ env.VERSION }}-${{ matrix.target }}.tar.gz \
+            -C release messy_folder_reorganizer_ai
 
       - name: Upload Release Binaries
         uses: softprops/action-gh-release@v2
         with:
           files: messy-folder-reorganizer-ai-${{ env.VERSION }}-*.tar.gz
         env:
-          # GITHUB_TOKEN is automatically provided by Actions, no need to set explicitly for softprops/action-gh-release@v2 unless using a PAT for other repos.
-          # If using secrets.GITHUB_TOKEN, it's fine. secrets.MY_GITHUB_TOKEN was from your previous example.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
