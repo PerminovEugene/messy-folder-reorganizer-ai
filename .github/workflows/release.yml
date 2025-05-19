@@ -11,12 +11,13 @@ jobs:
         target:
           - x86_64-unknown-linux-gnu
           - aarch64-unknown-linux-gnu
-
-    # Global env vars - RUSTC_LINKER is set here for x86_64,
-    # but will be overridden by CARGO_TARGET_..._LINKER for aarch64.
     env:
       RUSTFLAGS: ""
-      RUSTC_LINKER: gcc # Default for host (x86_64)
+      RUSTC_LINKER: ${{ matrix.target == 'aarch64-unknown-linux-gnu' && 'aarch64-linux-gnu-gcc' || 'gcc' }}
+      PKG_CONFIG_ALLOW_CROSS: ${{ matrix.target == 'aarch64-unknown-linux-gnu' && '1' || '' }}
+      PKG_CONFIG: ${{ matrix.target == 'aarch64-unknown-linux-gnu' && 'aarch64-linux-gnu-pkg-config' || 'pkg-config' }}
+      AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_LIB_DIR: ${{ matrix.target == 'aarch64-unknown-linux-gnu' && '/usr/lib/aarch64-linux-gnu' || '' }}
+      AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_INCLUDE_DIR: ${{ matrix.target == 'aarch64-unknown-linux-gnu' && '/usr/include' || '' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -24,16 +25,23 @@ jobs:
       - name: Extract Version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Install AArch64 Build Dependencies
+      - name: Install AArch64 Cross-Compilation Dependencies
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
           sudo dpkg --add-architecture arm64
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential \
             gcc-aarch64-linux-gnu \
-            libssl-dev:arm64 \
-            pkg-config-aarch64-linux-gnu
+            pkg-config-aarch64-linux-gnu \
+            libssl-dev:arm64
+
+      - name: Install x86_64 Host Dependencies
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libssl-dev
 
       - name: Setup Rust Toolchain & Target
         uses: actions-rs/toolchain@v1
@@ -43,16 +51,19 @@ jobs:
           override: true
 
       - name: Build Release Binary
-        env:
-          # Target-specific linker for aarch64
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: ${{ matrix.target == 'aarch64-unknown-linux-gnu' && 'aarch64-linux-gnu-gcc' || '' }}
-          # Target-specific pkg-config setup for aarch64
-          PKG_CONFIG_aarch64_unknown_linux_gnu: ${{ matrix.target == 'aarch64-unknown-linux-gnu' && 'aarch64-linux-gnu-pkg-config' || '' }}
-          PKG_CONFIG_ALLOW_CROSS_aarch64_unknown_linux_gnu: ${{ matrix.target == 'aarch64-unknown-linux-gnu' && '1' || '' }}
-          # Target-specific OpenSSL directory for aarch64
-          OPENSSL_DIR_aarch64_unknown_linux_gnu: ${{ matrix.target == 'aarch64-unknown-linux-gnu' && '/usr' || '' }}
         run: |
           set -eux
+          echo "--- Build Environment ---"
+          echo "Target: ${{ matrix.target }}"
+          echo "Rustc Linker: $RUSTC_LINKER"
+          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
+            echo "PKG_CONFIG: $PKG_CONFIG"
+            echo "AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_LIB_DIR: $AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_LIB_DIR"
+            echo "AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_INCLUDE_DIR: $AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_INCLUDE_DIR"
+            echo "Verifying aarch64-linux-gnu-pkg-config for openssl:"
+            aarch64-linux-gnu-pkg-config --cflags --libs openssl || echo "pkg-config query failed"
+          fi
+          echo "-------------------------"
           cargo build --release --target ${{ matrix.target }}
 
       - name: Inspect Artifacts
@@ -66,6 +77,9 @@ jobs:
         run: |
           set -eux
           mkdir -p release
+          # Ensure the binary name here matches your actual output binary name.
+          # cargo build typically uses the crate name (underscores for hyphens).
+          # If your crate name is "messy-folder-reorganizer-ai", the binary is likely "messy_folder_reorganizer_ai"
           cp target/${{ matrix.target }}/release/messy_folder_reorganizer_ai release/
           tar czvf messy-folder-reorganizer-ai-${{ env.VERSION }}-${{ matrix.target }}.tar.gz \
             -C release messy_folder_reorganizer_ai
