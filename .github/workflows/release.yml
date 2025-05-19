@@ -14,13 +14,11 @@ jobs:
     env:
       RUSTFLAGS: ""
       # Set the C linker for the respective target.
-      # For aarch64, this is the cross-compiler. For x86_64, the native gcc.
       RUSTC_LINKER: ${{ matrix.target == 'aarch64-unknown-linux-gnu' && 'aarch64-linux-gnu-gcc' || 'gcc' }}
       # For vendored builds, openssl-sys needs a C compiler for the target.
       # CC_aarch64_unknown_linux_gnu tells a C build system (like 'cc' crate used by openssl-sys)
-      # which compiler to use when building C code for that target.
-      CC_aarch64_unknown_linux_gnu: "aarch64-linux-gnu-gcc"
-      # Similarly for CXX if C++ code were involved, but OpenSSL is C.
+      # which compiler to use when building C code for that target. Set conditionally.
+      CC_aarch64_unknown_linux_gnu: ${{ matrix.target == 'aarch64-unknown-linux-gnu' && 'aarch64-linux-gnu-gcc' || '' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -34,14 +32,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             gcc-aarch64-linux-gnu \
-            build-essential # For make, perl, etc., required by OpenSSL's build system
+            build-essential # For make, perl, etc., required by OpenSSL's build system (runs on host)
 
       - name: Install Build Toolchain (x86_64 Target)
         if: matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential # For native gcc, make, perl, etc.
+            build-essential # For native gcc, make, perl, etc. (for vendoring on host for host target)
 
       - name: Setup Rust Toolchain & Target
         uses: actions-rs/toolchain@v1
@@ -51,8 +49,6 @@ jobs:
           override: true
 
       - name: Build Release Binary (Vendored OpenSSL)
-        # Assumes your Cargo.toml has `openssl = { version = "...", features = ["vendored"] }`
-        # or the openssl dependency of another crate is configured for vendoring.
         run: |
           set -eux
           echo "--- Build Environment ---"
@@ -62,6 +58,7 @@ jobs:
             echo "CC_aarch64_unknown_linux_gnu: $CC_aarch64_unknown_linux_gnu"
           fi
           echo "-------------------------"
+          # Assumes your Cargo.toml is correctly configured for vendoring OpenSSL.
           cargo build --release --target ${{ matrix.target }}
 
       - name: Inspect Artifacts
