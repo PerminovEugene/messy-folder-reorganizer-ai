@@ -6,9 +6,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        target: [x86_64-unknown-linux-gnu]
 
     steps:
       - uses: actions/checkout@v4
@@ -16,31 +13,38 @@ jobs:
       - name: Extract Version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Setup Rust Toolchain & Target
+      - name: Setup Rust Toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-          target: ${{ matrix.target }}
           override: true
 
-      - name: Build Release Binary (verbose)
-        run: |
-          set -eux
-          cargo build --release --target ${{ matrix.target }} --verbose
+      - name: Build Release Binary
+        run: cargo build --release
 
-      - name: Inspect Build Artifacts
-        run: ls -lah target/${{ matrix.target }}/release
+      - name: List target directory contents
+        run: ls -R target/
+
+      - name: Verify Binary Exists
+        run: |
+          if [ ! -f target/release/messy-folder-reorganizer-ai ]; then
+            echo "Error: Binary not found!"
+            exit 1
+          fi
+
+      - name: Copy Binary
+        run: |
+          mkdir -p release
+          cp target/release/messy-folder-reorganizer-ai release/
 
       - name: Package Binary
         run: |
-          mkdir -p release
-          cp target/${{ matrix.target }}/release/messy-folder-reorganizer-ai release/
-          tar -czvf messy-folder-reorganizer-ai-${{ env.VERSION }}-${{ matrix.target }}.tar.gz \
+          tar -czvf messy-folder-reorganizer-ai-${{ env.VERSION }}-x86_64-unknown-linux-gnu.tar.gz \
             -C release messy-folder-reorganizer-ai
 
       - name: Upload Release Binaries
         uses: softprops/action-gh-release@v2
         with:
-          files: messy-folder-reorganizer-ai-${{ env.VERSION }}-*.tar.gz
+          files: messy-folder-reorganizer-ai-${{ env.VERSION }}-x86_64-unknown-linux-gnu.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
