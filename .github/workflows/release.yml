@@ -1,4 +1,4 @@
-name: Release Build (Vendored OpenSSL)
+name: Release Build
 on:
   push:
     tags: ["v*"]
@@ -8,47 +8,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target:
-          - x86_64-unknown-linux-gnu
-          - aarch64-unknown-linux-gnu
-
-    env:
-      RUSTFLAGS: ""
-      # --- C Compiler for the 'cc' crate when vendoring OpenSSL ---
-      # For building OpenSSL C code for the aarch64 target
-      CC_aarch64_unknown_linux_gnu: "aarch64-linux-gnu-gcc"
-      # For building OpenSSL C code for the x86_64 target (host compiler)
-      CC_x86_64_unknown_linux_gnu: "gcc"
-
-      # --- Linker for Rustc's final link step ---
-      # For linking the final Rust binary for the aarch64 target
-      CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "aarch64-linux-gnu-gcc"
-      # For linking the final Rust binary for the x86_64 target (host linker)
-      CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: "gcc"
+        target: [x86_64-unknown-linux-gnu]
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Extract Version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      - name: Install Host Build Tools
-        # build-essential (for make, host gcc) and perl are required by OpenSSL's build scripts (./config or ./Configure)
-        # These tools run on the host (x86_64) even when cross-compiling OpenSSL's C code.
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            build-essential \
-            perl
-
-      - name: Install AArch64 C Cross-Compiler
-        # Only needed if we are building for the aarch64 target.
-        # This is the C compiler that will compile OpenSSL's C sources for aarch64.
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            gcc-aarch64-linux-gnu
 
       - name: Setup Rust Toolchain & Target
         uses: actions-rs/toolchain@v1
@@ -57,34 +23,22 @@ jobs:
           target: ${{ matrix.target }}
           override: true
 
-      - name: Build Release Binary (Vendored OpenSSL)
+      - name: Build Release Binary (verbose)
         run: |
           set -eux
-          echo "--- Build Environment ---"
-          echo "Target: ${{ matrix.target }}"
-          echo "Cargo Linker for Target: $(eval echo \$CARGO_TARGET_$(echo ${{ matrix.target }} | tr '[:lower:]' '[:upper:]' | tr '-' '_')_LINKER)"
-          echo "CC for Target: $(eval echo \$CC_$(echo ${{ matrix.target }} | tr '[:lower:]' '[:upper:]' | tr '-' '_'))"
-          echo "-------------------------"
-          cargo build --release --target ${{ matrix.target }}
+          cargo build --release --target ${{ matrix.target }} --verbose
 
-      - name: Inspect Artifacts
-        run: |
-          echo "Contents of target/${{ matrix.target }}/release:"
-          ls -l target/${{ matrix.target }}/release
-          echo "Executables:"
-          find target/${{ matrix.target }}/release -maxdepth 1 -type f -perm -u+x
+      - name: Inspect Build Artifacts
+        run: ls -lah target/${{ matrix.target }}/release
 
       - name: Package Binary
         run: |
-          set -eux
           mkdir -p release
-          # Assuming the binary name from your original workflow is 'messy_folder_reorganizer_ai'
-          # This should match your crate name (with hyphens replaced by underscores if it's a library crate name used as binary).
-          cp target/${{ matrix.target }}/release/messy_folder_reorganizer_ai release/
-          tar czvf messy-folder-reorganizer-ai-${{ env.VERSION }}-${{ matrix.target }}.tar.gz \
-            -C release messy_folder_reorganizer_ai
+          cp target/${{ matrix.target }}/release/messy-folder-reorganizer-ai release/
+          tar -czvf messy-folder-reorganizer-ai-${{ env.VERSION }}-${{ matrix.target }}.tar.gz \
+            -C release messy-folder-reorganizer-ai
 
-      - name: Upload Release Artifacts
+      - name: Upload Release Binaries
         uses: softprops/action-gh-release@v2
         with:
           files: messy-folder-reorganizer-ai-${{ env.VERSION }}-*.tar.gz
