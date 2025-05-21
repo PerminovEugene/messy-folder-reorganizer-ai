@@ -27,7 +27,7 @@ jobs:
 
       - name: Verify Binary Exists
         run: |
-          if [ ! -f target/release/messy-folder-reorganizer-ai ]; then
+          if [ ! -f target/release/messy_folder_reorganizer_ai ]; then
             echo "Error: Binary not found!"
             exit 1
           fi
@@ -35,12 +35,12 @@ jobs:
       - name: Copy Binary
         run: |
           mkdir -p release
-          cp target/release/messy-folder-reorganizer-ai release/
+          cp target/release/messy_folder_reorganizer_ai release/
 
       - name: Package Binary
         run: |
           tar -czvf messy-folder-reorganizer-ai-${{ env.VERSION }}-x86_64-unknown-linux-gnu.tar.gz \
-            -C release messy-folder-reorganizer-ai
+            -C release messy_folder_reorganizer_ai
 
       - name: Upload Release Binaries
         uses: softprops/action-gh-release@v2
