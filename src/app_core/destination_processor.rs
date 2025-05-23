@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use crate::ai::embedding_context::add_context_to_folders_input;
-use crate::ai::embeddings_request::get_embeddings;
+use crate::ai::embeddings_request::get_ai_embeddings;
 use crate::configuration::args::ProcessArgs;
 use crate::configuration::config::{EmbeddingModelConfig, RagMlConfig};
 use crate::configuration::ignore_list::parse_ignore_list;
@@ -73,11 +73,10 @@ pub async fn index_destinations(
 
     print_creating_dest_embeddings();
 
-    let dest_embeddings = get_embeddings(
+    let dest_embeddings = get_ai_embeddings(
         &embeddings_input,
-        args.embedding_model.clone(),
-        args.ai_server_address.clone(),
-        embedding_config.clone(),
+        args,
+        embedding_config,
     )
     .await?;
 

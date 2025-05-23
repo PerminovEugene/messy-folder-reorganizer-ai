@@ -1,0 +1,89 @@
+name: CI Build and Release
+on:
+  push:
+    branches: [ main ]
+    tags: [ "v*.*.*" ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-linux-arm64:
+    name: Build and Release for aarch64-unknown-linux-gnu
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Essential Tools, Build Dependencies, and Rust
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y --no-install-recommends \
+            git \
+            ca-certificates \
+            curl \
+            wget \
+            build-essential \
+            perl \
+            pkg-config \
+            libssl-dev
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Install Rust Target
+        run: rustup target add aarch64-unknown-linux-gnu
+
+      - name: Cache Cargo registry, index, and git dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-registry-git-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-git-
+
+      - name: Cache Cargo target directory
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}-${{ github.ref }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}-
+
+      - name: Set OpenSSL Environment Variables for Static Linking
+        run: |
+          echo "OPENSSL_STATIC=1" >> $GITHUB_ENV
+
+      - name: Build Release Binary
+        env:
+          RUSTFLAGS: "-C target-feature=+crt-static"
+        run: |
+          ldd --version || true
+          cargo build --release --target aarch64-unknown-linux-gnu
+
+      - name: List target directory contents
+        run: |
+          echo "Listing contents of target/aarch64-unknown-linux-gnu/release/"
+          ls -l target/aarch64-unknown-linux-gnu/release/messy_folder_reorganizer_ai
+
+      - name: Verify Binary Exists and Set Path
+        run: |
+          BINARY_CANDIDATE="target/aarch64-unknown-linux-gnu/release/messy_folder_reorganizer_ai"
+          if [ -f "$BINARY_CANDIDATE" ]; then
+            echo "Binary found: $BINARY_CANDIDATE"
+            echo "BINARY_PATH=$BINARY_CANDIDATE" >> $GITHUB_ENV
+          else
+            echo "Error: Binary not found at $BINARY_CANDIDATE!"
+            ls -R target/
+            exit 1
+          fi
+
+      - name: Upload Release Asset
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.BINARY_PATH }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

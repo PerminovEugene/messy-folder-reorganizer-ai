@@ -1,63 +1,79 @@
 name: Release Build
-
 on:
   push:
-    tags:
-      - "v*" # Triggers on tags like v0.3.2
+    tags: ["v*"]
 
 jobs:
   build:
-    name: Build and Release Binaries
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        include:
-          - os: macos-latest
-            target: x86_64-apple-darwin
-          - os: macos-latest
-            target: aarch64-apple-darwin
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-
+    runs-on: ubuntu-24.04-arm
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install Rust Toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Extract Version from Git Tag
+      - name: Extract Version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      # Only for macOS
-      - name: Install OpenSSL for macOS
-        if: matrix.os == 'macos-latest'
+      - name: Install Build Dependencies and Tools
         run: |
-          echo "OPENSSL_DIR=$(brew --prefix openssl@3)" >> $GITHUB_ENV
-          echo "OPENSSL_LIB_DIR=$(brew --prefix openssl@3)/lib" >> $GITHUB_ENV
-          echo "OPENSSL_INCLUDE_DIR=$(brew --prefix openssl@3)/include" >> $GITHUB_ENV
-          echo "PKG_CONFIG_PATH=$(brew --prefix openssl@3)/lib/pkgconfig" >> $GITHUB_ENV
+          sudo apt-get update -y
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            perl \
+            libstdc++6 \
+            git \
+            ca-certificates \
+            curl \
+            wget \
+            pkg-config \
+            libssl-dev
 
-      - name: Add Target for Cross Compilation
-        run: rustup target add ${{ matrix.target }}
+      - name: Download and Compile OpenSSL 1.1.1w
+        run: |
+          wget https://www.openssl.org/source/openssl-1.1.1w.tar.gz
+          tar -xzf openssl-1.1.1w.tar.gz
+          cd openssl-1.1.1w
+          ./config --prefix=/opt/openssl-1.1.1w no-shared no-tests
+          make -j$(nproc)
+          sudo make install_sw
+
+      - name: Setup Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Set OpenSSL Environment Variables for Static Linking
+        run: |
+          echo "OPENSSL_DIR=/opt/openssl-1.1.1w" >> $GITHUB_ENV
+          echo "OPENSSL_STATIC=1" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=/opt/openssl-1.1.1w/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=/opt/openssl-1.1.1w/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
       - name: Build Release Binary
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cargo build --release
+
+      - name: List target directory contents
+        run: ls -R target/
+
+      - name: Verify Binary Exists
+        run: |
+          if [ ! -f target/release/messy_folder_reorganizer_ai ]; then
+            echo "Error: Binary not found!"
+            exit 1
+          fi
+
+      - name: Copy Binary
+        run: |
+          mkdir -p release
+          cp target/release/messy_folder_reorganizer_ai release/
 
       - name: Package Binary
         run: |
-          mkdir -p release
-          cp target/${{ matrix.target }}/release/messy-folder-reorganizer-ai release/
-          tar -czvf messy-folder-reorganizer-ai-${VERSION}-${{ matrix.target }}.tar.gz -C release messy-folder-reorganizer-ai
-
-      - name: List Built Files
-        run: ls -lah .
+          tar -czvf messy-folder-reorganizer-ai-${{ env.VERSION }}-aarch64-unknown-linux-gnu.tar.gz \
+            -C release messy_folder_reorganizer_ai
 
       - name: Upload Release Binaries
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            messy-folder-reorganizer-ai-${{ env.VERSION }}-*.tar.gz
+          files: messy-folder-reorganizer-ai-${{ env.VERSION }}-aarch64-unknown-linux-gnu.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}

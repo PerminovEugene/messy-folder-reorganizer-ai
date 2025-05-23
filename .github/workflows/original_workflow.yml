@@ -1,0 +1,94 @@
+name: Release Build (GLIBC 2.31 Compatible)
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build-linux-arm64-glibc-compatible:
+    name: Build for aarch64-unknown-linux-gnu (GLIBC 2.31)
+    runs-on: ubuntu-latest
+    container:
+      image: arm64v8/debian:bullseye-slim
+      options: --platform linux/arm64 --user root
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract Version from Git Tag
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Install Dependencies and Rust
+        run: |
+          apt-get update -y
+          apt-get install -y --no-install-recommends \
+            build-essential \
+            perl \
+            pkg-config \
+            libssl-dev \
+            git \
+            ca-certificates \
+            curl \
+            wget
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Cache Cargo registry, index, and git dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-registry-git-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-git-
+
+      - name: Cache Cargo target directory
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}-${{ github.ref }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}-
+
+      - name: Set OpenSSL Environment Variables for Static Linking
+        run: |
+          echo "OPENSSL_STATIC=1" >> $GITHUB_ENV
+
+      - name: Build Release Binary
+        env:
+          RUSTFLAGS: "-C target-feature=+crt-static"
+        run: |
+          ldd --version || true
+          cargo build --release --target aarch64-unknown-linux-gnu
+
+      - name: List target directory contents
+        run: ls -R target/aarch64-unknown-linux-gnu/release/
+
+      - name: Verify Binary Exists and Set Path
+        run: |
+          BINARY_PATH="target/aarch64-unknown-linux-gnu/release/messy_folder_reorganizer_ai"
+          if [ -f "$BINARY_PATH" ]; then
+            echo "Binary found: $BINARY_PATH"
+            echo "binary_path_env=$BINARY_PATH" >> $GITHUB_ENV
+          else
+            echo "Error: Binary not found at $BINARY_PATH!"
+            exit 1
+          fi
+
+      - name: Upload Release Asset
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.binary_path_env }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

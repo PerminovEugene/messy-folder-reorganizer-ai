@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use crate::configuration::config::LLMModelConfig;
 use crate::ml::hierarchical_clustering::Cluster;
-use crate::{ai::llm_request::ask_ai_for_reordering_plan, configuration::args::ProcessArgs};
+use crate::{ai::llm_request::get_ai_reordering_plan, configuration::args::ProcessArgs};
 
 use super::sources_processor::FileProcessingResult;
 
@@ -33,11 +33,10 @@ pub async fn process_clusters(
             .collect();
 
         let future = async move {
-            let ai_response_raw = ask_ai_for_reordering_plan(
+            let ai_response_raw = get_ai_reordering_plan(
                 files_data,
-                args.llm_model.clone(),
-                args.ai_server_address.clone(),
-                config,
+                args,
+                &config,
             )
             .await
             .unwrap();
