@@ -13,10 +13,19 @@ jobs:
       - name: Extract Version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Install OpenSSL Build Dependencies
+      - name: Install Build Dependencies and Tools
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential perl libstdc++6
+          sudo apt-get update -y
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            perl \
+            libstdc++6 \
+            git \
+            ca-certificates \
+            curl \
+            wget \
+            pkg-config \
+            libssl-dev
 
       - name: Download and Compile OpenSSL 1.1.1w
         run: |
@@ -33,7 +42,7 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Set OpenSSL Environment Variables
+      - name: Set OpenSSL Environment Variables for Static Linking
         run: |
           echo "OPENSSL_DIR=/opt/openssl-1.1.1w" >> $GITHUB_ENV
           echo "OPENSSL_STATIC=1" >> $GITHUB_ENV

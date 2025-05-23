@@ -1,0 +1,107 @@
+name: CI Build and Release
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*.*.*' ] # Trigger on version tags
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-linux-arm64:
+    name: Build and Release for aarch64-unknown-linux-gnu
+    runs-on: ubuntu-latest # Specifies the runner environment
+    permissions:
+      contents: write # Required to create releases and upload assets
+    steps:
+      - uses: actions/checkout@v4 # Checks out the repository code
+
+      - name: Install Essential Tools, Build Dependencies, and Rust
+        # This step prepares the build environment by:
+        # 1. Updating package lists.
+        # 2. Installing essential tools (git, curl, wget, etc.) and build dependencies (build-essential, perl, pkg-config, libssl-dev).
+        # 3. Installing the Rust toolchain using rustup.
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y --no-install-recommends \
+            git \
+            ca-certificates \
+            curl \
+            wget \
+            build-essential \
+            perl \
+            pkg-config \
+            libssl-dev
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Cache Cargo registry, index, and git dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-registry-git-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-git-
+
+      - name: Cache Cargo target directory
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}-${{ github.ref }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}-
+
+      - name: Set OpenSSL Environment Variables for Static Linking
+        # These environment variables are crucial for Rust's build process to correctly find
+        # and link OpenSSL. Setting OPENSSL_STATIC=1 encourages static linking.
+        # If using a custom-compiled OpenSSL (not done in this workflow), OPENSSL_DIR,
+        # PKG_CONFIG_PATH, and LD_LIBRARY_PATH would point to its location.
+        # For system-provided OpenSSL (via libssl-dev), OPENSSL_STATIC=1 is the key.
+        run: |
+          echo "OPENSSL_STATIC=1" >> $GITHUB_ENV # Instructs Rust to link OpenSSL statically
+          # Example if a custom OpenSSL were at /opt/custom-openssl:
+          # echo "OPENSSL_DIR=/opt/custom-openssl" >> $GITHUB_ENV
+          # echo "PKG_CONFIG_PATH=/opt/custom-openssl/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+          # echo "LD_LIBRARY_PATH=/opt/custom-openssl/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+
+      - name: Build Release Binary
+        env:
+          RUSTFLAGS: "-C target-feature=+crt-static" # Ensures static linking of C runtime
+        run: |
+          # Print GLIBC version for verification, || true to prevent failure if ldd is not found or errors
+          ldd --version || true
+          # $HOME/.cargo/bin should be in PATH due to previous step
+          cargo build --release --target aarch64-unknown-linux-gnu
+
+      - name: List target directory contents
+        run: |
+          echo "Listing contents of target/aarch64-unknown-linux-gnu/release/"
+          ls -l target/aarch64-unknown-linux-gnu/release/messy_folder_reorganizer_ai
+
+      - name: Verify Binary Exists and Set Path
+        run: |
+          BINARY_CANDIDATE="target/aarch64-unknown-linux-gnu/release/messy_folder_reorganizer_ai"
+          if [ -f "$BINARY_CANDIDATE" ]; then
+            echo "Binary found: $BINARY_CANDIDATE"
+            echo "BINARY_PATH=$BINARY_CANDIDATE" >> $GITHUB_ENV
+          else
+            echo "Error: Binary not found at $BINARY_CANDIDATE!"
+            ls -R target/ # List all target contents for debugging
+            exit 1
+          fi
+
+      - name: Upload Release Asset
+        if: startsWith(github.ref, 'refs/tags/v') # Only run on version tags
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.BINARY_PATH }}
+          # You might want to customize the release name, tag, etc.
+          # For example, using the GITHUB_REF_NAME (tag name) for the release name
+          # name: Release ${{ github.ref_name }}
+          # tag_name: ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
