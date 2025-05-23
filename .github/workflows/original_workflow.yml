@@ -1,32 +1,31 @@
 name: Release Build (GLIBC 2.31 Compatible)
-
 on:
   push:
-    tags: ["v*"] # Trigger on version tags like v0.1.0
+    tags: ["v*"]
 
 jobs:
   build-linux-arm64-glibc-compatible:
     name: Build for aarch64-unknown-linux-gnu (GLIBC 2.31)
-    runs-on: ubuntu-latest # Use a standard Ubuntu runner as the host for the Docker container
+    runs-on: ubuntu-latest
     container:
-      image: arm64v8/debian:bullseye-slim # Debian Bullseye for arm64, which includes GLIBC 2.31, compatible with the target system.
-      options: --user root # Run commands as root within the container for package installation.
+      image: arm64v8/debian:bullseye-slim
+      options: --platform linux/arm64 --user root
     permissions:
-      contents: write # Required to create releases and upload assets
-
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Extract Version from Git Tag
-        # Extracts the version number from the Git tag (e.g., v1.2.3 -> 1.2.3)
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
       - name: Install Dependencies and Rust
-        # This step prepares the build environment by:
-        # 1. Updating package lists (apt-get update).
-        # 2. Installing essential tools and build dependencies (git, curl, wget, build-essential, perl, pkg-config, libssl-dev).
-        # 3. Installing the Rust toolchain using rustup.
         run: |
           apt-get update -y
           apt-get install -y --no-install-recommends \
@@ -61,41 +60,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}-
 
-      # Optional: Manually compile OpenSSL for full static linking control (e.g., OpenSSL 1.1.1)
-      # - name: Download and Compile OpenSSL 1.1.1w
-      #   run: |
-      #     OPENSSL_VERSION="1.1.1w"
-      #     OPENSSL_PREFIX="/opt/openssl-${OPENSSL_VERSION}"
-      #     wget "https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz"
-      #     tar -xzf "openssl-${OPENSSL_VERSION}.tar.gz"
-      #     cd "openssl-${OPENSSL_VERSION}"
-      #     # Configure for static linking, no tests, and specify aarch64 target
-      #     # For aarch64, ./config might automatically detect it, or you might need to specify 'linux-aarch64'
-      #     ./Configure linux-aarch64 --prefix="${OPENSSL_PREFIX}" no-shared no-tests
-      #     make -j$(nproc)
-      #     make install_sw
-      #   # Note: After this, OPENSSL_DIR and PKG_CONFIG_PATH would need to be set to $OPENSSL_PREFIX
-
       - name: Set OpenSSL Environment Variables for Static Linking
-        # These environment variables are crucial for Rust's build process to correctly find
-        # and link OpenSSL. Setting OPENSSL_STATIC=1 encourages static linking.
-        # If using a custom-compiled OpenSSL (like the commented-out step above),
-        # OPENSSL_DIR, PKG_CONFIG_PATH, and LD_LIBRARY_PATH would point to its location.
         run: |
-          echo "OPENSSL_STATIC=1" >> $GITHUB_ENV # Instructs Rust to link OpenSSL statically
-          # If using manually compiled OpenSSL, uncomment and adjust:
-          # echo "OPENSSL_DIR=/opt/openssl-1.1.1w" >> $GITHUB_ENV
-          # echo "PKG_CONFIG_PATH=/opt/openssl-1.1.1w/lib/pkgconfig" >> $GITHUB_ENV
-          # echo "LD_LIBRARY_PATH=/opt/openssl-1.1.1w/lib" >> $GITHUB_ENV
+          echo "OPENSSL_STATIC=1" >> $GITHUB_ENV
 
       - name: Build Release Binary
         env:
-          RUSTFLAGS: "-C target-feature=+crt-static" # For static C runtime linking
+          RUSTFLAGS: "-C target-feature=+crt-static"
         run: |
-          echo "Listing $HOME/.cargo/bin contents:"
-          ls -la $HOME/.cargo/bin
-          echo "Current PATH: $PATH"
-          # Print GLIBC version in build environment for verification, || true to prevent failure if ldd not found or errors.
           ldd --version || true
           cargo build --release --target aarch64-unknown-linux-gnu
 
@@ -103,7 +75,6 @@ jobs:
         run: ls -R target/aarch64-unknown-linux-gnu/release/
 
       - name: Verify Binary Exists and Set Path
-        id: verify_binary
         run: |
           BINARY_PATH="target/aarch64-unknown-linux-gnu/release/messy_folder_reorganizer_ai"
           if [ -f "$BINARY_PATH" ]; then
@@ -115,11 +86,9 @@ jobs:
           fi
 
       - name: Upload Release Asset
-        uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
         with:
           files: ${{ env.binary_path_env }}
-          # Example: Use the version from the tag in the release name
-          # name: Release messy_folder_reorganizer_ai ${{ env.VERSION }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
