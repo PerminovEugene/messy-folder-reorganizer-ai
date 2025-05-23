@@ -23,7 +23,7 @@ jobs:
           wget https://www.openssl.org/source/openssl-1.1.1w.tar.gz
           tar -xzf openssl-1.1.1w.tar.gz
           cd openssl-1.1.1w
-          ./config --prefix=/opt/openssl-1.1.1w no-shared ossonly no-tests linux-aarch64
+          ./config --prefix=/opt/openssl-1.1.1w no-shared no-tests linux-aarch64
           make -j$(nproc)
           sudo make install_sw
 
