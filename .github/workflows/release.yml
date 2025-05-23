@@ -13,11 +13,32 @@ jobs:
       - name: Extract Version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
+      - name: Install OpenSSL Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential perl libstdc++6
+
+      - name: Download and Compile OpenSSL 1.1.1w
+        run: |
+          wget https://www.openssl.org/source/openssl-1.1.1w.tar.gz
+          tar -xzf openssl-1.1.1w.tar.gz
+          cd openssl-1.1.1w
+          ./config --prefix=/opt/openssl-1.1.1w no-shared ossonly no-tests linux-aarch64
+          make -j$(nproc)
+          sudo make install_sw
+
       - name: Setup Rust Toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           override: true
+
+      - name: Set OpenSSL Environment Variables
+        run: |
+          echo "OPENSSL_DIR=/opt/openssl-1.1.1w" >> $GITHUB_ENV
+          echo "OPENSSL_STATIC=1" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=/opt/openssl-1.1.1w/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=/opt/openssl-1.1.1w/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
       - name: Build Release Binary
         run: cargo build --release
@@ -39,12 +60,12 @@ jobs:
 
       - name: Package Binary
         run: |
-          tar -czvf messy-folder-reorganizer-ai-${{ env.VERSION }}-x86_64-unknown-linux-gnu.tar.gz \
+          tar -czvf messy-folder-reorganizer-ai-${{ env.VERSION }}-aarch64-unknown-linux-gnu.tar.gz \
             -C release messy_folder_reorganizer_ai
 
       - name: Upload Release Binaries
         uses: softprops/action-gh-release@v2
         with:
-          files: messy-folder-reorganizer-ai-${{ env.VERSION }}-x86_64-unknown-linux-gnu.tar.gz
+          files: messy-folder-reorganizer-ai-${{ env.VERSION }}-aarch64-unknown-linux-gnu.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
