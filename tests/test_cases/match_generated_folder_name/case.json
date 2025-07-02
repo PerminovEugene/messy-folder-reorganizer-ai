@@ -1,0 +1,34 @@
+{
+  "source": {
+    "downloads": {
+      "files": ["charli-chaplin-all-in-one.mpeg4"]
+    }
+  },
+  "destination": {
+    "valeras-stuff": {
+      "video": {
+        "movies": {
+          "horrors": {
+            "files": []
+          }
+        },
+        "anime": {
+          "files": []
+        }
+      }
+    }
+  },
+  "expected": {
+    "valeras-stuff": {
+      "video": {
+        "movies": {
+          "horrors": {},
+          "comedy": {
+            "files": ["charli-chaplin-all-in-one.mpeg4"]
+          }
+        },
+        "anime": {}
+      }
+    }
+  }
+}

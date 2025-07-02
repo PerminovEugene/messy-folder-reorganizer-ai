@@ -70,7 +70,7 @@ Goal: Reach version 1.0.0 with a stable, user-friendly, and powerful AI-driven f
 
 ---
 
-## Version 0.4.0 – One-Button Setup (Beginner Friendly)
+## Version 0.5.0 – One-Button Setup (Beginner Friendly)
 
 - [ ] Add automatic installation script for:
   - Ollama (OS detection + install)

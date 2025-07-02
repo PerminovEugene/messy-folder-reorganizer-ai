@@ -15,9 +15,6 @@ use super::meta::FS_ENTRY_COLLECTION_NAME;
 use super::payload::FsEntryPayload;
 
 pub struct ClosestFsEntry {
-    /// Name of the matched file system entity (file or directory)
-    // pub name: String,
-    /// Starting from destination path in args. Full relative path is relative_path + name
     pub absolute_path: String,
     /// cosine similarity score
     pub score: f32,

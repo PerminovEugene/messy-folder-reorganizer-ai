@@ -12,6 +12,7 @@ use crate::console::messages::{
     print_parsing_sources,
 };
 use crate::db::qdrant;
+use crate::db::qdrant::fs_entry::search::ClosestFsEntry;
 use crate::errors::app_error::AppError;
 use crate::fs::create_file::create_source_file;
 use crate::fs::file_info;
@@ -63,30 +64,12 @@ pub async fn process_sources(
 
     // embeddings
     let original_file_names = files_data.iter().map(|d| &d.file_name).collect::<Vec<_>>();
-    let formatted_file_names = format_file_names(&original_file_names);
-    let embeddings_input = add_context_to_files_input(&formatted_file_names);
-    let embeddings = embeddings_request::get_embeddings(
-        &embeddings_input,
-        args.embedding_model.clone(),
-        args.ai_server_address.clone(),
-        embedding_config.clone(),
-    )
-    .await?;
+    let closest_paths =
+        find_closest_paths(embedding_config, args, session_id, &original_file_names).await?;
 
-    print_looking_for_suitable_destination();
-
-    let client = qdrant::client::init(&args.qdrant_server_address).await?;
     let absolute_path_to_dest = std::env::current_dir()
         .unwrap()
         .join(args.destination.clone());
-    let closest_paths = qdrant::fs_entry::search::find_closest_fs_entry(
-        &client,
-        embeddings,
-        &absolute_path_to_dest,
-        session_id,
-    )
-    .await?;
-
     let mut result: Vec<FileProcessingResult> = closest_paths
         .into_iter()
         .zip(files_data.into_iter())
@@ -96,14 +79,6 @@ pub async fn process_sources(
                 .strip_prefix(&absolute_path_to_dest)
                 .unwrap();
 
-            // if search_result.is_root {
-            //     String::from("")
-            // } else {
-            //     PathBuf::from(search_result.absolute_path)
-            //         // .join(search_result.name)
-            //         .to_string_lossy()
-            //         .to_string()
-            // };
             FileProcessingResult {
                 destination_relative_path: destination_relative_path.to_string_lossy().to_string(),
                 score: search_result.score,
@@ -147,4 +122,36 @@ fn format_file_names(file_names: &Vec<&String>) -> Vec<String> {
         .iter()
         .map(|file_name| format_file_name(file_name))
         .collect()
+}
+
+pub async fn find_closest_paths(
+    embedding_config: &EmbeddingModelConfig,
+    args: &ProcessArgs,
+    session_id: &str,
+    original_file_names: &Vec<&String>,
+) -> Result<Vec<ClosestFsEntry>, AppError> {
+    let formatted_file_names = format_file_names(original_file_names);
+    let embeddings_input = add_context_to_files_input(&formatted_file_names);
+    let embeddings = embeddings_request::get_embeddings(
+        &embeddings_input,
+        args.embedding_model.clone(),
+        args.ai_server_address.clone(),
+        embedding_config.clone(),
+    )
+    .await?;
+
+    print_looking_for_suitable_destination();
+
+    let client = qdrant::client::init(&args.qdrant_server_address).await?;
+    let absolute_path_to_dest = std::env::current_dir()
+        .unwrap()
+        .join(args.destination.clone());
+    let closest_paths = qdrant::fs_entry::search::find_closest_fs_entry(
+        &client,
+        embeddings,
+        &absolute_path_to_dest,
+        session_id,
+    )
+    .await?;
+    Ok(closest_paths)
 }

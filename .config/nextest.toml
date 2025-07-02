@@ -1,0 +1,12 @@
+# [test-groups]
+# resource-limited = { max-threads = 1 }
+
+# [[profile.default.overrides]]
+# filter = 'test(with_embeddings_only::)'
+# test-group = 'resource-limited'
+# priority = 0
+
+# [[profile.default.overrides]]
+# filter = 'test(with_folder_generation)'
+# test-group = 'resource-limited'
+# priority = 0

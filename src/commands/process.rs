@@ -26,8 +26,15 @@ pub async fn run_process(args: ProcessArgs) -> Result<(), AppError> {
 
     print_rag_processing_result(&rag_ml_config, &process_result);
 
-    let migration_plan =
-        create_migration_plan(&llm_config, &rag_ml_config, &args, &mut process_result).await;
+    let migration_plan = create_migration_plan(
+        &llm_config,
+        &rag_ml_config,
+        &args,
+        &mut process_result,
+        &session_id,
+        &embeddings_config,
+    )
+    .await?;
 
     print_migration_plan_table(&migration_plan);
     save_migrations_to_file(migration_plan, &session_id)?;

@@ -1,0 +1,39 @@
+name: Ollama Cached Integration Test
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Restore Ollama model cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.ollama/models
+          key: ollama-model-llama3
+          restore-keys: |
+            ollama-model-
+
+      - name: Install Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+
+      - name: Pull model if not cached
+        run: |
+          if [ ! -f ~/.ollama/models/manifest ]; then
+            echo "Model not found in cache. Pulling..."
+            ollama pull llama3
+          else
+            echo "Model found in cache!"
+          fi
+
+      - name: Run your tests
+        run: |
+          ollama run llama3 "What is the meaning of life?"
